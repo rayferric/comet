@@ -1,11 +1,11 @@
 package com.rayferric.comet.video.gl;
 
-import java.nio.IntBuffer;
+import com.rayferric.comet.video.common.VideoResource;
 
 import static org.lwjgl.opengl.GL11.*;
 
-public class Texture {
-    public Texture() {
+public class GLTexture implements VideoResource {
+    public GLTexture() {
         handle = glGenTextures();
         bind();
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -20,6 +20,7 @@ public class Texture {
         glBindTexture(GL_TEXTURE_2D, handle);
     }
 
+    @Override
     public void free() {
         glDeleteTextures(handle);
     }

@@ -2,15 +2,13 @@ package com.rayferric.comet.resources;
 
 import com.rayferric.comet.Engine;
 
-public class Resource {
+public abstract class Resource {
     public void reload() {
-        unload();
-        load();
+        free();
+        create();
     }
 
-    public void free() {
-        unload();
-    }
+    public abstract void free();
 
     protected static class Properties {};
 
@@ -22,11 +20,5 @@ public class Resource {
         engine.registerResource(this);
     }
 
-    protected void load() {
-
-    }
-
-    protected void unload() {
-
-    }
+    protected abstract void create();
 }

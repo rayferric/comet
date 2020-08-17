@@ -1,18 +1,23 @@
 package com.rayferric.comet.resources;
 
 import com.rayferric.comet.Engine;
-
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Texture extends Resource {
     public Texture(Engine engine, String path) {
         super(engine);
         properties = new Properties(path);
-        load();
+        create();
+    }
+
+    @Override
+    public void free() {
+        engine.getVideoServer().getVideoEngine().freeResource(internalResource.get());
     }
 
     protected static class Properties extends Resource.Properties {
@@ -23,14 +28,15 @@ public class Texture extends Resource {
         }
     }
 
-    protected ResourceHandle videoResource;
+    protected AtomicLong internalResource = new AtomicLong(0);
 
     @Override
-    protected void load() {
+    protected void create() {
         Properties properties = (Properties)this.properties;
 
         engine.getThreadPool().execute(() -> {
             ByteBuffer data;
+
             STBImage.stbi_set_flip_vertically_on_load(true);
             try(MemoryStack stack = MemoryStack.stackPush()) {
                 IntBuffer width = stack.mallocInt(1);
@@ -38,12 +44,8 @@ public class Texture extends Resource {
                 IntBuffer channels = stack.mallocInt(1);
                 data = STBImage.stbi_load(properties.path, width, height, channels, 0);
             }
-            videoResource =
+
+            internalResource.set(engine.getVideoServer().getVideoEngine().createTexture(data, 0, 0));
         });
-    }
-
-    @Override
-    protected void unload() {
-
     }
 }

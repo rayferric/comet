@@ -1,7 +1,6 @@
 package com.rayferric.comet;
 
 import com.rayferric.comet.resources.Resource;
-import com.rayferric.comet.resources.Texture;
 import com.rayferric.comet.server.VideoServer;
 import com.rayferric.comet.util.AutoMap;
 import com.rayferric.comet.video.display.Window;
