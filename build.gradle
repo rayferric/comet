@@ -1,0 +1,15 @@
+plugins {
+    id 'java'
+}
+
+group 'com.rayferric'
+version '1.0.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation group: 'junit', name: 'junit', version: '4.12'
+    implementation group: 'org.lwjgl', name: 'lwjgl', version: '3.2.3'
+}
