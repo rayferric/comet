@@ -1,19 +1,26 @@
 package com.rayferric.comet.video.gl;
 
+import com.rayferric.comet.resources.Texture;
+import com.rayferric.comet.video.common.InternalVideoResource;
 import com.rayferric.comet.video.common.VideoEngine;
 
-import java.nio.ByteBuffer;
-
 public class GLVideoEngine extends VideoEngine {
-    @Override
-    public void draw() {
-
+    public GLVideoEngine(String wndTitle, int wndWidth, int wndHeight) {
+        super(wndTitle, wndWidth, wndHeight);
     }
 
     @Override
-    public long createTexture(ByteBuffer data, int width, int height) {
-        final long key = resources.put(null);
-        // TODO Enqueue render thread task to fill this null
-        return key;
+    public void draw() {
+        System.out.println("Drawing");
+        try {
+            Thread.sleep(100);
+        } catch(InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    @Override
+    protected InternalVideoResource createTexture(Texture.InternalRecipe recipe) {
+        return new GLTexture(recipe);
     }
 }

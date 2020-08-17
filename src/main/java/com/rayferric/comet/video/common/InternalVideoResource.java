@@ -1,5 +1,5 @@
 package com.rayferric.comet.video.common;
 
-public interface VideoResource {
+public interface InternalVideoResource {
     void free();
 }

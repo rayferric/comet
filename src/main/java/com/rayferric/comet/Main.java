@@ -1,25 +1,26 @@
 package com.rayferric.comet;
 
+import com.rayferric.comet.resources.Texture;
 import com.rayferric.comet.video.display.GLFW;
 import com.rayferric.comet.video.display.Window;
-
-import java.util.concurrent.ThreadPoolExecutor;
 
 public class Main {
     public static void main(String[] args) {
         GLFW.init();
 
-        Engine engine = new Engine(4);
-        ThreadPoolExecutor threadPool = engine.getThreadPool();
-        Window window = engine.getWindow();
+        Engine engine = new Engine(4, Engine.VideoAPI.OPENGL, "Engine");
 
-        while(!window.shouldClose()) {
+        Texture texture = new Texture(engine, "texture.png");
+
+        while(true) {
             Window.pollEvents();
 
-            window.swapBuffers();
+            // engine.getVideoEngine().reloadResources();
         }
 
-        window.close();
+        engine.terminate();
+
+        System.out.println("Terminated.");
 
         GLFW.terminate();
     }

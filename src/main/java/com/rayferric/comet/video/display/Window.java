@@ -74,6 +74,10 @@ public class Window {
         return glfwWindowShouldClose(window);
     }
 
+    public void setShouldClose(boolean shouldClose) {
+        glfwSetWindowShouldClose(window, shouldClose);
+    }
+
     public void swapBuffers() {
         glfwSwapBuffers(window);
     }
