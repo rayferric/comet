@@ -1,11 +1,12 @@
-package com.rayferric.comet.resources;
+package com.rayferric.comet.resources.video;
 
 import com.rayferric.comet.Engine;
+import com.rayferric.comet.resources.Resource;
 
 public abstract class VideoResource extends Resource {
     @Override
     public void free() {
-        engine.getVideoEngine().freeResource(this);
+        engine.getVideoServer().freeResource(this);
     }
 
     protected VideoResource(Engine engine) {

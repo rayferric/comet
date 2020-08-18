@@ -22,10 +22,10 @@ public class Vector2i {
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(this == obj) return true;
-        if(obj == null || getClass() != obj.getClass()) return false;
-        Vector2i other = (Vector2i)obj;
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        Vector2i other = (Vector2i)o;
         return x == other.x && y == other.y;
     }
 

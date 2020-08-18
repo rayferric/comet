@@ -1,13 +1,13 @@
 package com.rayferric.comet.video.display;
 
 import org.lwjgl.glfw.GLFWErrorCallback;
-import org.lwjgl.glfw.GLFWVidMode;
 
-import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.glfw.GLFW.glfwInit;
+import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 public class GLFW {
     public static void init() {
-        if(initialized)return;
+        if(initialized) return;
         initialized = true;
 
         GLFWErrorCallback.createPrint(System.err).set();

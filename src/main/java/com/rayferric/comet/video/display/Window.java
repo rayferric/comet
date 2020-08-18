@@ -1,7 +1,7 @@
 package com.rayferric.comet.video.display;
 
 import com.rayferric.comet.math.Vector2i;
-import org.lwjgl.opengl.GL;
+import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
@@ -18,30 +18,28 @@ public class Window {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
 
-        window = glfwCreateWindow(width, height, this.title = title, NULL, NULL);
-        if(window == NULL)
+        handle = glfwCreateWindow(width, height, this.title = title, NULL, NULL);
+        if(handle == NULL)
             throw new RuntimeException("Failed to create window instance.");
 
-        glfwSetKeyCallback(window, this::keyCallback);
-        glfwSetMouseButtonCallback(window, this::mouseButtonCallback);
-        glfwSetScrollCallback(window, this::scrollCallback);
+        glfwSetKeyCallback(handle, this::keyCallback);
+        glfwSetMouseButtonCallback(handle, this::mouseButtonCallback);
+        glfwSetScrollCallback(handle, this::scrollCallback);
 
         final Monitor monitor = Monitor.getPrimary();
         if(monitor != null)
             setPos(monitor.getResolution().sub(getSize()).div(2));
         saveCurrentPlacement();
 
-        makeCurrent();
         setVSync(true);
-        GL.createCapabilities();
     }
 
     @Override
-    public boolean equals(Object obj) {
-        if(this == obj) return true;
-        if(obj == null || getClass() != obj.getClass()) return false;
-        Window other = (Window)obj;
-        return window == other.window &&
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        Window other = (Window)o;
+        return handle == other.handle &&
                 vSync == other.vSync &&
                 Objects.equals(title, other.title) &&
                 Objects.equals(posX, other.posX) &&
@@ -53,37 +51,40 @@ public class Window {
 
     @Override
     public int hashCode() {
-        return Objects.hash(window, vSync, title, posX, posY, sizeX, sizeY, monitor);
+        return Objects.hash(handle, vSync, title, posX, posY, sizeX, sizeY, monitor);
     }
 
     @Override
     public String toString() {
-        return String.format("Window{window=%s, vSync=%s, title=%s, posX=%s, posY=%s, sizeX=%s, sizeY=%s, monitor=%s}",
-                window, vSync, title, posX, posY, sizeX, sizeY, monitor);
+        return String.format("Window{handle=%s, vSync=%s, title=%s, posX=%s, posY=%s, sizeX=%s, sizeY=%s, monitor=%s}",
+                handle, vSync, title, posX, posY, sizeX, sizeY, monitor);
     }
 
     public static void pollEvents() {
         glfwPollEvents();
     }
 
+    public static void makeCurrent(Window window) {
+        if(window != null)
+            glfwMakeContextCurrent(window.handle);
+        else
+            glfwMakeContextCurrent(NULL);
+    }
+
     public boolean isOpen() {
-        return window != NULL;
+        return handle != NULL;
     }
 
     public boolean shouldClose() {
-        return glfwWindowShouldClose(window);
+        return glfwWindowShouldClose(handle);
     }
 
     public void setShouldClose(boolean shouldClose) {
-        glfwSetWindowShouldClose(window, shouldClose);
+        glfwSetWindowShouldClose(handle, shouldClose);
     }
 
     public void swapBuffers() {
-        glfwSwapBuffers(window);
-    }
-
-    public void makeCurrent() {
-        makeCurrent(window);
+        glfwSwapBuffers(handle);
     }
 
     public boolean hasVSync() {
@@ -94,12 +95,10 @@ public class Window {
         if(this.vSync == vSync)
             return;
 
-        final long prevCurrent = Window.current;
-        makeCurrent();
-
+        final long prevCurrent = glfwGetCurrentContext();
+        glfwMakeContextCurrent(handle);
         glfwSwapInterval((this.vSync = vSync) ? 1 : 0);
-
-        makeCurrent(prevCurrent);
+        glfwMakeContextCurrent(prevCurrent);
     }
 
     public String getTitle() {
@@ -107,7 +106,7 @@ public class Window {
     }
 
     public void setTitle(String title) {
-        glfwSetWindowTitle(window, this.title = title);
+        glfwSetWindowTitle(handle, this.title = title);
     }
 
     public Vector2i getPos() {
@@ -115,14 +114,14 @@ public class Window {
             final IntBuffer posX = stack.mallocInt(1);
             final IntBuffer posY = stack.mallocInt(1);
 
-            glfwGetWindowPos(window, posX, posY);
+            glfwGetWindowPos(handle, posX, posY);
 
             return new Vector2i(posX.get(0), posY.get(0));
         }
     }
 
     public void setPos(Vector2i pos) {
-        glfwSetWindowPos(window, pos.getX(), pos.getY());
+        glfwSetWindowPos(handle, pos.getX(), pos.getY());
     }
 
     public Vector2i getSize() {
@@ -130,22 +129,22 @@ public class Window {
             final IntBuffer sizeX = stack.mallocInt(1);
             final IntBuffer sizeY = stack.mallocInt(1);
 
-            glfwGetWindowSize(window, sizeX, sizeY);
+            glfwGetWindowSize(handle, sizeX, sizeY);
 
             return new Vector2i(sizeX.get(0), sizeY.get(0));
         }
     }
 
     public void setSize(Vector2i size) {
-        glfwSetWindowPos(window, size.getX(), size.getY());
+        glfwSetWindowPos(handle, size.getX(), size.getY());
     }
 
     public boolean hasFocus() {
-        return glfwGetWindowAttrib(window, GLFW_FOCUSED) == GLFW_TRUE;
+        return glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
     }
 
     public void focus() {
-        glfwFocusWindow(window);
+        glfwFocusWindow(handle);
     }
 
     public boolean isFullscreen() {
@@ -160,48 +159,40 @@ public class Window {
         if(monitor != null) {
             saveCurrentPlacement();
             final Vector2i resolution = monitor.getResolution();
-            glfwSetWindowMonitor(window, monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
+            glfwSetWindowMonitor(handle, monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
                     GLFW_DONT_CARE);
         } else
-            glfwSetWindowMonitor(window, NULL, posX.get(0), posY.get(0), sizeX.get(0), sizeY.get(0), GLFW_DONT_CARE);
+            glfwSetWindowMonitor(handle, NULL, posX.get(0), posY.get(0), sizeX.get(0), sizeY.get(0), GLFW_DONT_CARE);
     }
 
     public boolean isVisible() {
-        return glfwGetWindowAttrib(window, GLFW_VISIBLE) == GLFW_TRUE;
+        return glfwGetWindowAttrib(handle, GLFW_VISIBLE) == GLFW_TRUE;
     }
 
     public void setVisible(boolean visible) {
         if(visible)
-            glfwShowWindow(window);
+            glfwShowWindow(handle);
         else
-            glfwHideWindow(window);
+            glfwHideWindow(handle);
     }
 
     public void close() {
-        glfwDestroyWindow(window);
-        window = NULL;
+        glfwDestroyWindow(handle);
+        handle = NULL;
     }
 
-    private static long current = NULL;
-
-    private long window;
+    private long handle;
     private boolean vSync;
     private String title;
-    private final IntBuffer posX = IntBuffer.allocate(1);
-    private final IntBuffer posY = IntBuffer.allocate(1);
-    private final IntBuffer sizeX = IntBuffer.allocate(1);
-    private final IntBuffer sizeY = IntBuffer.allocate(1);
+    private final IntBuffer posX = BufferUtils.createIntBuffer(1);
+    private final IntBuffer posY = BufferUtils.createIntBuffer(1);
+    private final IntBuffer sizeX = BufferUtils.createIntBuffer(1);
+    private final IntBuffer sizeY = BufferUtils.createIntBuffer(1);
     private Monitor monitor = null;
 
-    private static void makeCurrent(final long window) {
-        if(current != window) {
-            glfwMakeContextCurrent(current = window);
-        }
-    }
-
     private void saveCurrentPlacement() {
-        glfwGetWindowPos(window, posX, posY);
-        glfwGetWindowSize(window, sizeX, sizeY);
+        glfwGetWindowPos(handle, posX, posY);
+        glfwGetWindowSize(handle, sizeX, sizeY);
     }
 
     private void keyCallback(long window, int key, int scanCode, int action, int mods) {

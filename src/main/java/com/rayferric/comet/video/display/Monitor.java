@@ -13,10 +13,10 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Monitor {
     @Override
-    public boolean equals(Object obj) {
-        if(this == obj) return true;
-        if(obj == null || getClass() != obj.getClass()) return false;
-        Monitor other = (Monitor)obj;
+    public boolean equals(Object o) {
+        if(this == o) return true;
+        if(o == null || getClass() != o.getClass()) return false;
+        Monitor other = (Monitor)o;
         return handle == other.handle;
     }
 

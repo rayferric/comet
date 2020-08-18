@@ -1,6 +1,6 @@
 package com.rayferric.comet;
 
-import com.rayferric.comet.resources.Texture;
+import com.rayferric.comet.resources.video.Texture;
 import com.rayferric.comet.video.display.GLFW;
 import com.rayferric.comet.video.display.Window;
 
@@ -9,16 +9,24 @@ public class Main {
         GLFW.init();
 
         Engine engine = new Engine(4, Engine.VideoAPI.OPENGL, "Engine");
+        engine.getWindow().setVisible(true);
 
         Texture texture = new Texture(engine, "texture.png");
 
-        while(true) {
+        while(engine.getWindow().isOpen()) {
             Window.pollEvents();
 
-            // engine.getVideoEngine().reloadResources();
-        }
+            if(!engine.getWindow().hasFocus()) engine.getWindow().focus();
 
-        engine.terminate();
+            if(engine.getWindow().shouldClose()) engine.stop(); // Example of use in a script
+
+            try {
+                Thread.sleep(10);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+                Thread.currentThread().interrupt();
+            }
+        }
 
         System.out.println("Terminated.");
 
