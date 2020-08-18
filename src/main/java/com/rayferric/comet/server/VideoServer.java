@@ -1,9 +1,10 @@
 package com.rayferric.comet.server;
 
+import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.resources.Resource;
 import com.rayferric.comet.resources.video.Texture;
 import com.rayferric.comet.video.VideoEngine;
-import com.rayferric.comet.video.display.Window;
+import com.rayferric.comet.video.Window;
 
 import java.util.NoSuchElementException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,10 +20,16 @@ public class VideoServer extends Server {
             videoEngine.init();
 
             while(running.get()) {
+                Vector2i fbSize = window.getFramebufferSize();
+                if(!fbSize.equals(videoEngine.getSize()))
+                    videoEngine.resize(fbSize);
+
                 videoEngine.draw();
+
                 // Command buffer is flushed and now we process the resources while swap interval passes
                 freeEnqueuedResources();
                 createEnqueuedResources();
+
                 window.swapBuffers();
             }
 
@@ -42,7 +49,7 @@ public class VideoServer extends Server {
 
     // This method waits till the render thread has finished loading the resource
     // This allows the caller to safely delete memory allocated in the recipe like texture data
-    public void waitForResource(Resource.InternalRecipe recipe) {
+    public void waitForResource(Resource.ServerRecipe recipe) {
         // Here the thread locks itself and waits for createResorces() to unload the queue and release the semaphore
         // Condition is not usable here as createResources() can theoretically signal it before await
         recipe.getSemaphore().acquireUninterruptibly();
@@ -62,12 +69,12 @@ public class VideoServer extends Server {
 
     private final VideoEngine videoEngine;
     private final ConcurrentHashMap<Resource, ServerResource> resources = new ConcurrentHashMap<>();
-    private final ConcurrentLinkedQueue<Resource.InternalRecipe> creationQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<Resource.ServerRecipe> creationQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<ServerResource> freeingQueue = new ConcurrentLinkedQueue<>();
 
     // Is called by the render thread
     private void createEnqueuedResources() {
-        Resource.InternalRecipe recipe;
+        Resource.ServerRecipe recipe;
         try {
             recipe = creationQueue.remove();
         } catch(NoSuchElementException e) {
@@ -75,8 +82,8 @@ public class VideoServer extends Server {
         }
 
         ServerResource serverResource;
-        if(recipe instanceof Texture.InternalRecipe)
-            serverResource = videoEngine.createTexture((Texture.InternalRecipe)recipe);
+        if(recipe instanceof Texture.ServerRecipe)
+            serverResource = videoEngine.createTexture((Texture.ServerRecipe)recipe);
         else
             throw new IllegalArgumentException(
                     "Enqueued creation of an incompatible type of resource. (This is not a recipe of a video resource.)");

@@ -1,5 +1,6 @@
 package com.rayferric.comet.video.gl;
 
+import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.resources.video.Texture;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.video.VideoEngine;
@@ -7,7 +8,11 @@ import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.opengl.GL45.*;
 
-public class GLVideoEngine implements VideoEngine {
+public class GLVideoEngine extends VideoEngine {
+    public GLVideoEngine(Vector2i size) {
+        super(size);
+    }
+
     @Override
     public void init() {
         GL.createCapabilities();
@@ -21,7 +26,13 @@ public class GLVideoEngine implements VideoEngine {
     }
 
     @Override
-    public ServerResource createTexture(Texture.InternalRecipe recipe) {
+    public void resize(Vector2i size) {
+        super.resize(size);
+        System.out.println("Resized video engine: " + size);
+    }
+
+    @Override
+    public ServerResource createTexture(Texture.ServerRecipe recipe) {
         return new GLTexture(recipe);
     }
 }

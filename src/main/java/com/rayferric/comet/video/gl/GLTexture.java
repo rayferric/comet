@@ -6,7 +6,7 @@ import com.rayferric.comet.server.ServerResource;
 import static org.lwjgl.opengl.GL45.*;
 
 public class GLTexture implements ServerResource {
-    public GLTexture(Texture.InternalRecipe recipe) {
+    public GLTexture(Texture.ServerRecipe recipe) {
         handle = glGenTextures();
         glBindTexture(GL_TEXTURE_2D, handle);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -15,14 +15,6 @@ public class GLTexture implements ServerResource {
                 recipe.getHeight(), 0, recipe.getChannels() == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
                 recipe.getData());
         glGenerateMipmap(GL_TEXTURE_2D);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        GLTexture other = (GLTexture)o;
-        return handle == other.handle;
     }
 
     @Override

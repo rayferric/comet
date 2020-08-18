@@ -1,8 +1,8 @@
 package com.rayferric.comet;
 
 import com.rayferric.comet.resources.video.Texture;
+import com.rayferric.comet.video.Window;
 import com.rayferric.comet.video.display.GLFW;
-import com.rayferric.comet.video.display.Window;
 
 public class Main {
     public static void main(String[] args) {
@@ -12,8 +12,6 @@ public class Main {
         engine.getWindow().setVisible(true);
 
         Texture texture = new Texture(engine, "texture.png");
-
-        System.out.println(engine);
 
         while(engine.getWindow().isOpen()) {
             Window.pollEvents();

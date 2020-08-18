@@ -1,50 +1,22 @@
-package com.rayferric.comet.video.display;
+package com.rayferric.comet.video;
 
 import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.video.display.Monitor;
 import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-public class Window {
-    public Window(String title, int width, int height) {
-        glfwDefaultWindowHints();
-        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
-        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-
-        handle = glfwCreateWindow(width, height, this.title = title, NULL, NULL);
-        if(handle == NULL)
-            throw new RuntimeException("Failed to create window instance.");
-
-        glfwSetKeyCallback(handle, this::keyCallback);
-        glfwSetMouseButtonCallback(handle, this::mouseButtonCallback);
-        glfwSetScrollCallback(handle, this::scrollCallback);
-
-        final Monitor monitor = Monitor.getPrimary();
-        if(monitor != null)
-            setPos(monitor.getResolution().sub(getSize()).div(2));
-        saveCurrentPlacement();
-
-        setVSync(true);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        Window other = (Window)o;
-        return handle == other.handle;
-    }
-
+public abstract class Window {
     @Override
     public String toString() {
-        return String.format("Window{handle=%s, vSync=%s, title=%s, posX=%s, posY=%s, sizeX=%s, sizeY=%s, monitor=%s}",
-                handle, vSync, title, posX, posY, sizeX, sizeY, monitor);
+        return String.format("Window{handle=%s, vSync=%s, title=%s, pos=%s, size=%s, monitor=%s}",
+                handle, vSync, title, pos, size, monitor);
     }
 
     public static void pollEvents() {
@@ -70,6 +42,7 @@ public class Window {
         glfwSetWindowShouldClose(handle, shouldClose);
     }
 
+    // May be called from any thread
     public void swapBuffers() {
         glfwSwapBuffers(handle);
     }
@@ -149,7 +122,7 @@ public class Window {
             glfwSetWindowMonitor(handle, monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
                     GLFW_DONT_CARE);
         } else
-            glfwSetWindowMonitor(handle, NULL, posX.get(0), posY.get(0), sizeX.get(0), sizeY.get(0), GLFW_DONT_CARE);
+            glfwSetWindowMonitor(handle, NULL, pos.getX(), pos.getY(), size.getX(), size.getY(), GLFW_DONT_CARE);
     }
 
     public boolean isVisible() {
@@ -163,23 +136,60 @@ public class Window {
             glfwHideWindow(handle);
     }
 
+    // May be called from any thread
+    public Vector2i getFramebufferSize() {
+        // glfwGetFramebufferSize is not thread-safe
+        framebufferSizeCacheLock.lock();
+        Vector2i snapshot = new Vector2i(framebufferSizeCache);
+        framebufferSizeCacheLock.unlock();
+        return snapshot;
+    }
+
     public void close() {
         glfwDestroyWindow(handle);
         handle = NULL;
     }
 
+    protected void open(String title, int width, int height) {
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+
+        handle = glfwCreateWindow(width, height, this.title = title, NULL, NULL);
+        if(handle == NULL)
+            throw new RuntimeException("Failed to create window instance.");
+
+        glfwSetFramebufferSizeCallback(handle, this::framebufferSizeCallback);
+        glfwSetKeyCallback(handle, this::keyCallback);
+        glfwSetMouseButtonCallback(handle, this::mouseButtonCallback);
+        glfwSetScrollCallback(handle, this::scrollCallback);
+
+        final Monitor monitor = Monitor.getPrimary();
+        if(monitor != null)
+            setPos(monitor.getResolution().sub(getSize()).div(2));
+        saveCurrentPlacement();
+
+        framebufferSizeCallback(handle, width, height);
+
+        setVSync(true);
+    }
+
     private long handle;
     private boolean vSync;
     private String title;
-    private final IntBuffer posX = BufferUtils.createIntBuffer(1);
-    private final IntBuffer posY = BufferUtils.createIntBuffer(1);
-    private final IntBuffer sizeX = BufferUtils.createIntBuffer(1);
-    private final IntBuffer sizeY = BufferUtils.createIntBuffer(1);
+    private Vector2i pos, size;
     private Monitor monitor = null;
+    private final Vector2i framebufferSizeCache = new Vector2i();
+    private final ReentrantLock framebufferSizeCacheLock = new ReentrantLock();
 
     private void saveCurrentPlacement() {
-        glfwGetWindowPos(handle, posX, posY);
-        glfwGetWindowSize(handle, sizeX, sizeY);
+        pos = getPos();
+        size = getSize();
+    }
+
+    private void framebufferSizeCallback(long window, int width, int height) {
+        framebufferSizeCacheLock.lock();
+        framebufferSizeCache.setX(width);
+        framebufferSizeCache.setY(height);
+        framebufferSizeCacheLock.unlock();
     }
 
     private void keyCallback(long window, int key, int scanCode, int action, int mods) {

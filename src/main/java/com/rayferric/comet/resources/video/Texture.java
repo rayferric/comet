@@ -9,7 +9,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 public class Texture extends VideoResource {
-    public static class InternalRecipe extends Resource.InternalRecipe {
+    public static class ServerRecipe extends Resource.ServerRecipe {
         public int getWidth() {
             return width;
         }
@@ -26,7 +26,7 @@ public class Texture extends VideoResource {
             return data;
         }
 
-        public InternalRecipe(Resource resource) {
+        public ServerRecipe(Resource resource) {
             super(resource);
         }
 
@@ -57,7 +57,7 @@ public class Texture extends VideoResource {
         Properties properties = (Properties)this.properties;
 
         engine.getThreadPool().execute(() -> {
-            InternalRecipe recipe = new InternalRecipe(this);
+            ServerRecipe recipe = new ServerRecipe(this);
 
             STBImage.stbi_set_flip_vertically_on_load(true);
             try(MemoryStack stack = MemoryStack.stackPush()) {

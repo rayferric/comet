@@ -1,12 +1,27 @@
 package com.rayferric.comet.video;
 
+import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.resources.video.Texture;
 import com.rayferric.comet.server.ServerResource;
 
-public interface VideoEngine {
-    void init();
+public abstract class VideoEngine {
+    public VideoEngine(Vector2i size) {
+        this.size = size;
+    }
 
-    void draw();
+    public abstract void init();
 
-    ServerResource createTexture(Texture.InternalRecipe recipe);
+    public abstract void draw();
+
+    public void resize(Vector2i size) {
+        this.size = size;
+    }
+
+    public abstract ServerResource createTexture(Texture.ServerRecipe recipe);
+
+    public Vector2i getSize() {
+        return size;
+    }
+
+    protected Vector2i size;
 }

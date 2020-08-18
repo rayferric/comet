@@ -2,8 +2,9 @@ package com.rayferric.comet;
 
 import com.rayferric.comet.server.VideoServer;
 import com.rayferric.comet.video.VideoEngine;
-import com.rayferric.comet.video.display.Window;
+import com.rayferric.comet.video.Window;
 import com.rayferric.comet.video.gl.GLVideoEngine;
+import com.rayferric.comet.video.gl.GLWindow;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -17,8 +18,8 @@ public class Engine {
     public Engine(int numThreads, VideoAPI videoApi, String title) {
         final VideoEngine videoEngine;
         if(videoApi == VideoAPI.OPENGL) {
-            window = new Window(title, 1280, 720); // This is a GL window for now
-            videoEngine = new GLVideoEngine();
+            window = new GLWindow(title, 1280, 720);
+            videoEngine = new GLVideoEngine(window.getFramebufferSize());
         } else
             throw new IllegalStateException("Requested use of non-existent API.");
 

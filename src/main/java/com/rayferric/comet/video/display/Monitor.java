@@ -12,14 +12,6 @@ import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Monitor {
     @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        Monitor other = (Monitor)o;
-        return handle == other.handle;
-    }
-
-    @Override
     public String toString() {
         return String.format("Monitor{handle=%s}", handle);
     }

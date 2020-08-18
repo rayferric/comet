@@ -5,8 +5,8 @@ import com.rayferric.comet.Engine;
 import java.util.concurrent.Semaphore;
 
 public abstract class Resource {
-    public static abstract class InternalRecipe {
-        public InternalRecipe(Resource resource) {
+    public static abstract class ServerRecipe {
+        public ServerRecipe(Resource resource) {
             this.resource = resource;
         }
 
