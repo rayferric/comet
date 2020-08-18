@@ -10,23 +10,23 @@ public abstract class Server {
     public Server() {
         this.thread = new Thread(() -> {
             createQueue.clear();
-            freeQueue.clear();
+            destroyQueue.clear();
 
             process();
 
             while(createQueue.size() > 0)
                 createNextPendingServerResource();
             unloadResources();
-            while(freeQueue.size() > 0)
-                freeNextPendingServerResource();
+            while(destroyQueue.size() > 0)
+                destroyNextPendingServerResource();
         });
     }
 
     @Override
     public String toString() {
         return String
-                .format("Server{thread=%s, running=%s, resources=%s, createQueue=%s, freeQueue=%s}", thread, running,
-                        resources, createQueue, freeQueue);
+                .format("Server{thread=%s, running=%s, resources=%s, createQueue=%s, destroyQueue=%s}", thread, running,
+                        resources, createQueue, destroyQueue);
     }
 
     // <editor-fold desc="Public API">
@@ -53,9 +53,7 @@ public abstract class Server {
     }
 
     public void reloadResources() {
-        // resource.reload() calls both freeResource() and (on another thread, after recipe data realloc) waitForResource()
         resources.forEach((resource, serverResource) -> {
-            // Even though the resource has its server part loaded, the base may not be fully loaded yet
             if(resource.isReady()) resource.reload();
         });
     }
@@ -82,7 +80,7 @@ public abstract class Server {
     // <editor-fold desc="Base resource API">
 
     // Only to be used by the base resource to schedule server-side creation
-    public void waitForServerResource(Resource.ServerRecipe recipe) {
+    public void waitForServerResourceCreation(Resource.ServerRecipe recipe) {
         // If the server is stopped before all waiting threads are done, the process will hang
         recipe.getSemaphore().acquireUninterruptibly();
         createQueue.add(recipe);
@@ -91,11 +89,11 @@ public abstract class Server {
     }
 
     // Only to be used by the base resource to schedule server-side clean-up
-    public void freeServerResource(Resource resource) {
+    public void scheduleServerResourceDestruction(Resource resource) {
         ServerResource serverResource = resources.remove(resource);
         if(serverResource == null)
-            throw new RuntimeException("Attempted to free a non-existent server resource.");
-        freeQueue.add(serverResource);
+            throw new RuntimeException("Attempted to destroy a non-existent server resource.");
+        destroyQueue.add(serverResource);
     }
 
     // </editor-fold>
@@ -122,16 +120,16 @@ public abstract class Server {
         recipe.getSemaphore().release();
     }
 
-    protected void freeNextPendingServerResource() {
-        ServerResource serverResource = freeQueue.poll();
+    protected void destroyNextPendingServerResource() {
+        ServerResource serverResource = destroyQueue.poll();
         if(serverResource == null) return;
 
-        serverResource.free();
+        serverResource.destroy();
     }
 
     // </editor-fold>
 
     private final ConcurrentHashMap<Resource, ServerResource> resources = new ConcurrentHashMap<>();
     private final ConcurrentLinkedQueue<Resource.ServerRecipe> createQueue = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<ServerResource> freeQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<ServerResource> destroyQueue = new ConcurrentLinkedQueue<>();
 }

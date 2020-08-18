@@ -1,4 +1,4 @@
-package com.rayferric.comet.video.display;
+package com.rayferric.comet.video;
 
 import com.rayferric.comet.math.Vector2i;
 import org.lwjgl.PointerBuffer;

@@ -1,6 +1,6 @@
 package com.rayferric.comet.video.gl;
 
-import com.rayferric.comet.video.Window;
+import com.rayferric.comet.video.common.Window;
 
 import static org.lwjgl.glfw.GLFW.*;
 

@@ -1,7 +1,7 @@
-package com.rayferric.comet.video;
+package com.rayferric.comet.video.common;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.display.Monitor;
+import com.rayferric.comet.video.Monitor;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;

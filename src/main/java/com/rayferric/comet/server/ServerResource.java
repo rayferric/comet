@@ -11,5 +11,5 @@ package com.rayferric.comet.server;
  * server-side resource by invoking Resource.reload().
  */
 public interface ServerResource {
-    void free();
+    void destroy();
 }

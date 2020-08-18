@@ -1,8 +1,8 @@
 package com.rayferric.comet;
 
 import com.rayferric.comet.server.VideoServer;
-import com.rayferric.comet.video.VideoEngine;
-import com.rayferric.comet.video.Window;
+import com.rayferric.comet.video.common.VideoEngine;
+import com.rayferric.comet.video.common.Window;
 import com.rayferric.comet.video.gl.GLVideoEngine;
 import com.rayferric.comet.video.gl.GLWindow;
 import org.lwjgl.glfw.GLFWErrorCallback;
@@ -29,7 +29,7 @@ public class Engine {
     /**
      * Returns engine singleton instance.
      *
-     * @return    instance
+     * @return instance
      */
     public static Engine getInstance() {
         return INSTANCE;
@@ -47,9 +47,9 @@ public class Engine {
      * Creates all sub-resources required by the engine and starts their respective threads.<br>
      * The engine is running from now on and must enter the main loop as quickly as possible.
      *
-     * @param numThreads    number of thread pool workers
-     * @param videoApi      video API
-     * @param title         window title
+     * @param numThreads number of thread pool workers
+     * @param videoApi   video API
+     * @param title      window title
      */
     public void start(int numThreads, VideoAPI videoApi, String title) {
         final VideoEngine videoEngine;
@@ -127,7 +127,7 @@ public class Engine {
      * Returns window sub-resource.<br>
      * Is null if the engine is stopped.
      *
-     * @return    window
+     * @return window
      */
     public Window getWindow() {
         return window.get();
@@ -137,7 +137,7 @@ public class Engine {
      * Returns video server sub-resource.<br>
      * Is null if the engine is stopped.
      *
-     * @return    video server
+     * @return video server
      */
     public VideoServer getVideoServer() {
         return videoServer.get();
@@ -147,7 +147,7 @@ public class Engine {
      * Returns thread pool sub-resource.<br>
      * Is null if the engine is stopped.
      *
-     * @return    thread pool
+     * @return thread pool
      */
     public ThreadPoolExecutor getThreadPool() {
         return threadPool.get();

@@ -7,6 +7,6 @@ public abstract class VideoResource extends Resource {
     @Override
     public void unload() {
         super.unload();
-        Engine.getInstance().getVideoServer().freeServerResource(this);
+        Engine.getInstance().getVideoServer().scheduleServerResourceDestruction(this);
     }
 }

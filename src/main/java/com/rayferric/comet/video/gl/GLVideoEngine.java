@@ -1,9 +1,10 @@
 package com.rayferric.comet.video.gl;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.resource.video.Texture;
+import com.rayferric.comet.scenegraph.resource.video.ImageTexture;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.video.VideoEngine;
+import com.rayferric.comet.video.common.VideoEngine;
+import com.rayferric.comet.video.gl.texture.GLTexture2DImage;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.opengl.GL45.*;
@@ -38,7 +39,7 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public ServerResource createTexture(Texture.ServerRecipe recipe) {
-        return new GLTexture(recipe);
+    public ServerResource createImageTexture(ImageTexture.ServerRecipe recipe) {
+        return new GLTexture2DImage(recipe);
     }
 }

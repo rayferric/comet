@@ -2,15 +2,13 @@ package com.rayferric.comet.server;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.resource.Resource;
-import com.rayferric.comet.scenegraph.resource.video.Texture;
-import com.rayferric.comet.video.VideoEngine;
-import com.rayferric.comet.video.Window;
+import com.rayferric.comet.video.common.VideoEngine;
+import com.rayferric.comet.video.common.Window;
 
 public class VideoServer extends Server {
     public VideoServer(Window window, VideoEngine videoEngine) {
         this.window = window;
         this.videoEngine = videoEngine;
-        videoEngine.setVideoServer(this);
     }
 
     @Override
@@ -32,7 +30,7 @@ public class VideoServer extends Server {
 
             // Command buffer is flushed and now we process the resources while swap timeout passes
             createNextPendingServerResource();
-            freeNextPendingServerResource();
+            destroyNextPendingServerResource();
 
             window.swapBuffers();
         }
@@ -43,11 +41,7 @@ public class VideoServer extends Server {
 
     @Override
     protected ServerResource resourceFromRecipe(Resource.ServerRecipe recipe) {
-        if(recipe instanceof Texture.ServerRecipe)
-            return videoEngine.createTexture((Texture.ServerRecipe)recipe);
-        else
-            throw new RuntimeException(
-                    "Commissioned creation of an incompatible type of resource. (This is not a recipe of a video resource.)");
+        return videoEngine.resourceFromRecipe(recipe);
     }
 
     private final Window window;
