@@ -1,7 +1,5 @@
 package com.rayferric.comet.math;
 
-import java.util.Objects;
-
 public class Vector2i {
     public Vector2i() {
         x = y = 0;
@@ -27,11 +25,6 @@ public class Vector2i {
         if(o == null || getClass() != o.getClass()) return false;
         Vector2i other = (Vector2i)o;
         return x == other.x && y == other.y;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(x, y);
     }
 
     @Override

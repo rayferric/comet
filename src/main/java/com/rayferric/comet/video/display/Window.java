@@ -5,7 +5,6 @@ import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
-import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -39,19 +38,7 @@ public class Window {
         if(this == o) return true;
         if(o == null || getClass() != o.getClass()) return false;
         Window other = (Window)o;
-        return handle == other.handle &&
-                vSync == other.vSync &&
-                Objects.equals(title, other.title) &&
-                Objects.equals(posX, other.posX) &&
-                Objects.equals(posY, other.posY) &&
-                Objects.equals(sizeX, other.sizeX) &&
-                Objects.equals(sizeY, other.sizeY) &&
-                Objects.equals(monitor, other.monitor);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(handle, vSync, title, posX, posY, sizeX, sizeY, monitor);
+        return handle == other.handle;
     }
 
     @Override

@@ -5,7 +5,6 @@ import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.display.Window;
 import com.rayferric.comet.video.gl.GLVideoEngine;
 
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -26,21 +25,6 @@ public class Engine {
         videoServer = new VideoServer(window, videoEngine);
 
         threadPool = (ThreadPoolExecutor)Executors.newFixedThreadPool(numThreads);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        Engine other = (Engine)o;
-        return Objects.equals(window, other.window) &&
-                Objects.equals(videoServer, other.videoServer) &&
-                Objects.equals(threadPool, other.threadPool);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(window, videoServer, threadPool);
     }
 
     @Override

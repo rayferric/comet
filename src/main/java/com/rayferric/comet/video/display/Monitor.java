@@ -6,7 +6,6 @@ import org.lwjgl.glfw.GLFWVidMode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -18,11 +17,6 @@ public class Monitor {
         if(o == null || getClass() != o.getClass()) return false;
         Monitor other = (Monitor)o;
         return handle == other.handle;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(handle);
     }
 
     @Override

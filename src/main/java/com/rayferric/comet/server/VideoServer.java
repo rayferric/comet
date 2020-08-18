@@ -6,7 +6,6 @@ import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.display.Window;
 
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -32,23 +31,6 @@ public class VideoServer extends Server {
                 freeEnqueuedResources();
             // creationQueue is empty, because thread pool execution could not finish with non-empty creation queue
         })).start();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        if(!super.equals(o)) return false;
-        VideoServer other = (VideoServer)o;
-        return Objects.equals(videoEngine, other.videoEngine) &&
-                Objects.equals(resources, other.resources) &&
-                Objects.equals(creationQueue, other.creationQueue) &&
-                Objects.equals(freeingQueue, other.freeingQueue);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(super.hashCode(), videoEngine, resources, creationQueue, freeingQueue);
     }
 
     @Override

@@ -13,10 +13,10 @@ public class Main {
 
         Texture texture = new Texture(engine, "texture.png");
 
+        System.out.println(engine);
+
         while(engine.getWindow().isOpen()) {
             Window.pollEvents();
-
-            if(!engine.getWindow().hasFocus()) engine.getWindow().focus();
 
             if(engine.getWindow().shouldClose()) engine.stop(); // Example of use in a script
 

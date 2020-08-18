@@ -2,7 +2,6 @@ package com.rayferric.comet.resources;
 
 import com.rayferric.comet.Engine;
 
-import java.util.Objects;
 import java.util.concurrent.Semaphore;
 
 public abstract class Resource {
@@ -23,23 +22,10 @@ public abstract class Resource {
         private final Semaphore semaphore = new Semaphore(1);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        Resource other = (Resource)o;
-        return Objects.equals(engine, other.engine) &&
-                Objects.equals(properties, other.properties);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(engine, properties);
-    }
-
+    // Does not implement engine to avoid circular reference
     @Override
     public String toString() {
-        return String.format("Resource{engine=%s, properties=%s}", engine, properties);
+        return String.format("Resource{properties=%s}", properties);
     }
 
     public abstract void free();

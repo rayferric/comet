@@ -3,8 +3,6 @@ package com.rayferric.comet.video.gl;
 import com.rayferric.comet.resources.video.Texture;
 import com.rayferric.comet.server.ServerResource;
 
-import java.util.Objects;
-
 import static org.lwjgl.opengl.GL45.*;
 
 public class GLTexture implements ServerResource {
@@ -25,11 +23,6 @@ public class GLTexture implements ServerResource {
         if(o == null || getClass() != o.getClass()) return false;
         GLTexture other = (GLTexture)o;
         return handle == other.handle;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(handle);
     }
 
     @Override
