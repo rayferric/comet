@@ -39,22 +39,6 @@ public class Vector2i {
         return String.format("Vector2i{x=%s, y=%s}", x, y);
     }
 
-    public int getX() {
-        return x;
-    }
-
-    public void setX(int x) {
-        this.x = x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public void setY(int y) {
-        this.y = y;
-    }
-
     public Vector2i add(Vector2i rhs) {
         return new Vector2i(x + rhs.x, y + rhs.y);
     }
@@ -77,6 +61,22 @@ public class Vector2i {
 
     public Vector2i div(int rhs) {
         return new Vector2i(x / rhs, y / rhs);
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public void setX(int x) {
+        this.x = x;
+    }
+
+    public int getY() {
+        return y;
+    }
+
+    public void setY(int y) {
+        this.y = y;
     }
 
     private int x, y;

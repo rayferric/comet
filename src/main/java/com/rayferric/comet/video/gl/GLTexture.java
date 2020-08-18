@@ -1,6 +1,6 @@
 package com.rayferric.comet.video.gl;
 
-import com.rayferric.comet.resources.video.Texture;
+import com.rayferric.comet.scenegraph.resource.video.Texture;
 import com.rayferric.comet.server.ServerResource;
 
 import static org.lwjgl.opengl.GL45.*;
@@ -15,6 +15,7 @@ public class GLTexture implements ServerResource {
                 recipe.getHeight(), 0, recipe.getChannels() == 4 ? GL_RGBA : GL_RGB, GL_UNSIGNED_BYTE,
                 recipe.getData());
         glGenerateMipmap(GL_TEXTURE_2D);
+        System.out.println("Created OpenGL texture.");
     }
 
     @Override
@@ -33,6 +34,7 @@ public class GLTexture implements ServerResource {
     @Override
     public void free() {
         glDeleteTextures(handle);
+        System.out.println("Deleted OpenGL texture.");
     }
 
     private final int handle;

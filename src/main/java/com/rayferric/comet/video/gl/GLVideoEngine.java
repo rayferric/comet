@@ -1,7 +1,7 @@
 package com.rayferric.comet.video.gl;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.resources.video.Texture;
+import com.rayferric.comet.scenegraph.resource.video.Texture;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.video.VideoEngine;
 import org.lwjgl.opengl.GL;
@@ -14,21 +14,27 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public void init() {
+    public void start() {
         GL.createCapabilities();
         glClearColor(0.25f, 0.4f, 0.5f, 0.0f);
-        glFlush();
+        System.out.println("OpenGL video engine started.");
+    }
+
+    @Override
+    public void stop() {
+        System.out.println("OpenGL video engine stopped.");
     }
 
     @Override
     public void draw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glFlush();
     }
 
     @Override
     public void resize(Vector2i size) {
         super.resize(size);
-        System.out.println("Resized video engine: " + size);
+        System.out.println("Resized OpenGL video engine: " + size);
     }
 
     @Override

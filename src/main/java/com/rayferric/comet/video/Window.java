@@ -2,11 +2,9 @@ package com.rayferric.comet.video;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.display.Monitor;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static org.lwjgl.glfw.GLFW.*;

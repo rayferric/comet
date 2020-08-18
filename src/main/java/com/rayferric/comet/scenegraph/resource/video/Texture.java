@@ -1,7 +1,7 @@
-package com.rayferric.comet.resources.video;
+package com.rayferric.comet.scenegraph.resource.video;
 
 import com.rayferric.comet.Engine;
-import com.rayferric.comet.resources.Resource;
+import com.rayferric.comet.scenegraph.resource.Resource;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
@@ -34,29 +34,23 @@ public class Texture extends VideoResource {
         private ByteBuffer data;
     }
 
-    public Texture(Engine engine, String path) {
-        super(engine);
+    /**
+     * Creates a texture resource and begins loading it.
+     *
+     * @param path location of the source image
+     */
+    public Texture(String path) {
         properties = new Properties(path);
-        create();
-    }
-
-    protected static class Properties implements Resource.Properties {
-        public Properties(String path) {
-            this.path = path;
-        }
-
-        public String getPath() {
-            return path;
-        }
-
-        private final String path;
+        load();
     }
 
     @Override
-    protected void create() {
+    public void load() {
+        super.load();
+
         Properties properties = (Properties)this.properties;
 
-        engine.getThreadPool().execute(() -> {
+        Engine.getInstance().getThreadPool().execute(() -> {
             ServerRecipe recipe = new ServerRecipe(this);
 
             STBImage.stbi_set_flip_vertically_on_load(true);
@@ -71,13 +65,30 @@ public class Texture extends VideoResource {
                 recipe.height = height.get(0);
                 recipe.channels = channels.get(0);
             }
+            try {
+                Thread.sleep(1000);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
 
-            // This method waits till render thread picks the recipe up
-            // Waiting assures that recipe queue on the render thread is not crowded
-            // Which makes the overall FPS more stable
-            engine.getVideoServer().waitForResource(recipe);
+            System.out.println("Loaded resource recipe, creating server resource...");
+            Engine.getInstance().getVideoServer().waitForServerResource(recipe);
 
             STBImage.stbi_image_free(recipe.data);
+
+            markAsReady();
         });
+    }
+
+    protected static class Properties implements Resource.Properties {
+        public Properties(String path) {
+            this.path = path;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        private final String path;
     }
 }
