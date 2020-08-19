@@ -1,5 +1,7 @@
 package com.rayferric.comet.scenegraph.resource;
 
+import com.rayferric.comet.Engine;
+
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,6 +39,7 @@ public abstract class Resource {
     public void unload() {
         if(!loaded.compareAndSet(true, false))
             throw new RuntimeException("Cannot unload an already unloaded resource.");
+        Engine.getInstance().removeResource(this);
     }
 
     public void reload() {
@@ -49,5 +52,6 @@ public abstract class Resource {
     protected void markAsReady() {
         if(!loaded.compareAndSet(false, true))
             throw new RuntimeException("Attempted to load a single resource using multiple threads simultaneously.");
+        Engine.getInstance().addResource(this);
     }
 }

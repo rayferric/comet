@@ -6,6 +6,7 @@ import static org.lwjgl.opengl.GL45.*;
 
 public abstract class GLTexture implements ServerResource {
     public GLTexture() {
+        System.out.println("Creating GL texture...");
         handle = glGenTextures();
         bind();
     }
@@ -17,6 +18,7 @@ public abstract class GLTexture implements ServerResource {
 
     @Override
     public void destroy() {
+        System.out.println("Destroying GL texture...");
         glDeleteTextures(handle);
     }
 

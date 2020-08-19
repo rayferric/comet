@@ -1,17 +1,12 @@
-package com.rayferric.comet.video.common;
+package com.rayferric.comet.video;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.resource.Resource;
-import com.rayferric.comet.scenegraph.resource.video.ImageTexture;
-import com.rayferric.comet.scenegraph.resource.video.Texture;
+import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
+import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.server.VideoServer;
 
 public abstract class VideoEngine {
-    public VideoEngine(Vector2i size) {
-        this.size = size;
-    }
-
     @Override
     public String toString() {
         return String.format("VideoEngine{size=%s}", size);
@@ -44,4 +39,12 @@ public abstract class VideoEngine {
     }
 
     protected Vector2i size;
+
+    protected VideoEngine(Vector2i size) {
+        this.size = size;
+    }
+
+    protected VideoEngine(VideoEngine other) {
+        this.size = other.size;
+    }
 }

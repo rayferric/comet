@@ -1,13 +1,9 @@
-package com.rayferric.comet.scenegraph.resource.video;
+package com.rayferric.comet.scenegraph.resource.video.texture;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.video.common.texture.TextureFilter;
 import com.rayferric.comet.video.common.texture.TextureFormat;
-import org.lwjgl.stb.STBImage;
-
-import java.nio.ByteBuffer;
 
 public class EmptyTexture extends Texture {
     public EmptyTexture(Vector2i size, TextureFormat format, TextureFilter filter) {

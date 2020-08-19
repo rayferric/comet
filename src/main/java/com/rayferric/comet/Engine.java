@@ -1,12 +1,19 @@
 package com.rayferric.comet;
 
+import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.scenegraph.resource.Resource;
+import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.server.VideoServer;
-import com.rayferric.comet.video.common.VideoEngine;
-import com.rayferric.comet.video.common.Window;
+import com.rayferric.comet.video.VideoEngine;
+import com.rayferric.comet.video.Window;
+import com.rayferric.comet.video.common.VideoAPI;
 import com.rayferric.comet.video.gl.GLVideoEngine;
 import com.rayferric.comet.video.gl.GLWindow;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -17,13 +24,9 @@ import static org.lwjgl.glfw.GLFW.glfwInit;
 import static org.lwjgl.glfw.GLFW.glfwTerminate;
 
 public class Engine {
-    public enum VideoAPI {
-        OPENGL
-    }
-
     @Override
     public String toString() {
-        return String.format("Engine{window=%s, videoServer=%s, threadPool=%s}", window, videoServer, threadPool);
+        return String.format("Engine{videoServer=%s, threadPool=%s}", videoServer, threadPool);
     }
 
     /**
@@ -53,15 +56,16 @@ public class Engine {
      * @param jobThreads       number of job processing threads
      */
     public void start(String title, VideoAPI videoApi, int loaderThreads, int jobThreads) {
+        final Window window;
         final VideoEngine videoEngine;
         if(videoApi == VideoAPI.OPENGL) {
-            window.set(new GLWindow(title, 640, 360));
-            videoEngine = new GLVideoEngine(window.get().getFramebufferSize());
+            window = new GLWindow(title, new Vector2i(640, 360));
+            videoEngine = new GLVideoEngine(window.getFramebufferSize());
         } else
             throw new RuntimeException("Requested use of non-existent API.");
 
-        videoServer.set(new VideoServer(window.get(), videoEngine));
-        videoServer.get().start();
+        videoServer.set(new VideoServer(window, videoEngine));
+        getVideoServer().start();
 
         loaderPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(loaderThreads));
         threadPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(jobThreads));
@@ -69,35 +73,115 @@ public class Engine {
 
     /**
      * Stops the engine and makes it unable to run until next call to {@link #start}.<br>
-     * This method stops thread pool and servers, finally, closes the window.<br>
-     * All getters will return null from now on.
+     * This method stops thread pool and servers, finally, destroys the window.<br>
+     * All getters will return null from now on.<br>
+     * Unloads all resources ever created.
      */
     public void stop() {
-        // We must fully shut down the thread pool before stopping the servers,
-        // as off-thread resource loaders may still push new recipes onto the queues
-        threadPool.get().shutdown();
-        loaderPool.get().shutdown();
+        // We must fully shut down the thread pool before finally stopping the servers,
+        // as off-thread resource loaders may still push new recipes onto the queues.
+        //
+        // The servers must process all recipes and manually free their memory.
+        getThreadPool().shutdown();
+        getLoaderPool().shutdown();
         try {
-            threadPool.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
-            loaderPool.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            getThreadPool().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            getLoaderPool().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
         } catch(InterruptedException e) {
             e.printStackTrace();
-            System.exit(1);
         }
 
-        videoServer.get().stop();
+        // Wait for server creation queues:
+        try {
+            getVideoServer().waitForCreationQueue();
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
 
-        window.get().close();
+        // Unload resources:
+        for(Resource resource : new ArrayList<>(resources))
+            resource.unload();
 
-        window.set(null);
+        // Wait for server destruction queues and stop:
+        try {
+            getVideoServer().waitForDestructionQueue();
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+        getVideoServer().stop();
+
+        // Now the servers are fully terminated.
+        // Resource list is also cleared.
+
+        getVideoServer().getWindow().destroy();
+
         videoServer.set(null);
         loaderPool.set(null);
         threadPool.set(null);
     }
 
+    public void addResource(Resource resource) {
+        resources.add(resource);
+    }
+
+    public void removeResource(Resource resource) {
+        resources.remove(resource);
+    }
+
+    public VideoAPI getVideoApi() {
+        return videoApi.get();
+    }
+
+    /**
+     * Sets video API and resets video server.
+     * All video resources are reloaded.
+     * The window will be reopened too.
+     *
+     * @param api    new API
+     */
+    public void changeVideoApi(VideoAPI api) {
+        videoApi.set(api);
+
+        VideoServer server = getVideoServer();
+
+        try {
+            server.waitForCreationQueue();
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        List<Resource> videoResources = new ArrayList<>(resources.size());
+        synchronized(resources) {
+            for(Resource resource : new ArrayList<>(resources))
+                if(resource instanceof VideoResource)
+                    videoResources.add(resource);
+        }
+
+        for(Resource resource : videoResources)
+            resource.unload();
+
+        try {
+            getVideoServer().waitForDestructionQueue();
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        server.stop();
+
+        Window oldWindow = server.getWindow();
+        server.setWindow(new GLWindow(oldWindow));
+        oldWindow.destroy();
+        server.setVideoEngine(new GLVideoEngine(server.getVideoEngine()));
+
+        server.start();
+
+        for(Resource resource : videoResources)
+            resource.load();
+    }
+
     /**
      * Loops until {@link #exit()} is called.<br>
-     * Closing the window while in this loop will call {@link #exit()}. (TODO Remove that feature)
+     * Closing the window while in this loop will call {@link #exit()}. (TODO Remove that feature, leave to the user)
      * {@link #stop()} will be called right after.
      */
     public void run() {
@@ -105,8 +189,7 @@ public class Engine {
         while(!shouldExit.get()) {
             Window.pollEvents();
 
-            if(getWindow().shouldClose()) exit(); // Example of use in a script
-             // Actively reload resources to find multithreading errors
+            if(getVideoServer().getWindow().shouldClose()) exit(); // Example of use in a script
 
             try {
                 Thread.sleep(10);
@@ -127,16 +210,6 @@ public class Engine {
     }
 
     // <editor-fold desc="Getters">
-
-    /**
-     * Returns window sub-resource.<br>
-     * Is null if the engine is stopped.
-     *
-     * @return window
-     */
-    public Window getWindow() {
-        return window.get();
-    }
 
     /**
      * Returns video server sub-resource.<br>
@@ -172,10 +245,15 @@ public class Engine {
 
     private static final Engine INSTANCE = new Engine();
 
-    private final AtomicReference<Window> window = new AtomicReference<>(null);
+    private final AtomicReference<VideoAPI> videoApi = new AtomicReference<>(VideoAPI.OPENGL);
+
+    private final List<Resource> resources = Collections.synchronizedList(new ArrayList<>());
+
     private final AtomicReference<VideoServer> videoServer = new AtomicReference<>(null);
+
     private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);
     private final AtomicReference<ThreadPoolExecutor> threadPool = new AtomicReference<>(null);
+
     private final AtomicBoolean shouldExit = new AtomicBoolean(false);
 
     private Engine() {

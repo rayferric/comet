@@ -1,6 +1,6 @@
 package com.rayferric.comet.video.gl.texture;
 
-import com.rayferric.comet.scenegraph.resource.video.Texture;
+import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 import static org.lwjgl.opengl.GL45.*;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;
