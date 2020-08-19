@@ -5,25 +5,24 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public abstract class Resource {
     public static abstract class ServerRecipe {
-        public ServerRecipe(Resource resource) {
-            this.resource = resource;
+        public ServerRecipe(Runnable cleanUpCallback) {
+            this.cleanUpCallback = cleanUpCallback;
         }
 
-        public Resource getResource() {
-            return resource;
+        public Runnable getCleanUpCallback() {
+            return cleanUpCallback;
         }
 
-        public Semaphore getSemaphore() {
-            return semaphore;
+        public long getHandle() {
+            return handle;
         }
 
-        private final Resource resource;
-        private final Semaphore semaphore = new Semaphore(1);
-    }
+        public void setHandle(long handle) {
+            this.handle = handle;
+        }
 
-    @Override
-    public String toString() {
-        return String.format("Resource{properties=%s}", properties);
+        private final Runnable cleanUpCallback;
+        private long handle = 0;
     }
 
     public boolean isReady() {
@@ -45,13 +44,10 @@ public abstract class Resource {
         load();
     }
 
-    protected interface Properties {}
-
-    protected Properties properties;
     protected final AtomicBoolean loaded = new AtomicBoolean(false);
 
     protected void markAsReady() {
         if(!loaded.compareAndSet(false, true))
-            throw new RuntimeException("Attempted to load a single resource using multiple threads.");
+            throw new RuntimeException("Attempted to load a single resource using multiple threads simultaneously.");
     }
 }

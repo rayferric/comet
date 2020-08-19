@@ -47,11 +47,12 @@ public class Engine {
      * Creates all sub-resources required by the engine and starts their respective threads.<br>
      * The engine is running from now on and must enter the main loop as quickly as possible.
      *
-     * @param numThreads number of thread pool workers
-     * @param videoApi   video API
-     * @param title      window title
+     * @param title            window title
+     * @param videoApi         video API
+     * @param loaderThreads    number of resource (un)loading threads
+     * @param jobThreads       number of job processing threads
      */
-    public void start(int numThreads, VideoAPI videoApi, String title) {
+    public void start(String title, VideoAPI videoApi, int loaderThreads, int jobThreads) {
         final VideoEngine videoEngine;
         if(videoApi == VideoAPI.OPENGL) {
             window.set(new GLWindow(title, 640, 360));
@@ -62,7 +63,8 @@ public class Engine {
         videoServer.set(new VideoServer(window.get(), videoEngine));
         videoServer.get().start();
 
-        threadPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(numThreads));
+        loaderPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(loaderThreads));
+        threadPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(jobThreads));
     }
 
     /**
@@ -74,8 +76,10 @@ public class Engine {
         // We must fully shut down the thread pool before stopping the servers,
         // as off-thread resource loaders may still push new recipes onto the queues
         threadPool.get().shutdown();
+        loaderPool.get().shutdown();
         try {
             threadPool.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
+            loaderPool.get().awaitTermination(Long.MAX_VALUE, TimeUnit.DAYS);
         } catch(InterruptedException e) {
             e.printStackTrace();
             System.exit(1);
@@ -87,6 +91,7 @@ public class Engine {
 
         window.set(null);
         videoServer.set(null);
+        loaderPool.set(null);
         threadPool.set(null);
     }
 
@@ -101,7 +106,7 @@ public class Engine {
             Window.pollEvents();
 
             if(getWindow().shouldClose()) exit(); // Example of use in a script
-            getVideoServer().reloadResources(); // Actively reload resources to find multithreading errors
+             // Actively reload resources to find multithreading errors
 
             try {
                 Thread.sleep(10);
@@ -144,6 +149,16 @@ public class Engine {
     }
 
     /**
+     * Returns resource (un)loading thread pool sub-resource.<br>
+     * Is null if the engine is stopped.
+     *
+     * @return thread pool
+     */
+    public ThreadPoolExecutor getLoaderPool() {
+        return loaderPool.get();
+    }
+
+    /**
      * Returns thread pool sub-resource.<br>
      * Is null if the engine is stopped.
      *
@@ -159,6 +174,7 @@ public class Engine {
 
     private final AtomicReference<Window> window = new AtomicReference<>(null);
     private final AtomicReference<VideoServer> videoServer = new AtomicReference<>(null);
+    private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);
     private final AtomicReference<ThreadPoolExecutor> threadPool = new AtomicReference<>(null);
     private final AtomicBoolean shouldExit = new AtomicBoolean(false);
 

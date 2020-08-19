@@ -5,18 +5,27 @@ import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.video.common.texture.TextureFilter;
 import com.rayferric.comet.video.common.texture.TextureFormat;
+import org.lwjgl.stb.STBImage;
 
 import java.nio.ByteBuffer;
 
-public abstract class Texture extends Resource {
-    public static class ServerRecipe extends Resource.ServerRecipe {
-        public ServerRecipe(Runnable cleanUpCallback, Vector2i size, TextureFormat format, TextureFilter filter, ByteBuffer data) {
-            super(cleanUpCallback);
+public class EmptyTexture extends Texture {
+    public EmptyTexture(Vector2i size, TextureFormat format, TextureFilter filter) {
+        properties = new Properties(size, format, filter);
+        load();
+    }
 
+    @Override
+    public void load() {
+        Texture.ServerRecipe recipe = new Texture.ServerRecipe(this::markAsReady, properties.size, properties.format, properties.filter, null);
+        handle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
+    }
+
+    private static class Properties {
+        public Properties(Vector2i size, TextureFormat format, TextureFilter filter) {
             this.size = size;
             this.format = format;
             this.filter = filter;
-            this.data = data;
         }
 
         public Vector2i getSize() {
@@ -31,25 +40,10 @@ public abstract class Texture extends Resource {
             return filter;
         }
 
-        public ByteBuffer getData() {
-            return data;
-        }
-
         private final Vector2i size;
         private final TextureFormat format;
         private final TextureFilter filter;
-        private final ByteBuffer data;
     }
 
-    @Override
-    public void unload() {
-        super.unload();
-        Engine.getInstance().getVideoServer().scheduleResourceDestruction(handle);
-    }
-
-    public long getHandle() {
-        return handle;
-    }
-
-    protected long handle;
+    private final Properties properties;
 }

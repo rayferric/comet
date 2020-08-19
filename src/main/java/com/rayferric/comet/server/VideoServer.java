@@ -19,23 +19,21 @@ public class VideoServer extends Server {
     @Override
     protected void process() {
         Window.makeCurrent(window);
-        videoEngine.start();
+        videoEngine.onStart();
 
         while(running.get()) {
-            Vector2i fbSize = window.getFramebufferSize();
-            if(!fbSize.equals(videoEngine.getSize()))
-                videoEngine.resize(fbSize);
+            videoEngine.setSize(window.getFramebufferSize());
 
-            videoEngine.draw();
+            videoEngine.onDraw();
 
             // Command buffer is flushed and now we process the resources while swap timeout passes
-            createNextPendingServerResource();
-            destroyNextPendingServerResource();
+            createNextPendingResource();
+            destroyNextPendingResource();
 
             window.swapBuffers();
         }
 
-        videoEngine.stop();
+        videoEngine.onStop();
         Window.makeCurrent(null);
     }
 

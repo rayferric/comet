@@ -1,10 +1,10 @@
 package com.rayferric.comet.video.gl;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.resource.video.ImageTexture;
+import com.rayferric.comet.scenegraph.resource.video.Texture;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.video.common.VideoEngine;
-import com.rayferric.comet.video.gl.texture.GLTexture2DImage;
+import com.rayferric.comet.video.gl.texture.GLTexture2D;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.opengl.GL45.*;
@@ -15,31 +15,30 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public void start() {
+    public void onStart() {
         GL.createCapabilities();
         glClearColor(0.25f, 0.4f, 0.5f, 0.0f);
         System.out.println("OpenGL video engine started.");
     }
 
     @Override
-    public void stop() {
+    public void onStop() {
         System.out.println("OpenGL video engine stopped.");
     }
 
     @Override
-    public void draw() {
+    public void onDraw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glFlush();
     }
 
     @Override
-    public void resize(Vector2i size) {
-        super.resize(size);
+    public void onResize(Vector2i size) {
         System.out.println("Resized OpenGL video engine: " + size);
     }
 
     @Override
-    public ServerResource createImageTexture(ImageTexture.ServerRecipe recipe) {
-        return new GLTexture2DImage(recipe);
+    public ServerResource createTexture(Texture.ServerRecipe recipe) {
+        return new GLTexture2D(recipe);
     }
 }

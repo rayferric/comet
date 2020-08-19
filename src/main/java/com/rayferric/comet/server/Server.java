@@ -1,10 +1,12 @@
 package com.rayferric.comet.server;
 
+import com.rayferric.comet.Engine;
 import com.rayferric.comet.scenegraph.resource.Resource;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Server {
     public Server() {
@@ -15,10 +17,10 @@ public abstract class Server {
             process();
 
             while(createQueue.size() > 0)
-                createNextPendingServerResource();
-            unloadResources();
+                createNextPendingResource();
+            resources.forEach((handle, resource) -> scheduleResourceDestruction(handle));
             while(destroyQueue.size() > 0)
-                destroyNextPendingServerResource();
+                destroyNextPendingResource();
         });
     }
 
@@ -52,45 +54,28 @@ public abstract class Server {
         }
     }
 
-    public void reloadResources() {
-        resources.forEach((resource, serverResource) -> {
-            if(resource.isReady()) resource.reload();
-        });
-    }
-
-    public void unloadResources() {
-        resources.forEach((resource, serverResource) -> {
-            if(resource.isReady()) resource.unload();
-        });
-    }
-
     // </editor-fold>
 
     // <editor-fold desc="Public, server-thread-only API">
 
     // Should only be used internally by the server thread to access corresponding server resources
-    public ServerResource getServerResource(Resource resource) {
-        if(resource == null || !resource.isReady())
-            return null;
-        return resources.get(resource);
+    public ServerResource getServerResource(long handle) {
+        return resources.get(handle);
     }
 
     // </editor-fold>
 
     // <editor-fold desc="Base resource API">
 
-    // Only to be used by the base resource to schedule server-side creation
-    public void waitForServerResourceCreation(Resource.ServerRecipe recipe) {
-        // If the server is stopped before all waiting threads are done, the process will hang
-        recipe.getSemaphore().acquireUninterruptibly();
+    public long scheduleResourceCreation(Resource.ServerRecipe recipe) {
+        long handle = handleGenerator.getAndIncrement();
+        recipe.setHandle(handle);
         createQueue.add(recipe);
-        recipe.getSemaphore().acquireUninterruptibly();
-        recipe.getSemaphore().release();
+        return handle;
     }
 
-    // Only to be used by the base resource to schedule server-side clean-up
-    public void scheduleServerResourceDestruction(Resource resource) {
-        ServerResource serverResource = resources.remove(resource);
+    public void scheduleResourceDestruction(long handle) {
+        ServerResource serverResource = resources.remove(handle);
         if(serverResource == null)
             throw new RuntimeException("Attempted to destroy a non-existent server resource.");
         destroyQueue.add(serverResource);
@@ -109,18 +94,17 @@ public abstract class Server {
 
     // Use those to incrementally process pending resources
 
-    protected void createNextPendingServerResource() {
+    protected void createNextPendingResource() {
         Resource.ServerRecipe recipe = createQueue.poll();
         if(recipe == null) return;
 
         ServerResource serverResource = resourceFromRecipe(recipe);
 
-        resources.put(recipe.getResource(), serverResource);
-
-        recipe.getSemaphore().release();
+        resources.put(recipe.getHandle(), serverResource);
+        Engine.getInstance().getLoaderPool().execute(recipe.getCleanUpCallback());
     }
 
-    protected void destroyNextPendingServerResource() {
+    protected void destroyNextPendingResource() {
         ServerResource serverResource = destroyQueue.poll();
         if(serverResource == null) return;
 
@@ -129,7 +113,8 @@ public abstract class Server {
 
     // </editor-fold>
 
-    private final ConcurrentHashMap<Resource, ServerResource> resources = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, ServerResource> resources = new ConcurrentHashMap<>();
+    private final AtomicLong handleGenerator = new AtomicLong(0);
     private final ConcurrentLinkedQueue<Resource.ServerRecipe> createQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<ServerResource> destroyQueue = new ConcurrentLinkedQueue<>();
 }

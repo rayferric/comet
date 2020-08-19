@@ -1,46 +1,19 @@
 package com.rayferric.comet.scenegraph.resource.video;
 
 import com.rayferric.comet.Engine;
+import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.resource.Resource;
+import com.rayferric.comet.video.common.texture.TextureFilter;
+import com.rayferric.comet.video.common.texture.TextureFormat;
 import org.lwjgl.stb.STBImage;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-public class ImageTexture extends VideoResource {
-    public static class ServerRecipe extends Resource.ServerRecipe {
-        public int getWidth() {
-            return width;
-        }
-
-        public int getHeight() {
-            return height;
-        }
-
-        public int getChannels() {
-            return channels;
-        }
-
-        public ByteBuffer getData() {
-            return data;
-        }
-
-        public ServerRecipe(Resource resource) {
-            super(resource);
-        }
-
-        private int width, height, channels;
-        private ByteBuffer data;
-    }
-
-    /**
-     * Creates a texture resource and begins loading it.
-     *
-     * @param path location of the source image
-     */
-    public ImageTexture(String path) {
-        properties = new Properties(path);
+public class ImageTexture extends Texture {
+    public ImageTexture(String path, TextureFilter filter) {
+        properties = new Properties(path, filter);
         load();
     }
 
@@ -48,47 +21,54 @@ public class ImageTexture extends VideoResource {
     public void load() {
         super.load();
 
-        Properties properties = (Properties)this.properties;
-
-        Engine.getInstance().getThreadPool().execute(() -> {
-            ServerRecipe recipe = new ServerRecipe(this);
-
-            STBImage.stbi_set_flip_vertically_on_load(true);
+        Engine.getInstance().getLoaderPool().execute(() -> {
             try(MemoryStack stack = MemoryStack.stackPush()) {
-                IntBuffer width = stack.mallocInt(1);
-                IntBuffer height = stack.mallocInt(1);
-                IntBuffer channels = stack.mallocInt(1);
-                recipe.data = STBImage.stbi_load(properties.getPath(), width, height, channels, 0);
-                if(recipe.data == null)
+                IntBuffer widthBuf = stack.mallocInt(1);
+                IntBuffer heightBuf = stack.mallocInt(1);
+                IntBuffer channelsBuf = stack.mallocInt(1);
+                STBImage.stbi_set_flip_vertically_on_load(true);
+                ByteBuffer data = STBImage.stbi_load(properties.getPath(), widthBuf, heightBuf, channelsBuf, 0);
+                if(data == null)
                     throw new RuntimeException("Failed to read texture file.");
-                recipe.width = width.get(0);
-                recipe.height = height.get(0);
-                recipe.channels = channels.get(0);
+                Vector2i size = new Vector2i(widthBuf.get(0), heightBuf.get(0));
+                int channels = channelsBuf.get(0);
+                TextureFormat format;
+                switch(channels) {
+                    case 1: format = TextureFormat.R8; break;
+                    case 2: format = TextureFormat.RG8; break;
+                    case 3: format = TextureFormat.RGB8; break;
+                    case 4: format = TextureFormat.RGBA8; break;
+                    default:
+                        throw new RuntimeException("Texture has more than 4 channels.");
+                }
+
+                ServerRecipe recipe = new ServerRecipe(() -> {
+                    STBImage.stbi_image_free(data);
+                    markAsReady();
+                }, size, format, properties.filter, data);
+
+                handle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
             }
-            try {
-                Thread.sleep(1000);
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            System.out.println("Loaded resource recipe, creating server resource...");
-            Engine.getInstance().getVideoServer().waitForServerResourceCreation(recipe);
-
-            STBImage.stbi_image_free(recipe.data);
-
-            markAsReady();
         });
     }
 
-    protected static class Properties implements Resource.Properties {
-        public Properties(String path) {
+    private static class Properties {
+        public Properties(String path, TextureFilter filter) {
             this.path = path;
+            this.filter = filter;
         }
 
         public String getPath() {
             return path;
         }
 
+        public TextureFilter getFilter() {
+            return filter;
+        }
+
         private final String path;
+        private final TextureFilter filter;
     }
+
+    private final Properties properties;
 }
