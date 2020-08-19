@@ -11,13 +11,17 @@ import java.nio.ByteBuffer;
 
 public abstract class Texture extends VideoResource {
     public static class ServerRecipe extends Resource.ServerRecipe {
-        public ServerRecipe(Runnable cleanUpCallback, Vector2i size, TextureFormat format, TextureFilter filter, ByteBuffer data) {
+        public ServerRecipe(Runnable cleanUpCallback, ByteBuffer data, Vector2i size, TextureFormat format, TextureFilter filter) {
             super(cleanUpCallback);
 
+            this.data = data;
             this.size = size;
             this.format = format;
             this.filter = filter;
-            this.data = data;
+        }
+
+        public ByteBuffer getData() {
+            return data;
         }
 
         public Vector2i getSize() {
@@ -32,25 +36,22 @@ public abstract class Texture extends VideoResource {
             return filter;
         }
 
-        public ByteBuffer getData() {
-            return data;
-        }
-
+        private final ByteBuffer data;
         private final Vector2i size;
         private final TextureFormat format;
         private final TextureFilter filter;
-        private final ByteBuffer data;
+
     }
 
     @Override
     public void unload() {
         super.unload();
-        Engine.getInstance().getVideoServer().scheduleResourceDestruction(handle);
+        Engine.getInstance().getVideoServer().scheduleResourceDestruction(serverHandle);
     }
 
-    public long getHandle() {
-        return handle;
+    public long getServerHandle() {
+        return serverHandle;
     }
 
-    protected long handle;
+    protected long serverHandle;
 }

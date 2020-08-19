@@ -56,13 +56,16 @@ public class Engine {
      * @param jobThreads       number of job processing threads
      */
     public void start(String title, VideoAPI videoApi, int loaderThreads, int jobThreads) {
+        if(!started.compareAndSet(false, true))
+            throw new IllegalStateException("Attempted to start an already started engine.");
+
         final Window window;
         final VideoEngine videoEngine;
         if(videoApi == VideoAPI.OPENGL) {
             window = new GLWindow(title, new Vector2i(640, 360));
             videoEngine = new GLVideoEngine(window.getFramebufferSize());
         } else
-            throw new RuntimeException("Requested use of non-existent API.");
+            throw new IllegalArgumentException("Requested use of non-existent API.");
 
         videoServer.set(new VideoServer(window, videoEngine));
         getVideoServer().start();
@@ -78,10 +81,9 @@ public class Engine {
      * Unloads all resources ever created.
      */
     public void stop() {
-        // We must fully shut down the thread pool before finally stopping the servers,
-        // as off-thread resource loaders may still push new recipes onto the queues.
-        //
-        // The servers must process all recipes and manually free their memory.
+        if(!started.compareAndSet(true, false))
+            throw new IllegalStateException("Attempted to stop an already stopped engine.");
+
         getThreadPool().shutdown();
         getLoaderPool().shutdown();
         try {
@@ -182,9 +184,9 @@ public class Engine {
     /**
      * Loops until {@link #exit()} is called.<br>
      * Closing the window while in this loop will call {@link #exit()}. (TODO Remove that feature, leave to the user)
-     * {@link #stop()} will be called right after.
      */
     public void run() {
+
         shouldExit.set(false);
         while(!shouldExit.get()) {
             Window.pollEvents();
@@ -198,8 +200,6 @@ public class Engine {
                 System.exit(1);
             }
         }
-
-        stop();
     }
 
     /**
@@ -245,10 +245,9 @@ public class Engine {
 
     private static final Engine INSTANCE = new Engine();
 
+    private final AtomicBoolean started = new AtomicBoolean(false);
     private final AtomicReference<VideoAPI> videoApi = new AtomicReference<>(VideoAPI.OPENGL);
-
     private final List<Resource> resources = Collections.synchronizedList(new ArrayList<>());
-
     private final AtomicReference<VideoServer> videoServer = new AtomicReference<>(null);
 
     private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);

@@ -7,38 +7,26 @@ import com.rayferric.comet.video.common.texture.TextureFormat;
 
 public class EmptyTexture extends Texture {
     public EmptyTexture(Vector2i size, TextureFormat format, TextureFilter filter) {
-        properties = new Properties(size, format, filter);
+        properties = new Properties();
+        properties.size = size;
+        properties.format = format;
+        properties.filter = filter;
+
         load();
     }
 
     @Override
     public void load() {
-        Texture.ServerRecipe recipe = new Texture.ServerRecipe(this::markAsReady, properties.size, properties.format, properties.filter, null);
-        handle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
+        Texture.ServerRecipe recipe =
+                new Texture.ServerRecipe(this::markAsReady, null, properties.size, properties.format,
+                        properties.filter);
+        serverHandle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
     }
 
     private static class Properties {
-        public Properties(Vector2i size, TextureFormat format, TextureFilter filter) {
-            this.size = size;
-            this.format = format;
-            this.filter = filter;
-        }
-
-        public Vector2i getSize() {
-            return size;
-        }
-
-        public TextureFormat getFormat() {
-            return format;
-        }
-
-        public TextureFilter getFilter() {
-            return filter;
-        }
-
-        private final Vector2i size;
-        private final TextureFormat format;
-        private final TextureFilter filter;
+        public Vector2i size;
+        public TextureFormat format;
+        public TextureFilter filter;
     }
 
     private final Properties properties;

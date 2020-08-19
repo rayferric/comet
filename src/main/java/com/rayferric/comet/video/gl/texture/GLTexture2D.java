@@ -1,14 +1,18 @@
 package com.rayferric.comet.video.gl.texture;
 
-import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
+import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.video.common.texture.TextureFilter;
+import com.rayferric.comet.video.common.texture.TextureFormat;
+
+import java.nio.ByteBuffer;
 
 import static org.lwjgl.opengl.GL45.*;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;
 
 public class GLTexture2D extends GLTexture {
-    public GLTexture2D(Texture.ServerRecipe recipe) {
+    public GLTexture2D(ByteBuffer data, Vector2i size, TextureFormat format, TextureFilter filter) {
         int minFilter, magFilter;
-        switch(recipe.getFilter()) {
+        switch(filter) {
             default:
             case NEAREST:   minFilter = GL_NEAREST;              magFilter = GL_NEAREST; break;
             case BILINEAR:  minFilter = GL_LINEAR;               magFilter = GL_LINEAR;  break;
@@ -17,7 +21,7 @@ public class GLTexture2D extends GLTexture {
 
         boolean compressed;
         int internalFormat, baseFormat, type;
-        switch(recipe.getFormat()) {
+        switch(format) {
             default:
             case R8:      compressed = false; internalFormat = GL_R8;                                 baseFormat = GL_RED;  type = GL_UNSIGNED_BYTE; break;
             case R16F:    compressed = false; internalFormat = GL_R16F;                               baseFormat = GL_RED;  type = GL_HALF_FLOAT;    break;
@@ -33,8 +37,8 @@ public class GLTexture2D extends GLTexture {
             case RGBA32F: compressed = false; internalFormat = GL_RGBA32F;                            baseFormat = GL_RGBA; type = GL_FLOAT;         break;
             case SRGB8:   compressed = false; internalFormat = GL_SRGB8;                              baseFormat = GL_RGB;  type = GL_UNSIGNED_BYTE; break;
             case SRGBA8:  compressed = false; internalFormat = GL_SRGB8_ALPHA8;                       baseFormat = GL_RGBA; type = GL_UNSIGNED_BYTE; break;
-            case BC1:     compressed = true;  internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;           baseFormat = GL_RGB;  type = GL_UNSIGNED_BYTE; break;
-            case BC3:     compressed = true;  internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;          baseFormat = GL_RGBA; type = GL_UNSIGNED_BYTE; break;
+            case BC1:     compressed = true;  internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;       baseFormat = GL_RGB;  type = GL_UNSIGNED_BYTE; break;
+            case BC3:     compressed = true;  internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;      baseFormat = GL_RGBA; type = GL_UNSIGNED_BYTE; break;
             case BC4:     compressed = true;  internalFormat = GL_COMPRESSED_RED_RGTC1;               baseFormat = GL_RED;  type = GL_UNSIGNED_BYTE; break;
             case BC5:     compressed = true;  internalFormat = GL_COMPRESSED_RG_RGTC2;                baseFormat = GL_RG;   type = GL_UNSIGNED_BYTE; break;
             case BC6:     compressed = true;  internalFormat = GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT; baseFormat = GL_RGB;  type = GL_UNSIGNED_BYTE; break;
@@ -44,15 +48,12 @@ public class GLTexture2D extends GLTexture {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
-        int width = recipe.getSize().getX();
-        int height = recipe.getSize().getY();
-
         if(compressed)
-            glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, recipe.getData());
+            glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.getX(), size.getY(), 0, data);
         else
-            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, baseFormat, type, recipe.getData());
+            glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.getX(), size.getY(), 0, baseFormat, type, data);
 
-        if(recipe.getData() != null)
+        if(data != null)
             glGenerateMipmap(GL_TEXTURE_2D);
     }
 

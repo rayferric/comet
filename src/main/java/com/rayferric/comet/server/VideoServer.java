@@ -21,7 +21,7 @@ public class VideoServer extends Server {
 
     public void setWindow(Window window) {
         if(isRunning())
-            throw new RuntimeException("Unable to change window object while the server is running.");
+            throw new IllegalStateException("Unable to change window object while the server is running.");
         this.window = window;
     }
 
@@ -31,7 +31,7 @@ public class VideoServer extends Server {
 
     public void setVideoEngine(VideoEngine videoEngine) {
         if(isRunning())
-            throw new RuntimeException("Unable to change video engine object while the server is running.");
+            throw new IllegalStateException("Unable to change video engine object while the server is running.");
         this.videoEngine = videoEngine;
     }
 

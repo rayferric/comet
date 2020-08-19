@@ -1,9 +1,11 @@
 package com.rayferric.comet.video.gl;
 
 import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.video.VideoEngine;
+import com.rayferric.comet.video.gl.shader.GLShader;
 import com.rayferric.comet.video.gl.texture.GLTexture2D;
 import org.lwjgl.opengl.GL;
 
@@ -21,6 +23,7 @@ public class GLVideoEngine extends VideoEngine {
     @Override
     public void onStart() {
         GL.createCapabilities();
+
         glClearColor(0.4f, 0.25f, 0.5f, 0.0f);
         System.out.println("OpenGL video engine started.");
     }
@@ -43,6 +46,11 @@ public class GLVideoEngine extends VideoEngine {
 
     @Override
     public ServerResource createTexture(Texture.ServerRecipe recipe) {
-        return new GLTexture2D(recipe);
+        return new GLTexture2D(recipe.getData(), recipe.getSize(), recipe.getFormat(), recipe.getFilter());
+    }
+
+    @Override
+    public ServerResource createShader(Shader.ServerRecipe recipe) {
+        return new GLShader(recipe.getVertData(), recipe.getFragData());
     }
 }

@@ -2,6 +2,7 @@ package com.rayferric.comet.video;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.resource.Resource;
+import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
@@ -22,11 +23,15 @@ public abstract class VideoEngine {
 
     public abstract ServerResource createTexture(Texture.ServerRecipe recipe);
 
+    public abstract ServerResource createShader(Shader.ServerRecipe recipe);
+
     public ServerResource resourceFromRecipe(Resource.ServerRecipe recipe) {
         if(recipe instanceof Texture.ServerRecipe)
-            return createTexture((ImageTexture.ServerRecipe)recipe);
+            return createTexture((Texture.ServerRecipe)recipe);
+        else if(recipe instanceof Shader.ServerRecipe)
+            return createShader((Shader.ServerRecipe)recipe);
         else
-            throw new RuntimeException("Attempted to create a video resource of unknown type.");
+            throw new IllegalArgumentException("Attempted to create a video resource of unknown type.");
     }
 
     public Vector2i getSize() {

@@ -218,12 +218,19 @@ public abstract class Window {
         }
     }
 
+    protected abstract String getCreationFailMessage();
+    protected abstract void requireExtensions();
+
     protected void create(String title, Vector2i size) {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
         handle = glfwCreateWindow(size.getX(), size.getY(), this.title = title, NULL, NULL);
         if(handle == NULL)
-            throw new RuntimeException("Failed to create window instance.");
+            throw new RuntimeException(getCreationFailMessage());
+
+        makeCurrent(this);
+        requireExtensions();
+        makeCurrent(null);
 
         glfwSetFramebufferSizeCallback(handle, this::framebufferSizeCallback);
         glfwSetKeyCallback(handle, this::keyCallback);
@@ -256,7 +263,6 @@ public abstract class Window {
 
         setVisible(other.isVisible());
     }
-
 
     private long handle;
     private String title;

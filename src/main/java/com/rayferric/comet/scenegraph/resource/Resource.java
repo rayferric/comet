@@ -33,12 +33,12 @@ public abstract class Resource {
 
     public void load() {
         if(loaded.get())
-            throw new RuntimeException("Cannot load an already loaded resource.");
+            throw new IllegalStateException("Cannot load an already loaded resource.");
     }
 
     public void unload() {
         if(!loaded.compareAndSet(true, false))
-            throw new RuntimeException("Cannot unload an already unloaded resource.");
+            throw new IllegalStateException("Cannot unload an already unloaded resource.");
         Engine.getInstance().removeResource(this);
     }
 
@@ -51,7 +51,7 @@ public abstract class Resource {
 
     protected void markAsReady() {
         if(!loaded.compareAndSet(false, true))
-            throw new RuntimeException("Attempted to load a single resource using multiple threads simultaneously.");
+            throw new IllegalStateException("Attempted to load a single resource using multiple threads simultaneously.");
         Engine.getInstance().addResource(this);
     }
 }

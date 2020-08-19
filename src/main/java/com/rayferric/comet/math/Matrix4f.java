@@ -2,29 +2,29 @@ package com.rayferric.comet.math;
 
 import java.util.Objects;
 
-public class Matrix4d {
-    public Matrix4d() {
-        x = new Vector4d(1, 0, 0, 0);
-        y = new Vector4d(0, 1, 0, 0);
-        z = new Vector4d(0, 0, 1, 0);
-        w = new Vector4d(0, 0, 0, 1);
+public class Matrix4f {
+    public Matrix4f() {
+        x = new Vector4f(1, 0, 0, 0);
+        y = new Vector4f(0, 1, 0, 0);
+        z = new Vector4f(0, 0, 1, 0);
+        w = new Vector4f(0, 0, 0, 1);
     }
 
-    public Matrix4d(double identity) {
-        x = new Vector4d(identity, 0, 0, 0);
-        y = new Vector4d(0, identity, 0, 0);
-        z = new Vector4d(0, 0, identity, 0);
-        w = new Vector4d(0, 0, 0, identity);
+    public Matrix4f(float identity) {
+        x = new Vector4f(identity, 0, 0, 0);
+        y = new Vector4f(0, identity, 0, 0);
+        z = new Vector4f(0, 0, identity, 0);
+        w = new Vector4f(0, 0, 0, identity);
     }
 
-    public Matrix4d(Vector4d x, Vector4d y, Vector4d z, Vector4d w) {
+    public Matrix4f(Vector4f x, Vector4f y, Vector4f z, Vector4f w) {
         setX(x);
         setY(y);
         setZ(z);
         setW(w);
     }
 
-    public Matrix4d(Matrix4d other) {
+    public Matrix4f(Matrix4f other) {
         setX(other.x);
         setY(other.y);
         setZ(other.z);
@@ -35,7 +35,7 @@ public class Matrix4d {
     public boolean equals(Object o) {
         if(this == o) return true;
         if(o == null || getClass() != o.getClass()) return false;
-        Matrix4d other = (Matrix4d)o;
+        Matrix4f other = (Matrix4f)o;
         return Objects.equals(x, other.x) &&
                 Objects.equals(y, other.y) &&
                 Objects.equals(z, other.z) &&
@@ -52,8 +52,8 @@ public class Matrix4d {
         return String.format("Matrix4d{x=%s, y=%s, z=%s, w=%s}", x, y, z, w);
     }
 
-    public Matrix4d mul(Matrix4d rhs) {
-        return new Matrix4d(
+    public Matrix4f mul(Matrix4f rhs) {
+        return new Matrix4f(
                 x.mul(rhs.x.getX()).add(y.mul(rhs.x.getY())).add(z.mul(rhs.x.getZ())).add(w.mul(rhs.x.getW())),
                 x.mul(rhs.y.getX()).add(y.mul(rhs.y.getY())).add(z.mul(rhs.y.getZ())).add(w.mul(rhs.y.getW())),
                 x.mul(rhs.z.getX()).add(y.mul(rhs.z.getY())).add(z.mul(rhs.z.getZ())).add(w.mul(rhs.z.getW())),
@@ -61,8 +61,8 @@ public class Matrix4d {
         );
     }
 
-    public Vector4d mul(Vector4d rhs) {
-        return new Vector4d(
+    public Vector4f mul(Vector4f rhs) {
+        return new Vector4f(
                 x.getX() * rhs.getX() + y.getX() * rhs.getY() + z.getX() * rhs.getZ() + w.getX() * rhs.getW(),
                 x.getY() * rhs.getX() + y.getY() * rhs.getY() + z.getY() * rhs.getZ() + w.getY() * rhs.getW(),
                 x.getZ() * rhs.getX() + y.getZ() * rhs.getY() + z.getZ() * rhs.getZ() + w.getZ() * rhs.getW(),
@@ -70,40 +70,40 @@ public class Matrix4d {
         );
     }
 
-    public static Matrix4d transform(Vector3d translation, Vector3d rotation, Vector3d scale) {
-        double rx = Math.toRadians(rotation.getX());
-        double ry = Math.toRadians(rotation.getY());
-        double rz = Math.toRadians(rotation.getZ());
+    public static Matrix4f transform(Vector3f translation, Vector3f rotation, Vector3f scale) {
+        float rx = (float)Math.toRadians(rotation.getX());
+        float ry = (float)Math.toRadians(rotation.getY());
+        float rz = (float)Math.toRadians(rotation.getZ());
 
-        double sx = Math.sin(rx);
-        double sy = Math.sin(ry);
-        double sz = Math.sin(rz);
+        float sx = (float)Math.sin(rx);
+        float sy = (float)Math.sin(ry);
+        float sz = (float)Math.sin(rz);
 
-        double cx = Math.cos(rx);
-        double cy = Math.cos(ry);
-        double cz = Math.cos(rz);
+        float cx = (float)Math.cos(rx);
+        float cy = (float)Math.cos(ry);
+        float cz = (float)Math.cos(rz);
 
 
-        return new Matrix4d(
-                new Vector4d(
+        return new Matrix4f(
+                new Vector4f(
                         (cy * cz + sy * sx * sz) * scale.getX(),
                         (cx * sz) * scale.getX(),
                         (cy * sx * sz - cz * sy) * scale.getX(),
                         0
                 ),
-                new Vector4d(
+                new Vector4f(
                         (cz * sy * sx - cy * sz) * scale.getY(),
                         (cx * cz) * scale.getY(),
                         (cy * cz * sx + sy * sz) * scale.getY(),
                         0
                 ),
-                new Vector4d(
+                new Vector4f(
                         (cx * sy) * scale.getZ(),
                         (-sx) * scale.getZ(),
                         (cy * cx) * scale.getZ(),
                         0
                 ),
-                new Vector4d(
+                new Vector4f(
                         translation.getX(),
                         translation.getY(),
                         translation.getZ(),
@@ -112,10 +112,10 @@ public class Matrix4d {
         );
     }
 
-    public static Matrix4d perspective(double fov, double aspect, double near, double far) {
-        double ht = Math.tan(Math.toRadians(fov) / 2);
+    public static Matrix4f perspective(float fov, float aspect, float near, float far) {
+        float ht = (float)Math.tan(Math.toRadians(fov) / 2);
 
-        Matrix4d result = new Matrix4d(0);
+        Matrix4f result = new Matrix4f(0);
 
         result.x.setX(1 / (aspect * ht));
         result.y.setY(1 / ht);
@@ -126,8 +126,8 @@ public class Matrix4d {
         return result;
     }
 
-    public static Matrix4d ortho(double width, double height, double near, double far) {
-        Matrix4d result = new Matrix4d(1);
+    public static Matrix4f ortho(float width, float height, float near, float far) {
+        Matrix4f result = new Matrix4f(1);
 
         result.x.setX(2 / width);
         result.y.setY(2 / height);
@@ -137,43 +137,43 @@ public class Matrix4d {
         return result;
     }
 
-    public Matrix4d inverse() {
-        double s0 = x.getX() * y.getY() - x.getY() * y.getX();
-        double s1 = x.getX() * z.getY() - x.getY() * z.getX();
-        double s2 = x.getX() * w.getY() - x.getY() * w.getX();
-        double s3 = y.getX() * z.getY() - y.getY() * z.getX();
-        double s4 = y.getX() * w.getY() - y.getY() * w.getX();
-        double s5 = z.getX() * w.getY() - z.getY() * w.getX();
+    public Matrix4f inverse() {
+        float s0 = x.getX() * y.getY() - x.getY() * y.getX();
+        float s1 = x.getX() * z.getY() - x.getY() * z.getX();
+        float s2 = x.getX() * w.getY() - x.getY() * w.getX();
+        float s3 = y.getX() * z.getY() - y.getY() * z.getX();
+        float s4 = y.getX() * w.getY() - y.getY() * w.getX();
+        float s5 = z.getX() * w.getY() - z.getY() * w.getX();
 
-        double c5 = z.getZ() * w.getW() - z.getW() * w.getZ();
-        double c4 = y.getZ() * w.getW() - y.getW() * w.getZ();
-        double c3 = y.getZ() * z.getW() - y.getW() * z.getZ();
-        double c2 = x.getZ() * w.getW() - x.getW() * w.getZ();
-        double c1 = x.getZ() * z.getW() - x.getW() * z.getZ();
-        double c0 = x.getZ() * y.getW() - x.getW() * y.getZ();
+        float c5 = z.getZ() * w.getW() - z.getW() * w.getZ();
+        float c4 = y.getZ() * w.getW() - y.getW() * w.getZ();
+        float c3 = y.getZ() * z.getW() - y.getW() * z.getZ();
+        float c2 = x.getZ() * w.getW() - x.getW() * w.getZ();
+        float c1 = x.getZ() * z.getW() - x.getW() * z.getZ();
+        float c0 = x.getZ() * y.getW() - x.getW() * y.getZ();
 
-        double invDet = 1 / (s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0);
+        float invDet = 1 / (s0 * c5 - s1 * c4 + s2 * c3 + s3 * c2 - s4 * c1 + s5 * c0);
 
-        return new Matrix4d(
-                new Vector4d(
+        return new Matrix4f(
+                new Vector4f(
                         (y.getY() * c5 - z.getY() * c4 + w.getY() * c3),
                         (-x.getY() * c5 + z.getY() * c2 - w.getY() * c1),
                         (x.getY() * c4 - y.getY() * c2 + w.getY() * c0),
                         (-x.getY() * c3 + y.getY() * c1 - z.getY() * c0)
                 ).mul(invDet),
-                new Vector4d(
+                new Vector4f(
                         (-y.getX() * c5 + z.getX() * c4 - w.getX() * c3),
                         (x.getX() * c5 - z.getX() * c2 + w.getX() * c1),
                         (-x.getX() * c4 + y.getX() * c2 - w.getX() * c0),
                         (x.getX() * c3 - y.getX() * c1 + z.getX() * c0)
                 ).mul(invDet),
-                new Vector4d(
+                new Vector4f(
                         (y.getW() * s5 - z.getW() * s4 + w.getW() * s3),
                         (-x.getW() * s5 + z.getW() * s2 - w.getW() * s1),
                         (x.getW() * s4 - y.getW() * s2 + w.getW() * s0),
                         (-x.getW() * s3 + y.getW() * s1 - z.getW() * s0)
                 ).mul(invDet),
-                new Vector4d(
+                new Vector4f(
                         (-y.getZ() * s5 + z.getZ() * s4 - w.getZ() * s3),
                         (x.getZ() * s5 - z.getZ() * s2 + w.getZ() * s1),
                         (-x.getZ() * s4 + y.getZ() * s2 - w.getZ() * s0),
@@ -182,38 +182,49 @@ public class Matrix4d {
         );
     }
 
-    public Vector4d getX() {
-        return new Vector4d(x);
+    public float[] toArray() {
+        float[] array = new float[16];
+
+        System.arraycopy(getX().toArray(), 0, array, 0, 4);
+        System.arraycopy(getY().toArray(), 0, array, 4, 4);
+        System.arraycopy(getZ().toArray(), 0, array, 8, 4);
+        System.arraycopy(getW().toArray(), 0, array, 12, 4);
+
+        return array;
     }
 
-    public void setX(Vector4d x) {
-        this.x = new Vector4d(x);
+    public Vector4f getX() {
+        return new Vector4f(x);
     }
 
-    public Vector4d getY() {
-        return new Vector4d(y);
+    public void setX(Vector4f x) {
+        this.x = new Vector4f(x);
     }
 
-    public void setY(Vector4d y) {
-        this.y = new Vector4d(y);
+    public Vector4f getY() {
+        return new Vector4f(y);
     }
 
-    public Vector4d getZ() {
-        return new Vector4d(z);
+    public void setY(Vector4f y) {
+        this.y = new Vector4f(y);
     }
 
-    public void setZ(Vector4d z) {
-        this.z = new Vector4d(z);
+    public Vector4f getZ() {
+        return new Vector4f(z);
     }
 
-    public Vector4d getW() {
-        return new Vector4d(w);
+    public void setZ(Vector4f z) {
+        this.z = new Vector4f(z);
     }
 
-    public void setW(Vector4d w) {
-        this.w = new Vector4d(w);
+    public Vector4f getW() {
+        return new Vector4f(w);
+    }
+
+    public void setW(Vector4f w) {
+        this.w = new Vector4f(w);
     }
 
     // Those are columns
-    private Vector4d x, y, z, w;
+    private Vector4f x, y, z, w;
 }

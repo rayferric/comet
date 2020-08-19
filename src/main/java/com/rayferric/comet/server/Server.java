@@ -23,30 +23,33 @@ public abstract class Server {
      * Starts the server thread.
      */
     public void start() {
-        if(isRunning())
-            throw new RuntimeException("The server must be stopped in order to be able to start it.");
-
-        running.set(true);
+        if(!running.compareAndSet(false, true))
+            throw new IllegalStateException("Attempted to start an already running server.");
 
         thread = new Thread(() -> {
-            shouldProcess.set(true);
-            onStart();
-            while(shouldProcess.get()) {
-                createNextPendingResource();
-                if(creationQueue.size() == 0)
-                    synchronized(creationQueue) {
-                        creationQueue.notifyAll();
-                    }
+            try {
+                shouldProcess.set(true);
+                onStart();
+                while(shouldProcess.get()) {
+                    createNextPendingResource();
+                    if(creationQueue.size() == 0)
+                        synchronized(creationQueue) {
+                            creationQueue.notifyAll();
+                        }
 
-                destroyNextPendingResource();
-                if(destructionQueue.size() == 0)
-                    synchronized(destructionQueue) {
-                        destructionQueue.notifyAll();
-                    }
+                    destroyNextPendingResource();
+                    if(destructionQueue.size() == 0)
+                        synchronized(destructionQueue) {
+                            destructionQueue.notifyAll();
+                        }
 
-                onLoop();
+                    onLoop();
+                }
+                onStop();
+            } catch(Throwable e) {
+                e.printStackTrace();
+                System.exit(1);
             }
-            onStop();
         });
 
         thread.start();
@@ -57,8 +60,9 @@ public abstract class Server {
      * Does not create nor destroy pending server resources.
      */
     public void stop() {
-        if(!isRunning())
-            throw new RuntimeException("The server must be running in order to be able to stop it.");
+        if(!running.get())
+            throw new IllegalStateException("Attempted to stop an already stopped server.");
+
         shouldProcess.set(false);
         try {
             thread.join();
@@ -66,6 +70,7 @@ public abstract class Server {
             e.printStackTrace();
             System.exit(1);
         }
+
         running.set(false);
     }
 
@@ -116,7 +121,7 @@ public abstract class Server {
     public void scheduleResourceDestruction(long handle) {
         ServerResource serverResource = resources.remove(handle);
         if(serverResource == null)
-            throw new RuntimeException("Attempted to destroy a non-existent server resource.");
+            throw new IllegalStateException("Attempted to destroy a non-existent server resource.");
         destructionQueue.add(serverResource);
     }
 
