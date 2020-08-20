@@ -15,14 +15,22 @@ import com.rayferric.comet.video.api.gl.GLWindow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class VideoServer extends Server {
+    /**
+     * Creates a new video server.
+     * • Must only be called from the main thread.
+     *
+     * @param info engine configuration supplying video API, window title, and window size
+     */
     public VideoServer(EngineInfo info) {
-        if(info.getVideoApi() == VideoAPI.OPENGL) {
+        VideoAPI api = info.getVideoApi();
+        this.api.set(api);
+        if(api == VideoAPI.OPENGL) {
             window = new GLWindow(info.getTitle(), info.getWindowSize());
             videoEngine = new GLVideoEngine(window.getFramebufferSize());
-        } else
-            throw new IllegalArgumentException("Requested use of non-existent API.");
+        }
     }
 
     @Override
@@ -36,13 +44,25 @@ public class VideoServer extends Server {
     }
 
     /**
-     * Pauses the server and reloads the API.<br>
-     * • Will reload all video resources.
+     * Returns the API that's currently used by the server.<br>
+     * • May be called from any thread.
+     *
+     * @return current API
+     */
+    public VideoAPI getApi() {
+        return api.get();
+    }
+
+    /**
+     * Pauses the server and changes the API.<br>
+     * • Will reload all video resources.<br>
      * • Must only be called from the main thread.
      *
      * @param api new API, must not be null
      */
-    public void reloadApi(VideoAPI api) {
+    public void setApi(VideoAPI api) {
+        this.api.set(api);
+
         stop();
 
         List<Resource> videoResources = new ArrayList<>();
@@ -60,9 +80,11 @@ public class VideoServer extends Server {
         setResourceCreationPaused(false);
 
         Window oldWindow = window; // TODO make thread-safe (or not? does window really expose any thread-safe funcs?)
-        window = new GLWindow(oldWindow);
+        if(api == VideoAPI.OPENGL) {
+            window = new GLWindow(oldWindow);
+            videoEngine = new GLVideoEngine(videoEngine);
+        }
         oldWindow.destroy();
-        videoEngine = new GLVideoEngine(videoEngine);
 
         start();
 
@@ -99,6 +121,7 @@ public class VideoServer extends Server {
         return videoEngine.resourceFromRecipe(recipe);
     }
 
+    private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private Window window;
     private VideoEngine videoEngine;
 }

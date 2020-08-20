@@ -5,7 +5,6 @@ import com.rayferric.comet.math.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Node {
@@ -118,7 +117,7 @@ public class Node {
 
     public void setTranslation(Vector3f translation) {
         this.translation.set(new Vector3f(translation));
-        localTransformValid.set(false);
+        invalidateLocalTransform();
         invalidateGlobalTransform();
     }
 
@@ -128,7 +127,7 @@ public class Node {
 
     public void setRotation(Vector3f rotation) {
         this.rotation.set(new Vector3f(rotation));
-        localTransformValid.set(false);
+        invalidateLocalTransform();
         invalidateGlobalTransform();
     }
 
@@ -138,20 +137,20 @@ public class Node {
 
     public void setScale(Vector3f scale) {
         this.scale.set(new Vector3f(scale));
-        localTransformValid.set(false);
+        invalidateLocalTransform();
         invalidateGlobalTransform();
     }
 
     public Matrix4f getLocalTransform() {
-        synchronized(localTransformValid) {
-            if(!localTransformValid.get()) updateLocalTransform();
+        synchronized(localTransformValidLock) {
+            if(!localTransformValid) updateLocalTransform();
         }
         return new Matrix4f(localTransformCache);
     }
 
     public Matrix4f getGlobalTransform() {
-        synchronized(globalTransformValid) {
-            if(!globalTransformValid.get()) updateGlobalTransform();
+        synchronized(globalTransformValidLock) {
+            if(!globalTransformValid) updateGlobalTransform();
         }
         return new Matrix4f(globalTransformCache);
     }
@@ -169,26 +168,34 @@ public class Node {
     private final AtomicReference<Vector3f> scale = new AtomicReference<>();
 
     private Matrix4f localTransformCache;
-    private final AtomicBoolean localTransformValid = new AtomicBoolean();
-    // localTransformValid is also the sync object
+    private boolean localTransformValid;
+    private final Object localTransformValidLock = new Object();
 
     private Matrix4f globalTransformCache;
-    private final AtomicBoolean globalTransformValid = new AtomicBoolean();
-    // globalTransformValid is also the sync object
+    private boolean globalTransformValid;
+    private final Object globalTransformValidLock = new Object();
 
     private void updateLocalTransform() {
         localTransformCache = Matrix4f.transform(translation.get(), rotation.get(), scale.get());
-        localTransformValid.set(true);
+        localTransformValid = true;
     }
 
     private void updateGlobalTransform() {
         if(parent != null) globalTransformCache = parent.getGlobalTransform().mul(getLocalTransform());
         else globalTransformCache = getLocalTransform();
-        globalTransformValid.set(true);
+        globalTransformValid = true;
+    }
+
+    private void invalidateLocalTransform() {
+        synchronized(localTransformValidLock) {
+            localTransformValid = false;
+        }
     }
 
     private void invalidateGlobalTransform() {
-        globalTransformValid.set(false);
+        synchronized(globalTransformValidLock) {
+            globalTransformValid = false;
+        }
         for(Node node : children) node.invalidateGlobalTransform();
     }
 }

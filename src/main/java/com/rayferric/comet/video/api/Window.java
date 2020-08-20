@@ -2,7 +2,6 @@ package com.rayferric.comet.video.api;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.video.common.Monitor;
 import com.rayferric.comet.video.common.WindowMode;
 import org.lwjgl.system.MemoryStack;
@@ -284,7 +283,7 @@ public abstract class Window {
         if(action != GLFW_RELEASE) return;
 
         if(key == GLFW_KEY_R)
-            Engine.getInstance().getVideoServer().reloadApi(VideoAPI.OPENGL);
+            Engine.getInstance().getVideoServer().setApi(VideoAPI.OPENGL);
     }
 
     private void mouseButtonCallback(long window, int button, int action, int mods) {

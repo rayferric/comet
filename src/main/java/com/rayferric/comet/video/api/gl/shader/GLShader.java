@@ -6,44 +6,12 @@ import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.server.ServerResource;
 import org.lwjgl.system.MemoryStack;
 
-import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.ARBGLSPIRV.GL_SHADER_BINARY_FORMAT_SPIR_V_ARB;
-import static org.lwjgl.opengl.ARBGLSPIRV.glSpecializeShaderARB;
 import static org.lwjgl.opengl.GL41.glProgramUniform4f;
 import static org.lwjgl.opengl.GL45.*;
 
-public class GLShader implements ServerResource {
-    public GLShader(ByteBuffer vertData, ByteBuffer fragData) {
-        System.out.println("Creating GLShader...");
-        int vertShader = createShader(GL_VERTEX_SHADER, vertData);
-        int fragShader = createShader(GL_FRAGMENT_SHADER, fragData);
-
-        handle = glCreateProgram();
-
-        glAttachShader(handle, vertShader);
-        glAttachShader(handle, fragShader);
-        glLinkProgram(handle);
-        glDetachShader(handle, vertShader);
-        glDetachShader(handle, fragShader);
-
-        glDeleteShader(vertShader);
-        glDeleteShader(fragShader);
-
-        try(MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer status = stack.mallocInt(1);
-            glGetProgramiv(handle, GL_LINK_STATUS, status);
-            if(status.get(0) == GL_FALSE) {
-                String info = glGetProgramInfoLog(handle);
-                glDeleteProgram(handle);
-                throw new RuntimeException("Failed to link shader program.\n" + info);
-            }
-        }
-
-        glValidateProgram(handle);
-    }
-
+public abstract class GLShader implements ServerResource {
     @Override
     public void destroy() {
         System.out.println("Destroying GLShader...");
@@ -110,24 +78,32 @@ public class GLShader implements ServerResource {
         return handle;
     }
 
-    private final int handle;
+    protected void link(int vertShader, int fragShader) {
+        System.out.println("Creating GLShader...");
 
-    private int createShader(int type, ByteBuffer data) {
-        int shader = glCreateShader(type);
-        glShaderBinary(new int[]{shader}, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data);
+        handle = glCreateProgram();
+
+        glAttachShader(handle, vertShader);
+        glAttachShader(handle, fragShader);
+        glLinkProgram(handle);
+        glDetachShader(handle, vertShader);
+        glDetachShader(handle, fragShader);
+
+        glDeleteShader(vertShader);
+        glDeleteShader(fragShader);
 
         try(MemoryStack stack = MemoryStack.stackPush()) {
-            glSpecializeShaderARB(shader, "main", stack.mallocInt(0), stack.mallocInt(0));
-
             IntBuffer status = stack.mallocInt(1);
-            glGetShaderiv(shader, GL_COMPILE_STATUS, status);
+            glGetProgramiv(handle, GL_LINK_STATUS, status);
             if(status.get(0) == GL_FALSE) {
-                String info = glGetShaderInfoLog(shader);
-                glDeleteShader(shader);
-                throw new RuntimeException("Failed to specialize shader binary.\n" + info);
+                String info = glGetProgramInfoLog(handle);
+                glDeleteProgram(handle);
+                throw new RuntimeException("Failed to link shader program.\n" + info);
             }
         }
 
-        return shader;
+        glValidateProgram(handle);
     }
+
+    private int handle;
 }

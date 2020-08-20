@@ -2,10 +2,12 @@ package com.rayferric.comet.video.api.gl;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.server.recipe.video.ShaderRecipe;
+import com.rayferric.comet.server.recipe.video.BinaryShaderRecipe;
+import com.rayferric.comet.server.recipe.video.SourceShaderRecipe;
 import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
 import com.rayferric.comet.video.api.VideoEngine;
-import com.rayferric.comet.video.api.gl.shader.GLShader;
+import com.rayferric.comet.video.api.gl.shader.GLBinaryShader;
+import com.rayferric.comet.video.api.gl.shader.GLSourceShader;
 import com.rayferric.comet.video.api.gl.texture.GLTexture2D;
 import org.lwjgl.opengl.GL;
 
@@ -57,8 +59,13 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public ServerResource createShader(ShaderRecipe recipe) {
-        return new GLShader(recipe.getVertData(), recipe.getFragData());
+    public ServerResource createBinaryShader(BinaryShaderRecipe recipe) {
+        return new GLBinaryShader(recipe.getVertBin(), recipe.getFragBin());
+    }
+
+    @Override
+    public ServerResource createSourceShader(SourceShaderRecipe recipe) {
+        return new GLSourceShader(recipe.getVertSrc(), recipe.getFragSrc());
     }
 
     @Override

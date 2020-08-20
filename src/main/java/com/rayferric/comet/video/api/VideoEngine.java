@@ -4,7 +4,8 @@ import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.server.recipe.ServerRecipe;
-import com.rayferric.comet.server.recipe.video.ShaderRecipe;
+import com.rayferric.comet.server.recipe.video.BinaryShaderRecipe;
+import com.rayferric.comet.server.recipe.video.SourceShaderRecipe;
 import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
 
 public abstract class VideoEngine {
@@ -23,13 +24,17 @@ public abstract class VideoEngine {
 
     public abstract ServerResource createTexture2D(Texture2DRecipe recipe);
 
-    public abstract ServerResource createShader(ShaderRecipe recipe);
+    public abstract ServerResource createBinaryShader(BinaryShaderRecipe recipe);
+
+    public abstract ServerResource createSourceShader(SourceShaderRecipe recipe);
 
     public ServerResource resourceFromRecipe(ServerRecipe recipe) {
         if(recipe instanceof Texture2DRecipe)
             return createTexture2D((Texture2DRecipe)recipe);
-        else if(recipe instanceof ShaderRecipe)
-            return createShader((ShaderRecipe)recipe);
+        else if(recipe instanceof BinaryShaderRecipe)
+            return createBinaryShader((BinaryShaderRecipe)recipe);
+        else if(recipe instanceof SourceShaderRecipe)
+            return createSourceShader((SourceShaderRecipe)recipe);
         else
             throw new IllegalArgumentException("Attempted to create a video resource of unknown type.");
     }

@@ -3,6 +3,11 @@ package com.rayferric.comet;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.api.VideoAPI;
 
+/**
+ * Encapsulates engine configuration.<br>
+ * • Provides defaults on all fields, those values that are optimal for a common system.<br>
+ * • Is not thread-safe.
+ */
 public class EngineInfo {
     // <editor-fold desc="Getters and Setters">
 
