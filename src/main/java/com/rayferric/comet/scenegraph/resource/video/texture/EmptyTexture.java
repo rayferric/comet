@@ -2,8 +2,9 @@ package com.rayferric.comet.scenegraph.resource.video.texture;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.common.texture.TextureFilter;
-import com.rayferric.comet.video.common.texture.TextureFormat;
+import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
+import com.rayferric.comet.video.common.TextureFilter;
+import com.rayferric.comet.video.common.TextureFormat;
 
 public class EmptyTexture extends Texture {
     public EmptyTexture(Vector2i size, TextureFormat format, TextureFilter filter) {
@@ -17,10 +18,12 @@ public class EmptyTexture extends Texture {
 
     @Override
     public void load() {
-        Texture.ServerRecipe recipe =
-                new Texture.ServerRecipe(this::markAsReady, null, properties.size, properties.format,
+        super.load();
+
+        Texture2DRecipe recipe =
+                new Texture2DRecipe(this::finishLoading, null, properties.size, properties.format,
                         properties.filter);
-        serverHandle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
+        serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
     }
 
     private static class Properties {

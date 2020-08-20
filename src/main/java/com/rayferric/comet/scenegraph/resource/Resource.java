@@ -2,56 +2,78 @@ package com.rayferric.comet.scenegraph.resource;
 
 import com.rayferric.comet.Engine;
 
-import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Base class for all resources.<br>
+ * • Is fully thread-safe.
+ */
 public abstract class Resource {
-    public static abstract class ServerRecipe {
-        public ServerRecipe(Runnable cleanUpCallback) {
-            this.cleanUpCallback = cleanUpCallback;
-        }
-
-        public Runnable getCleanUpCallback() {
-            return cleanUpCallback;
-        }
-
-        public long getHandle() {
-            return handle;
-        }
-
-        public void setHandle(long handle) {
-            this.handle = handle;
-        }
-
-        private final Runnable cleanUpCallback;
-        private long handle = 0;
-    }
-
-    public boolean isReady() {
+    /**
+     * Tells whether the resource is loaded.<br>
+     * • May be called from any thread.
+     *
+     * @return true if loaded
+     */
+    public boolean isLoaded() {
         return loaded.get();
     }
 
+    /**
+     * Tells whether the resource is being currently loaded.<br>
+     * • May be called from any thread.
+     *
+     * @return true if loading
+     */
+    public boolean isLoading() {
+        return loading.get();
+    }
+
+    /**
+     * Starts loading this resource.<br>
+     * • This is a non-blocking routine.<br>
+     * • May be called from any thread.
+     */
     public void load() {
         if(loaded.get())
-            throw new IllegalStateException("Cannot load an already loaded resource.");
+            throw new IllegalStateException("Attempted to load an already loaded resource.");
+        if(!loading.compareAndSet(false, true))
+            throw new IllegalStateException("Attempted to load a resource that is already being loaded.");
     }
 
+    /**
+     * Starts unloading this resource.<br>
+     * • This is a non-blocking routine.<br>
+     * • May be called from any thread.
+     */
     public void unload() {
         if(!loaded.compareAndSet(true, false))
-            throw new IllegalStateException("Cannot unload an already unloaded resource.");
-        Engine.getInstance().removeResource(this);
+            throw new IllegalStateException("Attempted to unload an already unloaded resource.");
+        Engine.getInstance().unregisterUnloadedResource(this);
     }
 
+    /**
+     * If loaded, calls {@link #unload()}, then executes {@link #load()}.<br>
+     * • This is a non-blocking routine.<br>
+     * • May be called from any thread.
+     */
     public void reload() {
         if(loaded.get()) unload();
         load();
     }
 
+    protected final AtomicBoolean loading = new AtomicBoolean(false);
     protected final AtomicBoolean loaded = new AtomicBoolean(false);
 
-    protected void markAsReady() {
-        if(!loaded.compareAndSet(false, true))
-            throw new IllegalStateException("Attempted to load a single resource using multiple threads simultaneously.");
-        Engine.getInstance().addResource(this);
+    /**
+     * Marks this resource as loaded and {@link Engine#registerLoadedResource(Resource) submits} it to the Engine registry.<br>
+     * • May be called from any thread.
+     */
+    protected void finishLoading() {
+        // This is a theoretically unreachable block, there's an internal programming error if it throws:
+        if(!loaded.compareAndSet(false, true) || !loading.compareAndSet(true, false))
+            throw new IllegalStateException(
+                    "A single resource was being loaded using multiple threads simultaneously.");
+        Engine.getInstance().registerLoadedResource(this);
     }
 }

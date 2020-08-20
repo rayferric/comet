@@ -1,4 +1,4 @@
-package com.rayferric.comet.video.common.texture;
+package com.rayferric.comet.video.common;
 
 public enum TextureFilter {
     NEAREST,

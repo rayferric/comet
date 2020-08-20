@@ -2,8 +2,9 @@ package com.rayferric.comet.scenegraph.resource.video.texture;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.common.texture.TextureFilter;
-import com.rayferric.comet.video.common.texture.TextureFormat;
+import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
+import com.rayferric.comet.video.common.TextureFilter;
+import com.rayferric.comet.video.common.TextureFormat;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.ByteBuffer;
@@ -55,12 +56,12 @@ public class ImageTexture extends Texture {
                             throw new RuntimeException("Texture has more than 4 channels.");
                     }
 
-                    ServerRecipe recipe = new ServerRecipe(() -> {
+                    Texture2DRecipe recipe = new Texture2DRecipe(() -> {
                         stbi_image_free(data);
-                        markAsReady();
+                        finishLoading();
                     }, data, size, format, properties.filter);
 
-                    serverHandle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
+                    serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
                 }
             } catch(Throwable e) {
                 e.printStackTrace();

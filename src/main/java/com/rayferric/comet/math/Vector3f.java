@@ -87,7 +87,7 @@ public class Vector3f {
     }
 
     public float[] toArray() {
-        return new float[] { x, y, z };
+        return new float[]{x, y, z};
     }
 
     public float getX() {

@@ -1,13 +1,14 @@
-package com.rayferric.comet.video;
+package com.rayferric.comet.video.api;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.video.common.Monitor;
-import com.rayferric.comet.video.common.VideoAPI;
 import com.rayferric.comet.video.common.WindowMode;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
@@ -17,26 +18,17 @@ public abstract class Window {
     @Override
     public String toString() {
         return String
-                .format("Window{handle=%s, title=%s, vSync=%s, pos=%s, size=%s, focus=%s, mode=%s, monitor=%s, visible=%s, framebufferSize=%s}",
-                        handle, title, vSync, pos, size, hasFocus(), getMode(), monitor, isVisible(),
+                .format("Window{handle.get()=%s, title=%s, vSync=%s, pos=%s, size=%s, focus=%s, mode=%s, monitor=%s, visible=%s, framebufferSize=%s}",
+                        handle.get(), title, vSync, pos, size, hasFocus(), getMode(), monitor, isVisible(),
                         getFramebufferSize());
-    }
-
-
-    /**
-     * Must only be called from the main thread.
-     */
-    public static void pollEvents() {
-        glfwPollEvents();
     }
 
     /**
      * May be called from any thread.<br>
-     * Is thread-safe.
      */
     public static void makeCurrent(Window window) {
         if(window != null)
-            glfwMakeContextCurrent(window.handle);
+            glfwMakeContextCurrent(window.handle.get());
         else
             glfwMakeContextCurrent(NULL);
     }
@@ -47,8 +39,8 @@ public abstract class Window {
      * Is thread-safe.
      */
     public boolean isOpen() {
-        // handle is modified inside create(), which is only called by the constructor
-        return handle != NULL;
+        // handle.get() is modified inside create(), which is only called by the constructor
+        return handle.get() != NULL;
     }
 
     /**
@@ -56,7 +48,7 @@ public abstract class Window {
      * Is thread-safe.
      */
     public boolean shouldClose() {
-        return glfwWindowShouldClose(handle);
+        return glfwWindowShouldClose(handle.get());
     }
 
     /**
@@ -64,15 +56,14 @@ public abstract class Window {
      * Is not thread-safe.
      */
     public void setShouldClose(boolean shouldClose) {
-        glfwSetWindowShouldClose(handle, shouldClose);
+        glfwSetWindowShouldClose(handle.get(), shouldClose);
     }
 
     /**
      * Must only be called from the main thread.
      */
     public void destroy() {
-        glfwDestroyWindow(handle);
-        handle = NULL;
+        glfwDestroyWindow(handle.getAndSet(NULL));
     }
 
     /**
@@ -80,7 +71,7 @@ public abstract class Window {
      * Is thread-safe.
      */
     public void swapBuffers() {
-        glfwSwapBuffers(handle);
+        glfwSwapBuffers(handle.get());
     }
 
 
@@ -89,7 +80,7 @@ public abstract class Window {
     }
 
     public void setTitle(String title) {
-        glfwSetWindowTitle(handle, this.title = title);
+        glfwSetWindowTitle(handle.get(), this.title = title);
     }
 
     public boolean hasVSync() {
@@ -101,7 +92,7 @@ public abstract class Window {
             return;
 
         final long prevCurrent = glfwGetCurrentContext();
-        glfwMakeContextCurrent(handle);
+        glfwMakeContextCurrent(handle.get());
         glfwSwapInterval((this.vSync = vSync) ? 1 : 0);
         glfwMakeContextCurrent(prevCurrent);
     }
@@ -111,7 +102,7 @@ public abstract class Window {
             final IntBuffer posX = stack.mallocInt(1);
             final IntBuffer posY = stack.mallocInt(1);
 
-            glfwGetWindowPos(handle, posX, posY);
+            glfwGetWindowPos(handle.get(), posX, posY);
 
             return new Vector2i(posX.get(0), posY.get(0));
         }
@@ -121,7 +112,7 @@ public abstract class Window {
         if(getMode() != WindowMode.WINDOWED)
             return;
 
-        glfwSetWindowPos(handle, pos.getX(), pos.getY());
+        glfwSetWindowPos(handle.get(), pos.getX(), pos.getY());
     }
 
     public Vector2i getSize() {
@@ -129,7 +120,7 @@ public abstract class Window {
             final IntBuffer sizeX = stack.mallocInt(1);
             final IntBuffer sizeY = stack.mallocInt(1);
 
-            glfwGetWindowSize(handle, sizeX, sizeY);
+            glfwGetWindowSize(handle.get(), sizeX, sizeY);
 
             return new Vector2i(sizeX.get(0), sizeY.get(0));
         }
@@ -139,23 +130,23 @@ public abstract class Window {
         if(getMode() != WindowMode.WINDOWED)
             return;
 
-        glfwSetWindowSize(handle, size.getX(), size.getY());
+        glfwSetWindowSize(handle.get(), size.getX(), size.getY());
     }
 
     public boolean hasFocus() {
-        return glfwGetWindowAttrib(handle, GLFW_FOCUSED) == GLFW_TRUE;
+        return glfwGetWindowAttrib(handle.get(), GLFW_FOCUSED) == GLFW_TRUE;
     }
 
     public void focus() {
-        glfwFocusWindow(handle);
+        glfwFocusWindow(handle.get());
     }
 
     public WindowMode getMode() {
         if(monitor != null)
             return WindowMode.FULLSCREEN;
-        if(glfwGetWindowAttrib(handle, GLFW_MAXIMIZED) == GLFW_TRUE)
+        if(glfwGetWindowAttrib(handle.get(), GLFW_MAXIMIZED) == GLFW_TRUE)
             return WindowMode.MAXIMIZED;
-        if(glfwGetWindowAttrib(handle, GLFW_ICONIFIED) == GLFW_TRUE)
+        if(glfwGetWindowAttrib(handle.get(), GLFW_ICONIFIED) == GLFW_TRUE)
             return WindowMode.MINIMIZED;
         else
             return WindowMode.WINDOWED;
@@ -168,13 +159,13 @@ public abstract class Window {
         switch(mode) {
             default:
             case WINDOWED:
-                glfwRestoreWindow(handle);
+                glfwRestoreWindow(handle.get());
                 break;
             case MINIMIZED:
-                glfwIconifyWindow(handle);
+                glfwIconifyWindow(handle.get());
                 break;
             case MAXIMIZED:
-                glfwMaximizeWindow(handle);
+                glfwMaximizeWindow(handle.get());
                 break;
             case FULLSCREEN:
                 setMonitor(Monitor.getPrimary());
@@ -193,21 +184,21 @@ public abstract class Window {
 
         if(monitor != null) {
             final Vector2i resolution = monitor.getResolution();
-            glfwSetWindowMonitor(handle, monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
+            glfwSetWindowMonitor(handle.get(), monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
                     GLFW_DONT_CARE);
         } else
-            glfwSetWindowMonitor(handle, NULL, pos.getX(), pos.getY(), size.getX(), size.getY(), GLFW_DONT_CARE);
+            glfwSetWindowMonitor(handle.get(), NULL, pos.getX(), pos.getY(), size.getX(), size.getY(), GLFW_DONT_CARE);
     }
 
     public boolean isVisible() {
-        return glfwGetWindowAttrib(handle, GLFW_VISIBLE) == GLFW_TRUE;
+        return glfwGetWindowAttrib(handle.get(), GLFW_VISIBLE) == GLFW_TRUE;
     }
 
     public void setVisible(boolean visible) {
         if(visible)
-            glfwShowWindow(handle);
+            glfwShowWindow(handle.get());
         else
-            glfwHideWindow(handle);
+            glfwHideWindow(handle.get());
     }
 
     // May be called from any thread
@@ -219,30 +210,31 @@ public abstract class Window {
     }
 
     protected abstract String getCreationFailMessage();
+
     protected abstract void requireExtensions();
 
     protected void create(String title, Vector2i size) {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
-        handle = glfwCreateWindow(size.getX(), size.getY(), this.title = title, NULL, NULL);
-        if(handle == NULL)
+        handle.set(glfwCreateWindow(size.getX(), size.getY(), this.title = title, NULL, NULL));
+        if(handle.get() == NULL)
             throw new RuntimeException(getCreationFailMessage());
 
         makeCurrent(this);
         requireExtensions();
         makeCurrent(null);
 
-        glfwSetFramebufferSizeCallback(handle, this::framebufferSizeCallback);
-        glfwSetKeyCallback(handle, this::keyCallback);
-        glfwSetMouseButtonCallback(handle, this::mouseButtonCallback);
-        glfwSetScrollCallback(handle, this::scrollCallback);
-        glfwSetWindowPosCallback(handle, this::windowPosCallback);
-        glfwSetWindowSizeCallback(handle, this::windowSizeCallback);
+        glfwSetFramebufferSizeCallback(handle.get(), this::framebufferSizeCallback);
+        glfwSetKeyCallback(handle.get(), this::keyCallback);
+        glfwSetMouseButtonCallback(handle.get(), this::mouseButtonCallback);
+        glfwSetScrollCallback(handle.get(), this::scrollCallback);
+        glfwSetWindowPosCallback(handle.get(), this::windowPosCallback);
+        glfwSetWindowSizeCallback(handle.get(), this::windowSizeCallback);
 
         setVSync(true);
 
         Vector2i fbSize = getFramebufferSize();
-        framebufferSizeCallback(handle, fbSize.getX(), fbSize.getY());
+        framebufferSizeCallback(handle.get(), fbSize.getX(), fbSize.getY());
     }
 
     protected void copyPropertiesFrom(Window other) {
@@ -264,7 +256,7 @@ public abstract class Window {
         setVisible(other.isVisible());
     }
 
-    private long handle;
+    private final AtomicLong handle = new AtomicLong();
     private String title;
     private boolean vSync;
     private Vector2i pos, size;
@@ -292,7 +284,7 @@ public abstract class Window {
         if(action != GLFW_RELEASE) return;
 
         if(key == GLFW_KEY_R)
-            Engine.getInstance().changeVideoApi(VideoAPI.OPENGL);
+            Engine.getInstance().getVideoServer().reloadApi(VideoAPI.OPENGL);
     }
 
     private void mouseButtonCallback(long window, int button, int action, int mods) {

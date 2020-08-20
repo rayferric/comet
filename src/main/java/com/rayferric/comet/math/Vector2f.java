@@ -77,7 +77,7 @@ public class Vector2f {
     }
 
     public float[] toArray() {
-        return new float[] { x, y };
+        return new float[]{x, y};
     }
 
     public float getX() {

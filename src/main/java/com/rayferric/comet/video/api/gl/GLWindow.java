@@ -1,7 +1,7 @@
-package com.rayferric.comet.video.gl;
+package com.rayferric.comet.video.api.gl;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.Window;
+import com.rayferric.comet.video.api.Window;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -31,11 +31,13 @@ public class GLWindow extends Window {
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     }
 
     @SuppressWarnings("SameParameterValue")
     private void requireExtension(String name) {
         if(!glfwExtensionSupported(name))
-            throw new RuntimeException(String.format("Failed to create window instance.\nRequired OpenGL extension %s is missing.", name));
+            throw new RuntimeException(
+                    String.format("Failed to create window instance.\nRequired OpenGL extension %s is missing.", name));
     }
 }

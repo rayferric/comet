@@ -1,34 +1,17 @@
 package com.rayferric.comet.scenegraph.resource.video.shader;
 
 import com.rayferric.comet.Engine;
-import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
+import com.rayferric.comet.server.recipe.video.ShaderRecipe;
 import org.lwjgl.BufferUtils;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Shader extends VideoResource {
-    public static class ServerRecipe extends Resource.ServerRecipe {
-        public ServerRecipe(Runnable cleanUpCallback, ByteBuffer vertData, ByteBuffer fragData) {
-            super(cleanUpCallback);
-
-            this.vertData = vertData;
-            this.fragData = fragData;
-        }
-
-        public ByteBuffer getVertData() {
-            return vertData;
-        }
-
-        public ByteBuffer getFragData() {
-            return fragData;
-        }
-
-        private final ByteBuffer vertData;
-        private final ByteBuffer fragData;
-    }
-
     public Shader(String vertPath, String fragPath) {
         properties = new Properties();
         properties.vertPath = vertPath;
@@ -46,8 +29,8 @@ public class Shader extends VideoResource {
                 ByteBuffer vertData = readBinaryFileToNativeBuffer(properties.vertPath);
                 ByteBuffer fragData = readBinaryFileToNativeBuffer(properties.fragPath);
 
-                ServerRecipe recipe = new ServerRecipe(this::markAsReady, vertData, fragData);
-                serverHandle = Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe);
+                ShaderRecipe recipe = new ShaderRecipe(this::finishLoading, vertData, fragData);
+                serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
             } catch(Throwable e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -58,11 +41,12 @@ public class Shader extends VideoResource {
     @Override
     public void unload() {
         super.unload();
-        Engine.getInstance().getVideoServer().scheduleResourceDestruction(serverHandle);
+
+        Engine.getInstance().getVideoServer().scheduleResourceDestruction(serverHandle.get());
     }
 
     public long getServerHandle() {
-        return serverHandle;
+        return serverHandle.get();
     }
 
     private static class Properties {
@@ -70,7 +54,7 @@ public class Shader extends VideoResource {
     }
 
     private final Properties properties;
-    private long serverHandle;
+    private final AtomicLong serverHandle = new AtomicLong();
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private ByteBuffer readBinaryFileToNativeBuffer(String path) {

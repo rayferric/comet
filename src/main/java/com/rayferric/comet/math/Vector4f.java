@@ -81,7 +81,7 @@ public class Vector4f {
     }
 
     public float[] toArray() {
-        return new float[] { x, y, z, w };
+        return new float[]{x, y, z, w};
     }
 
     public float getX() {

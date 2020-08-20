@@ -1,8 +1,9 @@
-package com.rayferric.comet.video.gl.texture;
+package com.rayferric.comet.video.api.gl.texture;
 
 import com.rayferric.comet.server.ServerResource;
 
-import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.GL45.glDeleteTextures;
+import static org.lwjgl.opengl.GL45.glGenTextures;
 
 public abstract class GLTexture implements ServerResource {
     public GLTexture() {

@@ -1,26 +1,18 @@
-package com.rayferric.comet.video.gl.shader;
+package com.rayferric.comet.video.api.gl.shader;
 
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.server.ServerResource;
-import org.lwjgl.BufferUtils;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
+import static org.lwjgl.opengl.ARBGLSPIRV.GL_SHADER_BINARY_FORMAT_SPIR_V_ARB;
+import static org.lwjgl.opengl.ARBGLSPIRV.glSpecializeShaderARB;
 import static org.lwjgl.opengl.GL41.glProgramUniform4f;
 import static org.lwjgl.opengl.GL45.*;
-import static org.lwjgl.opengl.ARBGLSPIRV.*;
 
 public class GLShader implements ServerResource {
     public GLShader(ByteBuffer vertData, ByteBuffer fragData) {
@@ -69,13 +61,13 @@ public class GLShader implements ServerResource {
     public void setUniform(int location, double value) {
         glProgramUniform1f(handle, location, (float)value);
     }
-    
+
     public void setUniform(int location, Vector3f value) {
         glProgramUniform3f(handle, location, value.getX(), value.getY(), value.getZ());
     }
 
     public void setUniform(int location, Vector4f value) {
-        glProgramUniform4f(handle, location, value.getX(), value.getY(), value.getZ(),(float)value.getW());
+        glProgramUniform4f(handle, location, value.getX(), value.getY(), value.getZ(), value.getW());
     }
 
     public void setUniform(int location, Matrix4f value) {
@@ -122,7 +114,7 @@ public class GLShader implements ServerResource {
 
     private int createShader(int type, ByteBuffer data) {
         int shader = glCreateShader(type);
-        glShaderBinary(new int[] { shader }, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data);
+        glShaderBinary(new int[]{shader}, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data);
 
         try(MemoryStack stack = MemoryStack.stackPush()) {
             glSpecializeShaderARB(shader, "main", stack.mallocInt(0), stack.mallocInt(0));
