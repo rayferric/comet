@@ -1,8 +1,8 @@
-package com.rayferric.comet.video.api.gl.texture;
+package com.rayferric.comet.video.gl.texture;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.common.TextureFilter;
-import com.rayferric.comet.video.common.TextureFormat;
+import com.rayferric.comet.video.common.texture.TextureFilter;
+import com.rayferric.comet.video.common.texture.TextureFormat;
 
 import java.nio.ByteBuffer;
 

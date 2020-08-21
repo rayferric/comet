@@ -1,4 +1,4 @@
-package com.rayferric.comet.video.api.gl.texture;
+package com.rayferric.comet.video.gl.texture;
 
 import com.rayferric.comet.server.ServerResource;
 

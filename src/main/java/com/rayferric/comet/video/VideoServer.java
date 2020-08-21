@@ -7,11 +7,8 @@ import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.server.Server;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.server.recipe.ServerRecipe;
-import com.rayferric.comet.video.api.VideoAPI;
-import com.rayferric.comet.video.api.VideoEngine;
-import com.rayferric.comet.video.api.Window;
-import com.rayferric.comet.video.api.gl.GLVideoEngine;
-import com.rayferric.comet.video.api.gl.GLWindow;
+import com.rayferric.comet.video.gl.GLVideoEngine;
+import com.rayferric.comet.video.gl.GLWindow;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +25,8 @@ public class VideoServer extends Server {
         VideoAPI api = info.getVideoApi();
         this.api.set(api);
         if(api == VideoAPI.OPENGL) {
-            window = new GLWindow(info.getTitle(), info.getWindowSize());
-            videoEngine = new GLVideoEngine(window.getFramebufferSize());
+            window.set(new GLWindow(info.getTitle(), info.getWindowSize()));
+            videoEngine = new GLVideoEngine(getWindow().getFramebufferSize());
         }
     }
 
@@ -40,7 +37,7 @@ public class VideoServer extends Server {
 
     @Override
     public void destroy() {
-        window.destroy();
+        getWindow().destroy();
     }
 
     /**
@@ -73,46 +70,45 @@ public class VideoServer extends Server {
         for(Resource resource : videoResources)
             resource.unload();
 
-        setResourceCreationPaused(true);
+        resourceCreationPaused = true;
         start();
         waitForDestructionQueue();
         stop();
-        setResourceCreationPaused(false);
+        resourceCreationPaused = false;
 
-        Window oldWindow = window; // TODO make thread-safe (or not? does window really expose any thread-safe funcs?)
+        Window oldWindow = getWindow();
         if(api == VideoAPI.OPENGL) {
-            window = new GLWindow(oldWindow);
+            window.set(new GLWindow(oldWindow));
             videoEngine = new GLVideoEngine(videoEngine);
         }
         oldWindow.destroy();
 
-        start();
-
         for(Resource resource : videoResources)
             resource.load();
+
+        start();
     }
 
     public Window getWindow() {
-        return window;
+        return window.get();
     }
 
     @Override
     protected void onStart() {
-        Window.makeCurrent(window);
-        videoEngine.onStart();
-        videoEngine.createDefaultResources();
+        Window.makeCurrent(getWindow());
+        videoEngine.start();
     }
 
     @Override
     protected void onLoop() {
-        window.swapBuffers();
-        videoEngine.setSize(window.getFramebufferSize());
-        videoEngine.onDraw();
+        videoEngine.resize(getWindow().getFramebufferSize());
+        getWindow().swapBuffers();
+        videoEngine.draw();
     }
 
     @Override
     protected void onStop() {
-        videoEngine.onStop();
+        videoEngine.stop();
         Window.makeCurrent(null);
     }
 
@@ -122,6 +118,6 @@ public class VideoServer extends Server {
     }
 
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
-    private Window window;
+    private final AtomicReference<Window> window = new AtomicReference<>();
     private VideoEngine videoEngine;
 }

@@ -1,4 +1,4 @@
-package com.rayferric.comet.video.common;
+package com.rayferric.comet.video.common.texture;
 
 public enum TextureFormat {
     R8,

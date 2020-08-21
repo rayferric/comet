@@ -2,13 +2,11 @@ package com.rayferric.comet.scenegraph.resource.video.shader;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.server.recipe.video.SourceShaderRecipe;
-
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import com.rayferric.comet.util.ResourceLoader;
 
 public class SourceShader extends Shader {
-    public SourceShader(String vertPath, String fragPath) {
-        super(vertPath, fragPath);
+    public SourceShader(boolean fromJar, String vertPath, String fragPath) {
+        super(fromJar, vertPath, fragPath);
     }
 
     @Override
@@ -17,8 +15,8 @@ public class SourceShader extends Shader {
 
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
-                String vertSrc = new String(Files.readAllBytes(Paths.get(properties.vertPath)));
-                String fragSrc = new String(Files.readAllBytes(Paths.get(properties.fragPath)));
+                String vertSrc = ResourceLoader.readTextFileToString(properties.fromJar, properties.vertPath);
+                String fragSrc = ResourceLoader.readTextFileToString(properties.fromJar, properties.fragPath);
 
                 SourceShaderRecipe recipe = new SourceShaderRecipe(this::finishLoading, vertSrc, fragSrc);
                 serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));

@@ -1,7 +1,7 @@
-package com.rayferric.comet.video.api.gl;
+package com.rayferric.comet.video.gl;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.api.Window;
+import com.rayferric.comet.video.Window;
 
 import static org.lwjgl.glfw.GLFW.*;
 

@@ -1,4 +1,4 @@
-package com.rayferric.comet.video.api.gl.shader;
+package com.rayferric.comet.video.gl.shader;
 
 import org.lwjgl.system.MemoryStack;
 

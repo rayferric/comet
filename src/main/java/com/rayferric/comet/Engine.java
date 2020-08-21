@@ -1,6 +1,9 @@
 package com.rayferric.comet;
 
+import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.Resource;
+import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
+import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.video.VideoServer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
@@ -16,6 +19,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.lwjgl.glfw.GLFW.*;
 
 public class Engine {
+    public Node root; // TODO Remove
+
     /**
      * Returns text representation of the current state of the engine.<br>
      * • May be called from any thread.
@@ -68,6 +73,9 @@ public class Engine {
 
         // Start the servers:
         getVideoServer().start();
+
+        // Create resources:
+        basicShader.set(new BinaryShader(true, "shaders/basic.vert.spv", "shaders/basic.frag.spv"));
     }
 
     /**
@@ -131,6 +139,7 @@ public class Engine {
      */
     public void run(Runnable iteration) {
         getVideoServer().getWindow().setVisible(true);
+        getVideoServer().getWindow().focus();
         shouldExit.set(false);
         while(!shouldExit.get()) {
             process();
@@ -238,6 +247,10 @@ public class Engine {
         return jobPool.get();
     }
 
+    public Shader getBasicShader() {
+        return basicShader.get();
+    }
+
     // </editor-fold>
 
     private static final Engine INSTANCE = new Engine();
@@ -253,4 +266,7 @@ public class Engine {
     // Thread Pools
     private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);
     private final AtomicReference<ThreadPoolExecutor> jobPool = new AtomicReference<>(null);
+
+    // Resources
+    private final AtomicReference<Shader> basicShader = new AtomicReference<>(null);
 }

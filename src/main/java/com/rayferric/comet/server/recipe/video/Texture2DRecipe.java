@@ -2,8 +2,8 @@ package com.rayferric.comet.server.recipe.video;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.server.recipe.ServerRecipe;
-import com.rayferric.comet.video.common.TextureFilter;
-import com.rayferric.comet.video.common.TextureFormat;
+import com.rayferric.comet.video.common.texture.TextureFilter;
+import com.rayferric.comet.video.common.texture.TextureFormat;
 
 import java.nio.ByteBuffer;
 

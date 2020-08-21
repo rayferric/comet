@@ -159,6 +159,8 @@ public abstract class Server {
 
     // </editor-fold>
 
+    protected boolean resourceCreationPaused = false;
+
     protected abstract void onStart();
 
     protected abstract void onLoop();
@@ -166,12 +168,6 @@ public abstract class Server {
     protected abstract void onStop();
 
     protected abstract ServerResource resourceFromRecipe(ServerRecipe recipe);
-
-    protected void setResourceCreationPaused(boolean paused) {
-        if(running.get())
-            throw new IllegalStateException("Attempted to pause resource creation on a currently running server.");
-        resourceCreationPaused = paused;
-    }
 
     private final Object startStopLock = new Object();
     private Thread thread;
@@ -182,7 +178,6 @@ public abstract class Server {
     private final AtomicLong handleGenerator = new AtomicLong(0);
     private final ConcurrentLinkedQueue<ServerRecipe> creationQueue = new ConcurrentLinkedQueue<>();
     private final ConcurrentLinkedQueue<ServerResource> destructionQueue = new ConcurrentLinkedQueue<>();
-    private boolean resourceCreationPaused = false;
 
     // <editor-fold desc="Helpers">
 

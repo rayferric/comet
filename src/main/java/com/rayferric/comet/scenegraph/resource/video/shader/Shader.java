@@ -6,8 +6,9 @@ import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Shader extends VideoResource {
-    public Shader(String vertPath, String fragPath) {
+    public Shader(boolean fromJar, String vertPath, String fragPath) {
         properties = new Properties();
+        properties.fromJar = fromJar;
         properties.vertPath = vertPath;
         properties.fragPath = fragPath;
 
@@ -26,6 +27,7 @@ public abstract class Shader extends VideoResource {
     }
 
     protected static class Properties {
+        public boolean fromJar;
         public String vertPath, fragPath;
     }
 

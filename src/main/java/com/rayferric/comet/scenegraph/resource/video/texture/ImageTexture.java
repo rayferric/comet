@@ -3,9 +3,11 @@ package com.rayferric.comet.scenegraph.resource.video.texture;
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
-import com.rayferric.comet.video.common.TextureFilter;
-import com.rayferric.comet.video.common.TextureFormat;
+import com.rayferric.comet.util.ResourceLoader;
+import com.rayferric.comet.video.common.texture.TextureFilter;
+import com.rayferric.comet.video.common.texture.TextureFormat;
 import org.lwjgl.system.MemoryStack;
+import org.lwjgl.system.MemoryUtil;
 
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
@@ -13,8 +15,9 @@ import java.nio.IntBuffer;
 import static org.lwjgl.stb.STBImage.*;
 
 public class ImageTexture extends Texture {
-    public ImageTexture(String path, TextureFilter filter) {
+    public ImageTexture(boolean fromJar, String path, TextureFilter filter) {
         properties = new Properties();
+        properties.fromJar = fromJar;
         properties.path = path;
         properties.filter = filter;
 
@@ -32,29 +35,22 @@ public class ImageTexture extends Texture {
                     IntBuffer heightBuf = stack.mallocInt(1);
                     IntBuffer channelsBuf = stack.mallocInt(1);
                     stbi_set_flip_vertically_on_load(true);
-                    ByteBuffer data = stbi_load(properties.path, widthBuf, heightBuf, channelsBuf, 0);
+                    ByteBuffer srcData =
+                            ResourceLoader.readBinaryFileToNativeBuffer(properties.fromJar, properties.path);
+                    ByteBuffer data = stbi_load_from_memory(srcData, widthBuf, heightBuf, channelsBuf, 0);
+                    MemoryUtil.memFree(srcData);
                     if(data == null)
                         throw new RuntimeException("Failed to read image file.\n" + properties.path);
 
                     Vector2i size = new Vector2i(widthBuf.get(0), heightBuf.get(0));
                     int channels = channelsBuf.get(0);
-                    TextureFormat format;
-                    switch(channels) {
-                        case 1:
-                            format = TextureFormat.R8;
-                            break;
-                        case 2:
-                            format = TextureFormat.RG8;
-                            break;
-                        case 3:
-                            format = TextureFormat.RGB8;
-                            break;
-                        case 4:
-                            format = TextureFormat.RGBA8;
-                            break;
-                        default:
-                            throw new RuntimeException("Texture has more than 4 channels.");
-                    }
+                    TextureFormat format = switch(channels) {
+                        case 1 -> TextureFormat.R8;
+                        case 2 -> TextureFormat.RG8;
+                        case 3 -> TextureFormat.RGB8;
+                        case 4 -> TextureFormat.RGBA8;
+                        default -> throw new RuntimeException("Texture has more than 4 channels.");
+                    };
 
                     Texture2DRecipe recipe = new Texture2DRecipe(() -> {
                         stbi_image_free(data);
@@ -71,6 +67,7 @@ public class ImageTexture extends Texture {
     }
 
     private static class Properties {
+        public boolean fromJar;
         public String path;
         public TextureFilter filter;
     }

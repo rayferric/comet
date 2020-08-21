@@ -3,14 +3,31 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '6.0.0'
 }
 
-group 'com.rayferric'
-version '1.0.0'
+// Project Configuration
+
+String projectGroup = 'com.rayferric'
+String projectVersion = '1.0.0'
+String mainClass = 'com.rayferric.spatialwalker.Main'
+JavaVersion javaVersion = JavaVersion.VERSION_14
+String gradleVersion = '6.6'
+
+// Apply Configuration
+
+group projectGroup
+version projectVersion
 
 shadowJar {
     manifest {
-        attributes 'Main-Class': 'com.rayferric.spatialwalker.Main'
+        attributes 'Main-Class': mainClass
     }
 }
+
+compileJava.sourceCompatibility = javaVersion
+
+wrapper.gradleVersion = gradleVersion
+wrapper.distributionType = Wrapper.DistributionType.ALL
+
+// Dependencies
 
 repositories {
     mavenCentral()
@@ -33,6 +50,8 @@ dependencies {
     runtimeOnly 'org.lwjgl:lwjgl-opengl::natives-windows'
     runtimeOnly 'org.lwjgl:lwjgl-stb::natives-windows'
 }
+
+// Tasks
 
 task copyDependencies(type: Copy) {
     from configurations.runtimeClasspath

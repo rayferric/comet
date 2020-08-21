@@ -1,7 +1,7 @@
 package com.rayferric.comet;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.api.VideoAPI;
+import com.rayferric.comet.video.VideoAPI;
 
 /**
  * Encapsulates engine configuration.<br>
