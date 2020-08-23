@@ -2,8 +2,9 @@ package com.rayferric.comet.video;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.common.Monitor;
-import com.rayferric.comet.video.common.WindowMode;
+import com.rayferric.comet.video.api.VideoAPI;
+import com.rayferric.comet.video.util.Monitor;
+import com.rayferric.comet.video.util.WindowMode;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
@@ -19,8 +20,8 @@ public abstract class Window {
     @Override
     public String toString() {
         return String
-                .format("Window{handle.get()=%s, title=%s, vSync=%s, pos=%s, size=%s, focus=%s, mode=%s, monitor=%s, visible=%s, framebufferSize=%s}",
-                        handle.get(), getTitle(), hasVSync(), pos.get(), size.get(), hasFocus(), getMode(), getMonitor(), isVisible(),
+                .format("Window{handle.get()=%s, title=%s, pos=%s, size=%s, focus=%s, mode=%s, monitor=%s, visible=%s, framebufferSize=%s}",
+                        handle.get(), getTitle(), pos.get(), size.get(), hasFocus(), getMode(), getMonitor(), isVisible(),
                         getFramebufferSize());
     }
 
@@ -33,7 +34,6 @@ public abstract class Window {
         else
             glfwMakeContextCurrent(NULL);
     }
-
 
     /**
      * May be called from any thread.<br>
@@ -83,20 +83,6 @@ public abstract class Window {
     public void setTitle(String title) {
         glfwSetWindowTitle(handle.get(), title);
         this.title.set(title);
-    }
-
-    public boolean hasVSync() {
-        return vSync.get();
-    }
-
-    public void setVSync(boolean vSync) {
-        if(this.vSync.get() == vSync)
-            return;
-
-        final long prevCurrent = glfwGetCurrentContext();
-        glfwMakeContextCurrent(handle.get());
-        glfwSwapInterval(vSync ? 1 : 0);
-        glfwMakeContextCurrent(prevCurrent);
     }
 
     public Vector2i getPos() {
@@ -171,10 +157,13 @@ public abstract class Window {
     }
 
     public void setMonitor(Monitor monitor) {
-        if(this.monitor.get() == monitor) return;
+        Monitor currentMonitor = this.monitor.get();
+        if(currentMonitor != null && currentMonitor.equals(monitor)) return;
         this.monitor.set(monitor);
 
         if(monitor != null) {
+            // Set to visible, otherwise stuff goes crazy
+            setVisible(true);
             final Vector2i resolution = monitor.getResolution();
             glfwSetWindowMonitor(handle.get(), monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
                     GLFW_DONT_CARE);
@@ -208,7 +197,7 @@ public abstract class Window {
 
     protected abstract void requireExtensions();
 
-    protected void create(String title, Vector2i size) {
+    protected void create(String title, Vector2i size, WindowMode mode) {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
         handle.set(glfwCreateWindow(size.getX(), size.getY(), title, NULL, NULL));
@@ -229,7 +218,6 @@ public abstract class Window {
         // We must make sure all these values are initialized:
 
         this.title.set(title);
-        setVSync(true);
 
         Monitor monitor = Monitor.getPrimary();
         if(monitor != null)
@@ -240,30 +228,28 @@ public abstract class Window {
 
         Vector2i fbSize = getFramebufferSize();
         framebufferSizeCallback(handle.get(), fbSize.getX(), fbSize.getY());
+
+        setMode(mode);
     }
 
     protected void copyPropertiesFrom(Window other) {
-        setVSync(other.hasVSync());
-
-        setPos(other.pos.get());
-        setSize(other.size.get());
+        size.set(other.size.get());
 
         if(other.hasFocus()) focus();
 
         Monitor monitor = other.getMonitor();
         if(monitor != null) {
-            // Set to visible, otherwise stuff goes crazy
-            setVisible(true);
-            setMonitor(monitor);
+            pos.set(other.pos.get());
+            if(!monitor.equals(Monitor.getPrimary()))
+                setMonitor(monitor);
         } else
-            setMode(other.getMode());
+            setPos(other.pos.get());
 
         setVisible(other.isVisible());
     }
 
     private final AtomicLong handle = new AtomicLong();
     private final AtomicReference<String> title = new AtomicReference<>();
-    private final AtomicBoolean vSync = new AtomicBoolean();
     private final AtomicReference<Vector2i> pos = new AtomicReference<>(), size = new AtomicReference<>();
     private final AtomicReference<Monitor> monitor = new AtomicReference<>(null);
     private final Vector2i framebufferSizeCache = new Vector2i();

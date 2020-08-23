@@ -1,7 +1,7 @@
 package com.rayferric.comet.scenegraph.resource.video.shader;
 
 import com.rayferric.comet.Engine;
-import com.rayferric.comet.server.recipe.video.BinaryShaderRecipe;
+import com.rayferric.comet.video.recipe.shader.BinaryShaderRecipe;
 import com.rayferric.comet.util.ResourceLoader;
 import org.lwjgl.system.MemoryUtil;
 

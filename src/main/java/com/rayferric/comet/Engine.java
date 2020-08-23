@@ -1,15 +1,11 @@
 package com.rayferric.comet;
 
+import com.rayferric.comet.manager.ResourceManager;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.Resource;
-import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
-import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.video.VideoServer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -29,9 +25,8 @@ public class Engine {
      */
     @Override
     public String toString() {
-        return String
-                .format("Engine{running=%s, resources=%s, videoServer=%s, loaderPool=%s, threadPool=%s}", running.get(),
-                        resources, videoServer, loaderPool, jobPool);
+        return String.format("Engine{running=%s, videoServer=%s, loaderPool=%s, threadPool=%s, resourceManager=%s}",
+                running.get(), getVideoServer(), getLoaderPool(), getJobPool(), getResourceManager());
     }
 
     /**
@@ -74,8 +69,8 @@ public class Engine {
         // Start the servers:
         getVideoServer().start();
 
-        // Create resources:
-        basicShader.set(new BinaryShader(true, "shaders/basic.vert.spv", "shaders/basic.frag.spv"));
+        // Initialize managers:
+        resourceManager.set(new ResourceManager());
     }
 
     /**
@@ -103,7 +98,7 @@ public class Engine {
         getVideoServer().waitForCreationQueue();
 
         // Unload resources:
-        for(Resource resource : new ArrayList<>(resources))
+        for(Resource resource : getResourceManager().snapLoadedResources())
             resource.unload();
 
         // Wait for server destruction queues:
@@ -150,8 +145,6 @@ public class Engine {
 
     // </editor-fold>
 
-    // <editor-fold desc="Parallel API">
-
     /**
      * Requests termination of the {@link #run(Runnable) main loop}.<br>
      * • May be called from any thread.
@@ -159,61 +152,6 @@ public class Engine {
     public void exit() {
         shouldExit.set(true);
     }
-
-    public <T> void reloadResources(Class<T> type) {
-        List<Resource> snapshot;
-        synchronized(resources) {
-            snapshot = new ArrayList<>(resources);
-        }
-        for(Resource resource : snapshot) {
-            if(type.isAssignableFrom(resource.getClass()))
-                resource.reload();
-        }
-    }
-
-    // </editor-fold>
-
-    // <editor-fold desc="Internal API">
-
-    /**
-     * Returns a snapshot of a {@link ArrayList list} of currently loaded {@link Resource resources}.<br>
-     * • Is internally used by the servers.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     *
-     * @return a snapshot of the resource registry
-     */
-    public List<Resource> snapLoadedResources() {
-        synchronized(resources) {
-            return new ArrayList<Resource>(resources);
-        }
-    }
-
-    /**
-     * Registers a {@link Resource}.<br>
-     * • Is internally called by {@link Resource} when it has finished loading.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     *
-     * @param resource resource, must not be null
-     */
-    public void registerLoadedResource(Resource resource) {
-        resources.add(resource);
-    }
-
-    /**
-     * Unregisters a {@link Resource}.<br>
-     * • Is internally called by {@link Resource} when it has started unloading.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     *
-     * @param resource resource, must not be null
-     */
-    public void unregisterUnloadedResource(Resource resource) {
-        resources.remove(resource);
-    }
-
-    // </editor-fold>
 
     // <editor-fold desc="Getters">
 
@@ -247,8 +185,14 @@ public class Engine {
         return jobPool.get();
     }
 
-    public Shader getBasicShader() {
-        return basicShader.get();
+    /**
+     * Returns the resource manager.<br>
+     * • May be called from any thread.
+     *
+     * @return resource manager
+     */
+    public ResourceManager getResourceManager() {
+        return resourceManager.get();
     }
 
     // </editor-fold>
@@ -258,8 +202,6 @@ public class Engine {
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean shouldExit = new AtomicBoolean();
 
-    private final List<Resource> resources = Collections.synchronizedList(new ArrayList<>());
-
     // Servers
     private final AtomicReference<VideoServer> videoServer = new AtomicReference<>(null);
 
@@ -267,6 +209,6 @@ public class Engine {
     private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);
     private final AtomicReference<ThreadPoolExecutor> jobPool = new AtomicReference<>(null);
 
-    // Resources
-    private final AtomicReference<Shader> basicShader = new AtomicReference<>(null);
+    // Managers
+    private final AtomicReference<ResourceManager> resourceManager = new AtomicReference<>(null);
 }

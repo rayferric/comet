@@ -2,7 +2,7 @@ package com.rayferric.comet.scenegraph.resource.video.mesh;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2f;
-import com.rayferric.comet.server.recipe.video.MeshRecipe;
+import com.rayferric.comet.video.recipe.mesh.MeshRecipe;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;

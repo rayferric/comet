@@ -6,12 +6,15 @@ import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.server.Server;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.server.recipe.ServerRecipe;
-import com.rayferric.comet.video.gl.GLVideoEngine;
-import com.rayferric.comet.video.gl.GLWindow;
+import com.rayferric.comet.server.ServerRecipe;
+import com.rayferric.comet.video.recipe.VideoRecipe;
+import com.rayferric.comet.video.api.VideoAPI;
+import com.rayferric.comet.video.api.gl.GLVideoEngine;
+import com.rayferric.comet.video.api.gl.GLWindow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class VideoServer extends Server {
@@ -23,11 +26,14 @@ public class VideoServer extends Server {
      */
     public VideoServer(EngineInfo info) {
         VideoAPI api = info.getVideoApi();
-        this.api.set(api);
+
         if(api == VideoAPI.OPENGL) {
-            window.set(new GLWindow(info.getTitle(), info.getWindowSize()));
+            window.set(new GLWindow(info.getWindowTitle(), info.getWindowSize(), info.getWindowMode()));
             videoEngine = new GLVideoEngine(getWindow().getFramebufferSize());
         }
+
+        this.api.set(api);
+        this.vSync.set(info.hasVSync());
     }
 
     @Override
@@ -38,6 +44,10 @@ public class VideoServer extends Server {
     @Override
     public void destroy() {
         getWindow().destroy();
+    }
+
+    public Window getWindow() {
+        return window.get();
     }
 
     /**
@@ -63,7 +73,7 @@ public class VideoServer extends Server {
         stop();
 
         List<Resource> videoResources = new ArrayList<>();
-        for(Resource resource : Engine.getInstance().snapLoadedResources())
+        for(Resource resource : Engine.getInstance().getResourceManager().snapLoadedResources())
             if(resource instanceof VideoResource)
                 videoResources.add(resource);
 
@@ -89,8 +99,12 @@ public class VideoServer extends Server {
         start();
     }
 
-    public Window getWindow() {
-        return window.get();
+    public boolean getVSync() {
+        return vSync.get();
+    }
+
+    public void setVSync(boolean vSync) {
+        this.vSync.set(vSync);
     }
 
     @Override
@@ -101,7 +115,7 @@ public class VideoServer extends Server {
 
     @Override
     protected void onLoop() {
-        videoEngine.resize(getWindow().getFramebufferSize());
+        videoEngine.update(getWindow().getFramebufferSize(), vSync.get());
         getWindow().swapBuffers();
         videoEngine.draw();
     }
@@ -114,10 +128,12 @@ public class VideoServer extends Server {
 
     @Override
     protected ServerResource resourceFromRecipe(ServerRecipe recipe) {
-        return videoEngine.resourceFromRecipe(recipe);
+        return ((VideoRecipe)recipe).resolve(videoEngine);
     }
 
-    private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicReference<Window> window = new AtomicReference<>();
     private VideoEngine videoEngine;
+
+    private final AtomicReference<VideoAPI> api = new AtomicReference<>();
+    private final AtomicBoolean vSync = new AtomicBoolean();
 }

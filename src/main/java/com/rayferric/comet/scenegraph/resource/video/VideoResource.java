@@ -1,5 +1,21 @@
 package com.rayferric.comet.scenegraph.resource.video;
 
+import com.rayferric.comet.Engine;
 import com.rayferric.comet.scenegraph.resource.Resource;
 
-public abstract class VideoResource extends Resource {}
+import java.util.concurrent.atomic.AtomicLong;
+
+public abstract class VideoResource extends Resource {
+    @Override
+    public void unload() {
+        super.unload();
+
+        Engine.getInstance().getVideoServer().scheduleResourceDestruction(serverHandle.get());
+    }
+
+    public long getServerHandle() {
+        return serverHandle.get();
+    }
+
+    protected final AtomicLong serverHandle = new AtomicLong();
+}

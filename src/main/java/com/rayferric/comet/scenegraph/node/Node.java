@@ -2,6 +2,8 @@ package com.rayferric.comet.scenegraph.node;
 
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.scenegraph.resource.Resource;
+import com.rayferric.comet.video.VideoEngine;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +34,7 @@ public class Node {
 
     @Override
     public String toString() {
-        return String.format("Node{translation=%s, rotation=%s, scale=%s}", translation, rotation, scale);
+        return String.format("Node{translation=%s, rotation=%s, scale=%s}", translation.get(), rotation.get(), scale.get());
     }
 
     /**
@@ -78,6 +80,14 @@ public class Node {
         invalidateGlobalTransform();
     }
 
+    /**
+     * Returns a snapshot of all children.<br>
+     * • Returns a copy of the original {@link ArrayList}.<br>
+     * • The return value may be modified and read from freely.<br>
+     * • May be called from any thread.
+     *
+     * @return iterable list of children
+     */
     public List<Node> getChildren() {
         synchronized(childrenLock) {
             return new ArrayList<>(children);
@@ -111,35 +121,87 @@ public class Node {
         }
     }
 
+    // <editor-fold desc="Translation, Rotation and Scale">
+
+    /**
+     * Retrieves current translation of the node.<br>
+     * • Returns the original reference.<br>
+     * • The return value must not be ever modified, but may be read from.<br>
+     * • May be called from any thread.
+     *
+     * @return read-only translation
+     */
     public Vector3f getTranslation() {
-        return new Vector3f(translation.get());
+        return translation.get();
     }
 
+    /**
+     * Sets the current translation of the node.<br>
+     * • Does not copy the parameter.<br>
+     * • The passed value must not be modified now, but may be read from.<br>
+     * • May be called from any thread.
+     *
+     * @param translation read-only translation
+     */
     public void setTranslation(Vector3f translation) {
-        this.translation.set(new Vector3f(translation));
+        this.translation.set(translation);
         invalidateLocalTransform();
         invalidateGlobalTransform();
     }
 
+    /**
+     * Retrieves current rotation of the node.<br>
+     * • Returns the original reference.<br>
+     * • The return value must not be ever modified, but may be read from.<br>
+     * • May be called from any thread.
+     *
+     * @return read-only rotation
+     */
     public Vector3f getRotation() {
-        return new Vector3f(rotation.get());
+        return rotation.get();
     }
 
+    /**
+     * Sets the current rotation of the node.<br>
+     * • Does not copy the parameter.<br>
+     * • The passed value must not be modified now, but may be read from.<br>
+     * • May be called from any thread.
+     *
+     * @param rotation read-only rotation
+     */
     public void setRotation(Vector3f rotation) {
-        this.rotation.set(new Vector3f(rotation));
+        this.rotation.set(rotation);
         invalidateLocalTransform();
         invalidateGlobalTransform();
     }
 
+    /**
+     * Retrieves current scale of the node.<br>
+     * • Returns the original reference.<br>
+     * • The return value must not be ever modified, but may be read from.<br>
+     * • May be called from any thread.
+     *
+     * @return read-only scale
+     */
     public Vector3f getScale() {
-        return new Vector3f(scale.get());
+        return scale.get();
     }
 
+    /**
+     * Sets the current scale of the node.<br>
+     * • Does not copy the parameter.<br>
+     * • The passed value must not be modified now, but may be read from.<br>
+     * • May be called from any thread.
+     *
+     * @param scale read-only scale
+     */
     public void setScale(Vector3f scale) {
-        this.scale.set(new Vector3f(scale));
+        this.scale.set(scale);
         invalidateLocalTransform();
         invalidateGlobalTransform();
     }
+
+    // </editor-fold>
 
     public Matrix4f getLocalTransform() {
         synchronized(localTransformValidLock) {
@@ -154,6 +216,21 @@ public class Node {
         }
         return new Matrix4f(globalTransformCache);
     }
+
+    // <editor-fold desc="Internal API">
+
+    /**
+     * Uses supplied video engine to draw this node.<br>
+     * The video engine itself calls this command to avoid the type check.<br>
+     * • Is internally used by the video engine.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • Must only be called from the video thread.
+     *
+     * @param videoEngine video engine that invoked this method
+     */
+    public void draw(VideoEngine videoEngine) {}
+
+    // </editor-fold>
 
     private final AtomicReference<String> name = new AtomicReference<>();
 

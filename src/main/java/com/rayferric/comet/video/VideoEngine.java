@@ -2,12 +2,19 @@ package com.rayferric.comet.video;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.scenegraph.node.Model;
+import com.rayferric.comet.scenegraph.resource.video.buffer.UniformBuffer;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
+import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
+import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.server.recipe.ServerRecipe;
-import com.rayferric.comet.server.recipe.video.BinaryShaderRecipe;
-import com.rayferric.comet.server.recipe.video.MeshRecipe;
-import com.rayferric.comet.server.recipe.video.SourceShaderRecipe;
-import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
+import com.rayferric.comet.video.util.texture.TextureFilter;
+import com.rayferric.comet.video.util.texture.TextureFormat;
+
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 
 /**
  * A cross-API video interface.<br>
@@ -20,15 +27,16 @@ public abstract class VideoEngine {
         return String.format("VideoEngine{size=%s}", size);
     }
 
+    // <editor-fold desc="Internal Server API">
+
     public void start() {
         onStart();
         defaultTexture2D = createDefaultTexture2D();
-        defaultShader = createDefaultShader();
-        defaultMesh = createDefaultMesh();
         onResize();
     }
 
     public void stop() {
+        defaultTexture2D.destroy();
         onStop();
     }
 
@@ -36,25 +44,34 @@ public abstract class VideoEngine {
         onDraw();
     }
 
-    public void resize(Vector2i size) {
+    public void update(Vector2i size, boolean vSync) {
         if(!size.equals(this.size)) {
-            this.size = new Vector2i(size);
+            this.size = size;
             onResize();
+        }
+        if(this.vSync != vSync) {
+            this.vSync = vSync;
+            onVSyncUpdate();
         }
     }
 
-    public ServerResource resourceFromRecipe(ServerRecipe recipe) {
-        if(recipe instanceof Texture2DRecipe)
-            return createTexture2D((Texture2DRecipe)recipe);
-        else if(recipe instanceof BinaryShaderRecipe)
-            return createBinaryShader((BinaryShaderRecipe)recipe);
-        else if(recipe instanceof SourceShaderRecipe)
-            return createSourceShader((SourceShaderRecipe)recipe);
-        else if(recipe instanceof MeshRecipe)
-            return createMesh((MeshRecipe)recipe);
-        else
-            throw new IllegalArgumentException("Attempted to create a video resource of unknown type.");
-    }
+    // </editor-fold>
+
+    // <editor-fold desc="Internal API">
+
+    public abstract void drawModel(Model model);
+
+    public abstract ServerResource createBinaryShader(ByteBuffer vertBin, ByteBuffer fragBin);
+
+    public abstract ServerResource createMesh(FloatBuffer vertices, IntBuffer indices);
+
+    public abstract ServerResource createSourceShader(String vertSrc, String fragSrc);
+
+    public abstract ServerResource createTexture2D(Buffer data, Vector2i size, TextureFormat format, TextureFilter filter);
+
+    public abstract ServerResource createUniformBuffer(int size);
+
+    // </editor-fold>
 
     protected VideoEngine(Vector2i size) {
         this.size = size;
@@ -69,6 +86,8 @@ public abstract class VideoEngine {
         return size;
     }
 
+    protected boolean getVSync() { return vSync; }
+
     // <editor-fold desc="Events">
 
     protected abstract void onStart();
@@ -79,17 +98,7 @@ public abstract class VideoEngine {
 
     protected abstract void onResize();
 
-    // </editor-fold>
-
-    // <editor-fold desc="Recipe Processing">
-
-    protected abstract ServerResource createTexture2D(Texture2DRecipe recipe);
-
-    protected abstract ServerResource createBinaryShader(BinaryShaderRecipe recipe);
-
-    protected abstract ServerResource createSourceShader(SourceShaderRecipe recipe);
-
-    protected abstract ServerResource createMesh(MeshRecipe recipe);
+    protected abstract void onVSyncUpdate();
 
     // </editor-fold>
 
@@ -97,27 +106,35 @@ public abstract class VideoEngine {
 
     protected abstract ServerResource createDefaultTexture2D();
 
-    protected abstract ServerResource createDefaultShader();
-
-    protected abstract ServerResource createDefaultMesh();
-
-    protected ServerResource getTexture2DOrDefault(long handle) {
-        ServerResource resource = Engine.getInstance().getVideoServer().getServerResource(handle);
-        return resource == null ? defaultTexture2D : resource;
+    protected ServerResource getServerMeshOrNull(Mesh mesh) {
+        if(mesh == null) return null;
+        long handle = mesh.getServerHandle();
+        return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 
-    protected ServerResource getShaderOrDefault(long handle) {
+    protected ServerResource getServerTexture2DOrDefault(Texture texture) {
+        if(texture == null) return defaultTexture2D;
+        long handle = texture.getServerHandle();
         ServerResource resource = Engine.getInstance().getVideoServer().getServerResource(handle);
-        return resource == null ? defaultShader : resource;
+        if(resource == null) return defaultTexture2D;
+        return resource;
     }
 
-    protected ServerResource getMeshOrDefault(long handle) {
-        ServerResource resource = Engine.getInstance().getVideoServer().getServerResource(handle);
-        return resource == null ? defaultMesh : resource;
+    protected ServerResource getServerShaderOrNull(Shader shader) {
+        if(shader == null) return null;
+        long handle = shader.getServerHandle();
+        return Engine.getInstance().getVideoServer().getServerResource(handle);
+    }
+
+    protected ServerResource getServerUniformBufferOrNull(UniformBuffer uniformBuffer) {
+        if(uniformBuffer == null) return null;
+        long handle = uniformBuffer.getServerHandle();
+        return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 
     // </editor-fold>
 
     private Vector2i size;
-    private ServerResource defaultTexture2D, defaultShader, defaultMesh;
+    private boolean vSync;
+    private ServerResource defaultTexture2D;
 }

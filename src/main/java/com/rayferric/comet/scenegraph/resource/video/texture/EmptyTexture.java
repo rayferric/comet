@@ -2,9 +2,9 @@ package com.rayferric.comet.scenegraph.resource.video.texture;
 
 import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.server.recipe.video.Texture2DRecipe;
-import com.rayferric.comet.video.common.texture.TextureFilter;
-import com.rayferric.comet.video.common.texture.TextureFormat;
+import com.rayferric.comet.video.recipe.texture.Texture2DRecipe;
+import com.rayferric.comet.video.util.texture.TextureFilter;
+import com.rayferric.comet.video.util.texture.TextureFormat;
 
 public class EmptyTexture extends Texture {
     public EmptyTexture(Vector2i size, TextureFormat format, TextureFilter filter) {

@@ -1,6 +1,7 @@
 package com.rayferric.comet.scenegraph.resource;
 
 import com.rayferric.comet.Engine;
+import com.rayferric.comet.manager.ResourceManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -42,14 +43,14 @@ public abstract class Resource {
     }
 
     /**
-     * Starts unloading this resource.<br>
+     * Unregisters this resource from {@link Engine#getResourceManager() resource manager} and starts unloading the server resource.<br>
      * • This is a non-blocking routine.<br>
      * • May be called from any thread.
      */
     public void unload() {
         if(!loaded.compareAndSet(true, false))
             throw new IllegalStateException("Attempted to unload an already unloaded resource.");
-        Engine.getInstance().unregisterUnloadedResource(this);
+        Engine.getInstance().getResourceManager().unregisterUnloadedResource(this);
     }
 
     /**
@@ -66,7 +67,7 @@ public abstract class Resource {
     protected final AtomicBoolean loaded = new AtomicBoolean(false);
 
     /**
-     * Marks this resource as loaded and {@link Engine#registerLoadedResource(Resource) submits} it to the Engine registry.<br>
+     * Marks this resource as loaded and {@link ResourceManager#registerLoadedResource(Resource) submits} it to the resource manager.<br>
      * • May be called from any thread.
      */
     protected void finishLoading() {
@@ -74,6 +75,6 @@ public abstract class Resource {
         if(!loaded.compareAndSet(false, true) || !loading.compareAndSet(true, false))
             throw new IllegalStateException(
                     "A single resource was being loaded using multiple threads simultaneously.");
-        Engine.getInstance().registerLoadedResource(this);
+        Engine.getInstance().getResourceManager().registerLoadedResource(this);
     }
 }

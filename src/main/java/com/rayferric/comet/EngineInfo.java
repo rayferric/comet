@@ -1,7 +1,8 @@
 package com.rayferric.comet;
 
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.VideoAPI;
+import com.rayferric.comet.video.api.VideoAPI;
+import com.rayferric.comet.video.util.WindowMode;
 
 /**
  * Encapsulates engine configuration.<br>
@@ -11,20 +12,12 @@ import com.rayferric.comet.video.VideoAPI;
 public class EngineInfo {
     // <editor-fold desc="Getters and Setters">
 
-    public VideoAPI getVideoApi() {
-        return videoApi;
+    public String getWindowTitle() {
+        return windowTitle;
     }
 
-    public void setVideoApi(VideoAPI videoApi) {
-        this.videoApi = videoApi;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+    public void setWindowTitle(String windowTitle) {
+        this.windowTitle = windowTitle;
     }
 
     public Vector2i getWindowSize() {
@@ -33,6 +26,30 @@ public class EngineInfo {
 
     public void setWindowSize(Vector2i windowSize) {
         this.windowSize = windowSize;
+    }
+
+    public WindowMode getWindowMode() {
+        return windowMode;
+    }
+
+    public void setWindowMode(WindowMode windowMode) {
+        this.windowMode = windowMode;
+    }
+
+    public VideoAPI getVideoApi() {
+        return videoApi;
+    }
+
+    public void setVideoApi(VideoAPI videoApi) {
+        this.videoApi = videoApi;
+    }
+
+    public boolean hasVSync() {
+        return vSync;
+    }
+
+    public void setVSync(boolean vSyncEnabled) {
+        this.vSync = vSyncEnabled;
     }
 
     public int getLoaderThreads() {
@@ -54,9 +71,12 @@ public class EngineInfo {
 
     // </editor-fold>
 
-    private VideoAPI videoApi = VideoAPI.OPENGL;
-    private String title = "Engine";
+    private String windowTitle = "Engine";
     private Vector2i windowSize = new Vector2i(1280, 720);
+    private WindowMode windowMode = WindowMode.WINDOWED;
+
+    private VideoAPI videoApi = VideoAPI.OPENGL;
+    private boolean vSync = true;
 
     private int loaderThreads = 4;
     private int jobThreads = 4;

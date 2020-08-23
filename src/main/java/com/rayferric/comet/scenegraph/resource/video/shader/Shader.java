@@ -15,22 +15,10 @@ public abstract class Shader extends VideoResource {
         load();
     }
 
-    @Override
-    public void unload() {
-        super.unload();
-
-        Engine.getInstance().getVideoServer().scheduleResourceDestruction(serverHandle.get());
-    }
-
-    public long getServerHandle() {
-        return serverHandle.get();
-    }
-
     protected static class Properties {
         public boolean fromJar;
         public String vertPath, fragPath;
     }
 
     protected final Properties properties;
-    protected final AtomicLong serverHandle = new AtomicLong();
 }

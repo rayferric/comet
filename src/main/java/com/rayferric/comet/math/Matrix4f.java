@@ -18,17 +18,17 @@ public class Matrix4f {
     }
 
     public Matrix4f(Vector4f x, Vector4f y, Vector4f z, Vector4f w) {
-        setX(x);
-        setY(y);
-        setZ(z);
-        setW(w);
+        this.x = x;
+        this.y = y;
+        this.z = z;
+        this.w = w;
     }
 
     public Matrix4f(Matrix4f other) {
-        setX(other.x);
-        setY(other.y);
-        setZ(other.z);
-        setW(other.w);
+        x = other.x;
+        y = other.y;
+        z = other.z;
+        w = other.w;
     }
 
     @Override
@@ -194,35 +194,35 @@ public class Matrix4f {
     }
 
     public Vector4f getX() {
-        return new Vector4f(x);
+        return x;
     }
 
     public void setX(Vector4f x) {
-        this.x = new Vector4f(x);
+        this.x = x;
     }
 
     public Vector4f getY() {
-        return new Vector4f(y);
+        return y;
     }
 
     public void setY(Vector4f y) {
-        this.y = new Vector4f(y);
+        this.y = y;
     }
 
     public Vector4f getZ() {
-        return new Vector4f(z);
+        return z;
     }
 
     public void setZ(Vector4f z) {
-        this.z = new Vector4f(z);
+        this.z = z;
     }
 
     public Vector4f getW() {
-        return new Vector4f(w);
+        return w;
     }
 
     public void setW(Vector4f w) {
-        this.w = new Vector4f(w);
+        this.w = w;
     }
 
     // Those are columns

@@ -1,7 +1,7 @@
 package com.rayferric.comet.scenegraph.resource.video.shader;
 
 import com.rayferric.comet.Engine;
-import com.rayferric.comet.server.recipe.video.SourceShaderRecipe;
+import com.rayferric.comet.video.recipe.shader.SourceShaderRecipe;
 import com.rayferric.comet.util.ResourceLoader;
 
 public class SourceShader extends Shader {

@@ -1,7 +1,8 @@
 package com.rayferric.comet.scenegraph.node;
 
-import com.rayferric.comet.scenegraph.resource.video.material.Material;
+import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
+import com.rayferric.comet.video.VideoEngine;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -10,6 +11,13 @@ public class Model extends Node {
         setName("Model");
         this.mesh.set(mesh);
         this.material.set(material);
+    }
+
+    @Override
+    public void draw(VideoEngine videoEngine) {
+        if(mesh == null) return;
+        if(material == null) return;
+        videoEngine.drawModel(this);
     }
 
     public Mesh getMesh() {
