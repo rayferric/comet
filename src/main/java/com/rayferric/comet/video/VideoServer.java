@@ -28,7 +28,7 @@ public class VideoServer extends Server {
         VideoAPI api = info.getVideoApi();
 
         if(api == VideoAPI.OPENGL) {
-            window.set(new GLWindow(info.getWindowTitle(), info.getWindowSize(), info.getWindowMode()));
+            window.set(new GLWindow(info.getWindowTitle(), info.getWindowSize()));
             videoEngine = new GLVideoEngine(getWindow().getFramebufferSize());
         }
 
@@ -107,6 +107,29 @@ public class VideoServer extends Server {
         this.vSync.set(vSync);
     }
 
+    /**
+     * Waits for the video engine to initialize.<br>
+     * • Returns when the video engine starts drawing.<br>
+     * • The server must be running.<br>
+     * • May be called from any thread.
+     *
+     * @throws IllegalStateException if the server is stopped
+     */
+    public void waitForVideoEngine() {
+        synchronized(startStopLock) {
+            if(!isRunning())
+                throw new IllegalStateException("Attempted to wait for video engine while the server was down.");
+            synchronized(videoEngineReadyNotifier) {
+                try {
+                    videoEngineReadyNotifier.wait();
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
+            }
+        }
+    }
+
     @Override
     protected void onStart() {
         Window.makeCurrent(getWindow());
@@ -115,6 +138,9 @@ public class VideoServer extends Server {
 
     @Override
     protected void onLoop() {
+        synchronized(videoEngineReadyNotifier) {
+            videoEngineReadyNotifier.notifyAll();
+        }
         videoEngine.update(getWindow().getFramebufferSize(), vSync.get());
         getWindow().swapBuffers();
         videoEngine.draw();
@@ -136,4 +162,6 @@ public class VideoServer extends Server {
 
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicBoolean vSync = new AtomicBoolean();
+
+    private final Object videoEngineReadyNotifier = new Object();
 }

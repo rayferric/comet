@@ -12,7 +12,6 @@ import com.rayferric.comet.scenegraph.resource.video.mesh.PlaneMesh;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.video.api.VideoAPI;
-import com.rayferric.comet.video.util.WindowMode;
 import com.rayferric.comet.video.util.texture.TextureFilter;
 
 public class Main {
@@ -22,10 +21,9 @@ public class Main {
         EngineInfo info = new EngineInfo();
         info.setWindowTitle("Spatial Walker");
         info.setWindowSize(new Vector2i(640, 360));
-        info.setWindowMode(WindowMode.FULLSCREEN);
 
         info.setVideoApi(VideoAPI.OPENGL);
-        info.setVSync(true);
+        info.setVSync(false);
 
         info.setLoaderThreads(4);
         info.setJobThreads(4);
@@ -43,6 +41,10 @@ public class Main {
             material.setColorTex(imageTexture);
 
             engine.root = new Model(mesh, material);
+
+            engine.getVideoServer().waitForVideoEngine();
+
+            // engine.getVideoServer().getWindow().setFullscreen(true);
 
             engine.run(() -> {
                 if(engine.getVideoServer().getWindow().shouldClose())

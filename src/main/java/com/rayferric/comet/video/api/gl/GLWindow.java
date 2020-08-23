@@ -2,19 +2,18 @@ package com.rayferric.comet.video.api.gl;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.Window;
-import com.rayferric.comet.video.util.WindowMode;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class GLWindow extends Window {
-    public GLWindow(String title, Vector2i size, WindowMode mode) {
+    public GLWindow(String title, Vector2i size) {
         setUpGl();
-        create(title, size, mode);
+        create(title, size);
     }
 
     public GLWindow(Window other) {
         setUpGl();
-        create(other.getTitle(), other.getSize(), other.getMode());
+        create(other.getTitle(), other.getSize());
         copyPropertiesFrom(other);
     }
 

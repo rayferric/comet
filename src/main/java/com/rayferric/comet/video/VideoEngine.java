@@ -33,6 +33,7 @@ public abstract class VideoEngine {
         onStart();
         defaultTexture2D = createDefaultTexture2D();
         onResize();
+        onVSyncUpdate();
     }
 
     public void stop() {
@@ -135,6 +136,6 @@ public abstract class VideoEngine {
     // </editor-fold>
 
     private Vector2i size;
-    private boolean vSync;
+    private boolean vSync = true;
     private ServerResource defaultTexture2D;
 }

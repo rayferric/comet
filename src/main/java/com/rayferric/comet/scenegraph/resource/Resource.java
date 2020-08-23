@@ -34,6 +34,8 @@ public abstract class Resource {
      * Starts loading this resource.<br>
      * • This is a non-blocking routine.<br>
      * • May be called from any thread.
+     *
+     * @throws IllegalStateException if the resource is already (being) loaded
      */
     public void load() {
         if(loaded.get())
@@ -46,6 +48,8 @@ public abstract class Resource {
      * Unregisters this resource from {@link Engine#getResourceManager() resource manager} and starts unloading the server resource.<br>
      * • This is a non-blocking routine.<br>
      * • May be called from any thread.
+     *
+     * @throws IllegalStateException if the resource is already unloaded
      */
     public void unload() {
         if(!loaded.compareAndSet(true, false))
@@ -69,6 +73,8 @@ public abstract class Resource {
     /**
      * Marks this resource as loaded and {@link ResourceManager#registerLoadedResource(Resource) submits} it to the resource manager.<br>
      * • May be called from any thread.
+     *
+     * @throws IllegalStateException if multiple threads managed to be loading the same resource simultaneously (this should not happen and is a bug)
      */
     protected void finishLoading() {
         // This is a theoretically unreachable block, there's an internal programming error if it throws:

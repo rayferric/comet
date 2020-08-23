@@ -2,7 +2,6 @@ package com.rayferric.comet;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.api.VideoAPI;
-import com.rayferric.comet.video.util.WindowMode;
 
 /**
  * Encapsulates engine configuration.<br>
@@ -26,14 +25,6 @@ public class EngineInfo {
 
     public void setWindowSize(Vector2i windowSize) {
         this.windowSize = windowSize;
-    }
-
-    public WindowMode getWindowMode() {
-        return windowMode;
-    }
-
-    public void setWindowMode(WindowMode windowMode) {
-        this.windowMode = windowMode;
     }
 
     public VideoAPI getVideoApi() {
@@ -73,7 +64,6 @@ public class EngineInfo {
 
     private String windowTitle = "Engine";
     private Vector2i windowSize = new Vector2i(1280, 720);
-    private WindowMode windowMode = WindowMode.WINDOWED;
 
     private VideoAPI videoApi = VideoAPI.OPENGL;
     private boolean vSync = true;

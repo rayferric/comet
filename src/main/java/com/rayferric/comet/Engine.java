@@ -49,6 +49,9 @@ public class Engine {
      * • Must only be called from the main thread.
      *
      * @param info engine configuration, must not be null
+     *
+     * @throws IllegalStateException if the server is already running
+     * @throws RuntimeException      if libraries could not be loaded
      */
     public void start(EngineInfo info) {
         if(!running.compareAndSet(false, true))
@@ -78,6 +81,8 @@ public class Engine {
      * Makes the engine unusable until next call to {@link #start}.<br>
      * • Automatically unloads all {@link Resource resources} created while the engine was running.<br>
      * • Must only be called from the main thread.
+     *
+     * @throws IllegalStateException if the server is already stopped
      */
     public void stop() {
         if(!running.compareAndSet(true, false))

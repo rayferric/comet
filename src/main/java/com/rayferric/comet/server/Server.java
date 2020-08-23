@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
+// TODO Finish Javadoc
 public abstract class Server {
     /**
      * Returns text representation of the current state of the server.<br>
@@ -158,6 +159,11 @@ public abstract class Server {
 
     // </editor-fold>
 
+    public boolean isRunning() {
+        return running.get();
+    }
+
+    protected final Object startStopLock = new Object();
     protected boolean resourceCreationPaused = false;
 
     protected abstract void onStart();
@@ -168,7 +174,6 @@ public abstract class Server {
 
     protected abstract ServerResource resourceFromRecipe(ServerRecipe recipe);
 
-    private final Object startStopLock = new Object();
     private Thread thread;
     private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean shouldProcess = new AtomicBoolean(false);

@@ -4,27 +4,16 @@ import com.rayferric.comet.Engine;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.util.Monitor;
-import com.rayferric.comet.video.util.WindowMode;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
-// TODO Make this thread safe, finish Javadoc
+// TODO Finish Javadoc, add cursor pos query caching similar to getFramebufferSize
 public abstract class Window {
-    @Override
-    public String toString() {
-        return String
-                .format("Window{handle.get()=%s, title=%s, pos=%s, size=%s, focus=%s, mode=%s, monitor=%s, visible=%s, framebufferSize=%s}",
-                        handle.get(), getTitle(), pos.get(), size.get(), hasFocus(), getMode(), getMonitor(), isVisible(),
-                        getFramebufferSize());
-    }
-
     /**
      * May be called from any thread.<br>
      */
@@ -77,100 +66,84 @@ public abstract class Window {
 
 
     public String getTitle() {
-        return title.get();
+        return title;
     }
 
     public void setTitle(String title) {
         glfwSetWindowTitle(handle.get(), title);
-        this.title.set(title);
+        this.title = title;
     }
 
     public Vector2i getPos() {
-        try(MemoryStack stack = MemoryStack.stackPush()) {
-            final IntBuffer posX = stack.mallocInt(1);
-            final IntBuffer posY = stack.mallocInt(1);
-
-            glfwGetWindowPos(handle.get(), posX, posY);
-
-            return new Vector2i(posX.get(0), posY.get(0));
-        }
+        return windowedPos;
     }
 
     public void setPos(Vector2i pos) {
-        if(getMode() != WindowMode.WINDOWED)
-            return;
-
+        if(fullscreen) return;
         glfwSetWindowPos(handle.get(), pos.getX(), pos.getY());
     }
 
     public Vector2i getSize() {
-        try(MemoryStack stack = MemoryStack.stackPush()) {
-            final IntBuffer sizeX = stack.mallocInt(1);
-            final IntBuffer sizeY = stack.mallocInt(1);
-
-            glfwGetWindowSize(handle.get(), sizeX, sizeY);
-
-            return new Vector2i(sizeX.get(0), sizeY.get(0));
-        }
+        return windowedSize;
     }
 
     public void setSize(Vector2i size) {
-        if(getMode() != WindowMode.WINDOWED)
-            return;
-
+        if(fullscreen) return;
         glfwSetWindowSize(handle.get(), size.getX(), size.getY());
     }
 
-    public boolean hasFocus() {
-        return glfwGetWindowAttrib(handle.get(), GLFW_FOCUSED) == GLFW_TRUE;
+    public boolean isMaximized() {
+        return maximized;
     }
 
-    public void focus() {
-        glfwFocusWindow(handle.get());
+    public void setMaximized(boolean maximized) {
+        if(fullscreen) return;
+        this.maximized = maximized;
+        applyWindowMode();
     }
 
-    public WindowMode getMode() {
-        if(monitor.get() != null)
-            return WindowMode.FULLSCREEN;
-        if(glfwGetWindowAttrib(handle.get(), GLFW_MAXIMIZED) == GLFW_TRUE)
-            return WindowMode.MAXIMIZED;
-        if(glfwGetWindowAttrib(handle.get(), GLFW_ICONIFIED) == GLFW_TRUE)
-            return WindowMode.MINIMIZED;
-        else
-            return WindowMode.WINDOWED;
+    public boolean isMinimized() {
+        return minimized;
     }
 
-    public void setMode(WindowMode mode) {
-        if(mode != WindowMode.FULLSCREEN && getMonitor() != null)
-            setMonitor(null);
+    public void setMinimized(boolean minimized) {
+        if(fullscreen) return;
+        this.minimized = minimized;
+        applyWindowMode();
+    }
 
-        switch(mode) {
-            case WINDOWED -> glfwRestoreWindow(handle.get());
-            case MINIMIZED -> glfwIconifyWindow(handle.get());
-            case MAXIMIZED -> glfwMaximizeWindow(handle.get());
-            case FULLSCREEN -> setMonitor(Monitor.getPrimary());
+    public boolean isFullscreen() {
+        return fullscreen;
+    }
+
+    // Makes the window visible, sets both maximized and minimized to false, and goes fullscreen on a specified monitor.
+    public void setFullscreen(boolean fullscreen) {
+        if(this.fullscreen == fullscreen || monitor == null) return;
+        this.fullscreen = fullscreen;
+
+        if(fullscreen) {
+            setVisible(true);
+            maximized = minimized = false;
+            applyWindowMode();
+
+            final Vector2i res = monitor.getResolution();
+            glfwSetWindowMonitor(handle.get(), monitor.getHandle(), 0, 0, res.getX(), res.getY(), GLFW_DONT_CARE);
+        } else {
+            glfwSetWindowMonitor(handle.get(), NULL, windowedPos.getX(), windowedPos.getY(), windowedSize.getX(),
+                    windowedSize.getY(), GLFW_DONT_CARE);
+            applyWindowMode();
         }
     }
 
     public Monitor getMonitor() {
-        return monitor.get();
+        return monitor;
     }
 
     public void setMonitor(Monitor monitor) {
-        Monitor currentMonitor = this.monitor.get();
-        if(currentMonitor != null && currentMonitor.equals(monitor)) return;
-        this.monitor.set(monitor);
-
-        if(monitor != null) {
-            // Set to visible, otherwise stuff goes crazy
-            setVisible(true);
-            final Vector2i resolution = monitor.getResolution();
-            glfwSetWindowMonitor(handle.get(), monitor.getHandle(), 0, 0, resolution.getX(), resolution.getY(),
-                    GLFW_DONT_CARE);
-        } else {
-            Vector2i pos = this.pos.get();
-            Vector2i size = this.size.get();
-            glfwSetWindowMonitor(handle.get(), NULL, pos.getX(), pos.getY(), size.getX(), size.getY(), GLFW_DONT_CARE);
+        this.monitor = monitor;
+        if(fullscreen) {
+            setFullscreen(false);
+            setFullscreen(true);
         }
     }
 
@@ -185,6 +158,14 @@ public abstract class Window {
             glfwHideWindow(handle.get());
     }
 
+    public boolean hasFocus() {
+        return glfwGetWindowAttrib(handle.get(), GLFW_FOCUSED) == GLFW_TRUE;
+    }
+
+    public void focus() {
+        glfwFocusWindow(handle.get());
+    }
+
     // May be called from any thread
     public Vector2i getFramebufferSize() {
         // glfwGetFramebufferSize is not thread-safe, so here we are
@@ -197,71 +178,128 @@ public abstract class Window {
 
     protected abstract void requireExtensions();
 
-    protected void create(String title, Vector2i size, WindowMode mode) {
+    protected void create(String title, Vector2i size) {
         glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
 
         handle.set(glfwCreateWindow(size.getX(), size.getY(), title, NULL, NULL));
         if(handle.get() == NULL)
             throw new RuntimeException(getCreationFailMessage());
 
-        makeCurrent(this);
+        long prevHandle = glfwGetCurrentContext();
+        glfwMakeContextCurrent(handle.get());
         requireExtensions();
-        makeCurrent(null);
+        glfwMakeContextCurrent(prevHandle);
 
+        glfwSetWindowPosCallback(handle.get(), this::windowPosCallback);
+        glfwSetWindowSizeCallback(handle.get(), this::windowSizeCallback);
+        glfwSetWindowIconifyCallback(handle.get(), this::windowIconifyCallback);
+        glfwSetWindowMaximizeCallback(handle.get(), this::windowMaximizeCallback);
         glfwSetFramebufferSizeCallback(handle.get(), this::framebufferSizeCallback);
         glfwSetKeyCallback(handle.get(), this::keyCallback);
         glfwSetMouseButtonCallback(handle.get(), this::mouseButtonCallback);
         glfwSetScrollCallback(handle.get(), this::scrollCallback);
-        glfwSetWindowPosCallback(handle.get(), this::windowPosCallback);
-        glfwSetWindowSizeCallback(handle.get(), this::windowSizeCallback);
 
-        // We must make sure all these values are initialized:
+        // Make sure these values are initialized:
+        this.title = title;
+        this.windowedPos = getCurrentPos();
+        this.windowedSize = getCurrentSize();
 
-        this.title.set(title);
-
+        // Center the window if possible:
         Monitor monitor = Monitor.getPrimary();
         if(monitor != null)
             setPos(monitor.getResolution().sub(size).div(2));
-        else
-            this.pos.set(getPos());
-        this.size.set(size);
 
+        // Update the framebuffer size cache:
         Vector2i fbSize = getFramebufferSize();
         framebufferSizeCallback(handle.get(), fbSize.getX(), fbSize.getY());
-
-        setMode(mode);
     }
 
     protected void copyPropertiesFrom(Window other) {
-        size.set(other.size.get());
+        setPos(other.getPos());
 
-        if(other.hasFocus()) focus();
+        setMonitor(Monitor.getPrimary());
+        if(other.isFullscreen()) {
+            // Overwrite the current monitor owner
+            other.setFullscreen(false);
+            setFullscreen(true);
+        }
 
-        Monitor monitor = other.getMonitor();
-        if(monitor != null) {
-            pos.set(other.pos.get());
-            if(!monitor.equals(Monitor.getPrimary()))
-                setMonitor(monitor);
-        } else
-            setPos(other.pos.get());
+        setMaximized(other.isMaximized());
+        setMinimized(other.isMinimized());
 
         setVisible(other.isVisible());
+        if(other.hasFocus()) focus();
     }
 
     private final AtomicLong handle = new AtomicLong();
-    private final AtomicReference<String> title = new AtomicReference<>();
-    private final AtomicReference<Vector2i> pos = new AtomicReference<>(), size = new AtomicReference<>();
-    private final AtomicReference<Monitor> monitor = new AtomicReference<>(null);
+    private String title;
+    private Vector2i windowedPos;
+    private Vector2i windowedSize;
+    private boolean maximized = false;
+    private boolean minimized = false;
+    private boolean fullscreen = false;
+    private Monitor monitor = Monitor.getPrimary();
     private final Vector2i framebufferSizeCache = new Vector2i();
 
+    private Vector2i getCurrentPos() {
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            final IntBuffer posX = stack.mallocInt(1);
+            final IntBuffer posY = stack.mallocInt(1);
+
+            glfwGetWindowPos(handle.get(), posX, posY);
+
+            return new Vector2i(posX.get(0), posY.get(0));
+        }
+    }
+
+    private Vector2i getCurrentSize() {
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            final IntBuffer sizeX = stack.mallocInt(1);
+            final IntBuffer sizeY = stack.mallocInt(1);
+
+            glfwGetWindowSize(handle.get(), sizeX, sizeY);
+
+            return new Vector2i(sizeX.get(0), sizeY.get(0));
+        }
+    }
+
+    private boolean isCurrentlyMaximized() {
+        return glfwGetWindowAttrib(handle.get(), GLFW_MAXIMIZED) == GLFW_TRUE;
+    }
+
+    private boolean isCurrentlyMinimized() {
+        return glfwGetWindowAttrib(handle.get(), GLFW_ICONIFIED) == GLFW_TRUE;
+    }
+
+    private void applyWindowMode() {
+        // Minimization overrides maximization, they both override windowed mode:
+        if(maximized) glfwMaximizeWindow(handle.get());
+        if(minimized) glfwIconifyWindow(handle.get());
+        if(!maximized && !minimized) glfwRestoreWindow(handle.get());
+    }
+
     private void windowPosCallback(long window, int x, int y) {
-        if(getMode() == WindowMode.WINDOWED)
-            pos.set(new Vector2i(x, y));
+        // We can't rely on the tracking variables as callbacks may fire in the wrong order
+        final boolean maximized = isCurrentlyMaximized();
+        final boolean minimized = isCurrentlyMinimized();
+        if(fullscreen || maximized || minimized) return;
+        windowedPos = new Vector2i(x, y);
     }
 
     private void windowSizeCallback(long window, int width, int height) {
-        if(getMode() == WindowMode.WINDOWED)
-            size.set(new Vector2i(width, height));
+        // We can't rely on the tracking variables as callbacks may fire in the wrong order
+        final boolean maximized = isCurrentlyMaximized();
+        final boolean minimized = isCurrentlyMinimized();
+        if(fullscreen || maximized || minimized) return;
+        windowedSize = new Vector2i(width, height);
+    }
+
+    private void windowIconifyCallback(long window, boolean iconified) {
+        minimized = iconified;
+    }
+
+    private void windowMaximizeCallback(long window, boolean maximized) {
+        this.maximized = maximized;
     }
 
     private void framebufferSizeCallback(long window, int width, int height) {
@@ -278,10 +316,8 @@ public abstract class Window {
             Engine.getInstance().getVideoServer().setApi(VideoAPI.OPENGL);
 
         if(key == GLFW_KEY_F)
-            if(Engine.getInstance().getVideoServer().getWindow().getMode() == WindowMode.FULLSCREEN)
-                Engine.getInstance().getVideoServer().getWindow().setMode(WindowMode.WINDOWED);
-            else
-                Engine.getInstance().getVideoServer().getWindow().setMode(WindowMode.FULLSCREEN);
+            Engine.getInstance().getVideoServer().getWindow().setFullscreen(
+                    !Engine.getInstance().getVideoServer().getWindow().isFullscreen());
     }
 
     private void mouseButtonCallback(long window, int button, int action, int mods) {

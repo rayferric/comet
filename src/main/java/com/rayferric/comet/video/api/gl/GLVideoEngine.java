@@ -99,14 +99,15 @@ public class GLVideoEngine extends VideoEngine {
     @Override
     protected void onStart() {
         GL.createCapabilities();
-        glClearColor(0.5f, 0.4f, 0.25f, 0.0f);
+
+        glClearColor(0, 0, 0, 0);
 
         System.out.println("OpenGL video engine started.");
     }
 
     @Override
     protected void onStop() {
-
+        System.out.println("OpenGL video engine stopped.");
     }
 
     @Override
@@ -119,7 +120,10 @@ public class GLVideoEngine extends VideoEngine {
         Engine.getInstance().root.draw(this);
 
         glFlush();
+
+        if(++frames % 1000 == 0) System.out.println("Reached 1000 frames.");
     }
+    private long frames = 0;
 
     @Override
     protected void onResize() {
