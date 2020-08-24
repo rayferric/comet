@@ -3,6 +3,8 @@ package com.rayferric.comet.math;
 import java.util.Objects;
 
 public class Vector3f {
+    public static final int BYTES = 12;
+
     public Vector3f() {
         x = y = z = 0;
     }
@@ -38,7 +40,11 @@ public class Vector3f {
 
     @Override
     public String toString() {
-        return String.format("Vector3d{x=%s, y=%s, z=%s}", x, y, z);
+        return String.format("Vector3f{x=%s, y=%s, z=%s}", x, y, z);
+    }
+
+    public float[] toArray() {
+        return new float[] { x, y, z };
     }
 
     public Vector3f add(Vector3f rhs) {
@@ -84,10 +90,6 @@ public class Vector3f {
     public Vector3f normalize() {
         float length = length();
         return length == 0 ? new Vector3f(0) : this.div(length);
-    }
-
-    public float[] toArray() {
-        return new float[] { x, y, z };
     }
 
     public float getX() {

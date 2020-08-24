@@ -3,6 +3,8 @@ package com.rayferric.comet.math;
 import java.util.Objects;
 
 public class Vector2f {
+    public static final int BYTES = 8;
+
     public Vector2f() {
         x = y = 0;
     }
@@ -36,7 +38,11 @@ public class Vector2f {
 
     @Override
     public String toString() {
-        return String.format("Vector2d{x=%s, y=%s}", x, y);
+        return String.format("Vector2f{x=%s, y=%s}", x, y);
+    }
+
+    public float[] toArray() {
+        return new float[] { x, y };
     }
 
     public Vector2f add(Vector2f rhs) {
@@ -74,10 +80,6 @@ public class Vector2f {
     public Vector2f normalize() {
         float length = length();
         return length == 0 ? new Vector2f(0) : this.div(length);
-    }
-
-    public float[] toArray() {
-        return new float[] { x, y };
     }
 
     public float getX() {

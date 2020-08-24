@@ -2,6 +2,7 @@ package com.rayferric.comet.video.api.gl;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.Window;
+import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.GLFW.*;
 
@@ -25,6 +26,7 @@ public class GLWindow extends Window {
     @Override
     protected void requireExtensions() {
         requireExtension("GL_ARB_gl_spirv");
+        requireExtension("GL_EXT_texture_filter_anisotropic");
     }
 
     private void setUpGl() {

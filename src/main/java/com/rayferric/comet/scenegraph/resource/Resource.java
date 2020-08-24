@@ -1,7 +1,7 @@
 package com.rayferric.comet.scenegraph.resource;
 
-import com.rayferric.comet.Engine;
-import com.rayferric.comet.manager.ResourceManager;
+import com.rayferric.comet.engine.Engine;
+import com.rayferric.comet.engine.ResourceManager;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 

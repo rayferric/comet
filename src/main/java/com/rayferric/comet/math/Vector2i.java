@@ -3,6 +3,8 @@ package com.rayferric.comet.math;
 import java.util.Objects;
 
 public class Vector2i {
+    public static final int BYTES = 8;
+
     public Vector2i() {
         x = y = 0;
     }

@@ -1,16 +1,19 @@
 package com.rayferric.comet.video;
 
-import com.rayferric.comet.Engine;
-import com.rayferric.comet.EngineInfo;
+import com.rayferric.comet.engine.Engine;
+import com.rayferric.comet.engine.EngineInfo;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
+import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.Server;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.server.ServerRecipe;
+import com.rayferric.comet.util.AtomicFloat;
 import com.rayferric.comet.video.recipe.VideoRecipe;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.api.gl.GLVideoEngine;
 import com.rayferric.comet.video.api.gl.GLWindow;
+import com.rayferric.comet.video.util.texture.TextureFilter;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,7 +36,9 @@ public class VideoServer extends Server {
         }
 
         this.api.set(api);
-        this.vSync.set(info.hasVSync());
+        vSync.set(info.hasVSync());
+        textureFilter.set(info.getTextureFilter());
+        textureAnisotropy.set(info.getTextureAnisotropy());
     }
 
     @Override
@@ -107,6 +112,24 @@ public class VideoServer extends Server {
         this.vSync.set(vSync);
     }
 
+    public TextureFilter getTextureFilter() {
+        return textureFilter.get();
+    }
+
+    public void setTextureFilter(TextureFilter filter) {
+        textureFilter.set(filter);
+        Engine.getInstance().getResourceManager().reloadResources(Texture.class);
+    }
+
+    public float getTextureAnisotropy() {
+        return textureAnisotropy.get();
+    }
+
+    public void setTextureAnisotropy(float anisotropyLevel) {
+        textureAnisotropy.set(anisotropyLevel);
+        Engine.getInstance().getResourceManager().reloadResources(Texture.class);
+    }
+
     /**
      * Waits for the video engine to initialize.<br>
      * • Returns when the video engine starts drawing.<br>
@@ -162,6 +185,8 @@ public class VideoServer extends Server {
 
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicBoolean vSync = new AtomicBoolean();
+    private final AtomicReference<TextureFilter> textureFilter = new AtomicReference<>();
+    private final AtomicFloat textureAnisotropy = new AtomicFloat();
 
     private final Object videoEngineReadyNotifier = new Object();
 }

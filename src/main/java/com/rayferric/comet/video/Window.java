@@ -1,9 +1,10 @@
 package com.rayferric.comet.video;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.util.Monitor;
+import com.rayferric.comet.video.util.texture.TextureFilter;
 import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
@@ -318,6 +319,12 @@ public abstract class Window {
         if(key == GLFW_KEY_F)
             Engine.getInstance().getVideoServer().getWindow().setFullscreen(
                     !Engine.getInstance().getVideoServer().getWindow().isFullscreen());
+
+        if(key == GLFW_KEY_T)
+            if(Engine.getInstance().getVideoServer().getTextureFilter() == TextureFilter.NEAREST)
+                Engine.getInstance().getVideoServer().setTextureFilter(TextureFilter.TRILINEAR);
+            else
+                Engine.getInstance().getVideoServer().setTextureFilter(TextureFilter.NEAREST);
     }
 
     private void mouseButtonCallback(long window, int button, int action, int mods) {

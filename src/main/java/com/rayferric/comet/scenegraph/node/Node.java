@@ -60,22 +60,18 @@ public class Node {
     }
 
     public void setParent(Node parent) {
-        // This may seem like a lot of redundant code,
-        // but we must keep seamless sync order to prevent deadlocks
-        synchronized(this.parent.childrenLock) {
-            if(parent != null)
-                synchronized(parent.childrenLock) {
-                    synchronized(parentLock) {
-                        if(this.parent != null) this.parent.children.remove(this);
-                        this.parent = parent;
-                        this.parent.children.add(this);
-                    }
+        synchronized(parentLock) {
+            if(this.parent != null) {
+                synchronized(this.parent.childrenLock) {
+                    this.parent.children.remove(this);
                 }
-            else
-                synchronized(parentLock) {
-                    if(this.parent != null) this.parent.children.remove(this);
-                    this.parent = null;
+            }
+            this.parent = parent;
+            if(this.parent != null) {
+                synchronized(this.parent.childrenLock) {
+                    this.parent.children.add(this);
                 }
+            }
         }
         invalidateGlobalTransform();
     }
@@ -103,22 +99,18 @@ public class Node {
     }
 
     public void addChild(Node child) {
-        if(child == null) return;
-        synchronized(childrenLock) {
-            synchronized(child.parentLock) {
-                child.setParent(this);
-            }
-        }
+        if(child != null) child.setParent(this);
+    }
+
+    public void removeChild(Node child) {
+        if(child != null)
+            child.setParent(null);
     }
 
     public void removeChild(String name) {
-        synchronized(childrenLock) {
-            Node child = getChild(name);
-            if(child == null) return;
-            synchronized(child.parentLock) {
-                child.setParent(null);
-            }
-        }
+        Node child = getChild(name);
+        if(child != null)
+            child.setParent(null);
     }
 
     // <editor-fold desc="Translation, Rotation and Scale">
@@ -220,7 +212,33 @@ public class Node {
     // <editor-fold desc="Internal API">
 
     /**
-     * Uses supplied video engine to draw this node.<br>
+     * Calls {@link #init()} method of this node and all its descendants.<br>
+     * • Is internally used by the engine.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread. (This implementation uses the main thread for full freedom of use.)
+     */
+    public void initAll() {
+        init();
+        for(Node child : getChildren())
+            child.initAll();
+    }
+
+    /**
+     * Calls {@link #update(double)} method of this node and all its descendants.<br>
+     * • Is internally used by the engine.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread. (This implementation uses the main thread for full freedom of use.)
+     *
+     * @param delta delta time of the update frame
+     */
+    public void updateAll(double delta) {
+        update(delta);
+        for(Node child : getChildren())
+            child.updateAll(delta);
+    }
+
+    /**
+     * Uses supplied video engine to draw this node and all its descendants.<br>
      * The video engine itself calls this command to avoid the type check.<br>
      * • Is internally used by the video engine.<br>
      * • Must not be called by the user, this is an internal method.<br>
@@ -228,7 +246,18 @@ public class Node {
      *
      * @param videoEngine video engine that invoked this method
      */
-    public void draw(VideoEngine videoEngine) {}
+    public void drawAll(VideoEngine videoEngine) {
+        for(Node child : getChildren())
+            child.drawAll(videoEngine);
+    }
+
+    // </editor-fold>
+
+    // <editor-fold desc="Methods for The User to Override"
+
+    protected void init() {}
+
+    protected void update(double delta) {}
 
     // </editor-fold>
 

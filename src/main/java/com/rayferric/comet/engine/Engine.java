@@ -1,22 +1,24 @@
-package com.rayferric.comet;
+package com.rayferric.comet.engine;
 
-import com.rayferric.comet.manager.ResourceManager;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.Resource;
+import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.VideoServer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 
 import static org.lwjgl.glfw.GLFW.*;
 
 public class Engine {
-    public Node root; // TODO Remove
-
     /**
      * Returns text representation of the current state of the engine.<br>
      * • May be called from any thread.
@@ -69,11 +71,12 @@ public class Engine {
         loaderPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(info.getLoaderThreads()));
         jobPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(info.getJobThreads()));
 
+        // Create managers:
+        resourceManager.set(new ResourceManager());
+        layerManager.set(new LayerManager(info.getLayerCount()));
+
         // Start the servers:
         getVideoServer().start();
-
-        // Initialize managers:
-        resourceManager.set(new ResourceManager());
     }
 
     /**
@@ -122,7 +125,7 @@ public class Engine {
     /**
      * Processes system events.<br>
      * • Must be systematically called for the process to keep responding.<br>
-     * • Is called from the {@link #run(Runnable)  main loop}.<br>
+     * • Is called from the {@link #run(Consumer)}   main loop}.<br>
      * • Must only be called from the main thread.
      */
     public void process() {
@@ -135,23 +138,38 @@ public class Engine {
      * • Finalized by calling {@link #exit()} from any thread.<br>
      * • Must only be called from the main thread.
      *
-     * @param iteration runnable to be called every iteration, must not be null
+     * @param iteration lambda to be called every iteration, set to null for no iteration
      */
-    public void run(Runnable iteration) {
+    public void run(Consumer<Double> iteration) {
         getVideoServer().getWindow().setVisible(true);
         getVideoServer().getWindow().focus();
+
+        Timer timer = new Timer();
+        timer.start();
+
+        for(Layer layer : getLayerManager().getLayers())
+            layer.getRoot().initAll();
+
         shouldExit.set(false);
         while(!shouldExit.get()) {
             process();
-            iteration.run();
+
+            double delta = timer.getElapsed();
+            timer.reset();
+
+            for(Layer layer : getLayerManager().getLayers())
+                layer.getRoot().updateAll(delta);
+
+            if(iteration != null) iteration.accept(delta);
         }
+
         getVideoServer().getWindow().setVisible(false);
     }
 
     // </editor-fold>
 
     /**
-     * Requests termination of the {@link #run(Runnable) main loop}.<br>
+     * Requests termination of the {@link #run(Consumer)}  main loop}.<br>
      * • May be called from any thread.
      */
     public void exit() {
@@ -200,6 +218,16 @@ public class Engine {
         return resourceManager.get();
     }
 
+    /**
+     * Returns the layer manager.<br>
+     * • May be called from any thread.
+     *
+     * @return layer manager
+     */
+    public LayerManager getLayerManager() {
+        return layerManager.get();
+    }
+
     // </editor-fold>
 
     private static final Engine INSTANCE = new Engine();
@@ -216,4 +244,5 @@ public class Engine {
 
     // Managers
     private final AtomicReference<ResourceManager> resourceManager = new AtomicReference<>(null);
+    private final AtomicReference<LayerManager> layerManager = new AtomicReference<>(null);
 }

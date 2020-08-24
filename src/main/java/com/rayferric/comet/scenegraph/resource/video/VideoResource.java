@@ -1,6 +1,6 @@
 package com.rayferric.comet.scenegraph.resource.video;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.scenegraph.resource.Resource;
 
 import java.util.concurrent.atomic.AtomicLong;

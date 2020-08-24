@@ -1,6 +1,6 @@
 package com.rayferric.comet.scenegraph.resource.video.buffer;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.video.recipe.buffer.UniformBufferRecipe;
 

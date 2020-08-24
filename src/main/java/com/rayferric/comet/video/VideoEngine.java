@@ -1,10 +1,11 @@
 package com.rayferric.comet.video;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
+import com.rayferric.comet.geometry.GeometryData;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.node.Model;
 import com.rayferric.comet.scenegraph.resource.video.buffer.UniformBuffer;
-import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
+import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
@@ -64,11 +65,11 @@ public abstract class VideoEngine {
 
     public abstract ServerResource createBinaryShader(ByteBuffer vertBin, ByteBuffer fragBin);
 
-    public abstract ServerResource createMesh(FloatBuffer vertices, IntBuffer indices);
+    public abstract ServerResource createGeometry(GeometryData data);
 
     public abstract ServerResource createSourceShader(String vertSrc, String fragSrc);
 
-    public abstract ServerResource createTexture2D(Buffer data, Vector2i size, TextureFormat format, TextureFilter filter);
+    public abstract ServerResource createTexture2D(Buffer data, Vector2i size, TextureFormat format, boolean filter);
 
     public abstract ServerResource createUniformBuffer(int size);
 
@@ -107,9 +108,9 @@ public abstract class VideoEngine {
 
     protected abstract ServerResource createDefaultTexture2D();
 
-    protected ServerResource getServerMeshOrNull(Mesh mesh) {
-        if(mesh == null) return null;
-        long handle = mesh.getServerHandle();
+    protected ServerResource getServerGeometryOrNull(Geometry geometry) {
+        if(geometry == null) return null;
+        long handle = geometry.getServerHandle();
         return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 

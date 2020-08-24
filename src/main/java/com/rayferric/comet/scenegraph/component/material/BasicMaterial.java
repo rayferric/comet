@@ -7,18 +7,17 @@ import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 public class BasicMaterial extends Material {
     public BasicMaterial() {
-        super(28); // 12 + (4) + 12
+        super(12);
 
         synchronized(BASIC_SHADER_LOCK) {
             if(basicShader == null)
-                basicShader = new BinaryShader(true, "shaders/basic.vert.spv", "shaders/basic.frag.spv");
+                basicShader = new BinaryShader(false, "src/main/resources/shaders/basic.vert.spv", "src/main/resources/shaders/basic.frag.spv");
             else if(!basicShader.isLoaded() && !basicShader.isLoading())
                 basicShader.load();
         }
         setShader(basicShader);
 
         writeUniformData(ADDRESS_COLOR, new Vector3f(1).toArray());
-        writeUniformData(ADDRESS_COLOR2, new Vector3f(1).toArray());
     }
 
     public Vector3f getColor() {
@@ -27,14 +26,6 @@ public class BasicMaterial extends Material {
 
     public void setColor(Vector3f color) {
         writeUniformData(ADDRESS_COLOR, color.toArray());
-    }
-
-    public Vector3f getColor2() {
-        return readUniformVector3f(ADDRESS_COLOR2);
-    }
-
-    public void setColor2(Vector3f color) {
-        writeUniformData(ADDRESS_COLOR2, color.toArray());
     }
 
     public Texture getColorTex() {
@@ -49,6 +40,5 @@ public class BasicMaterial extends Material {
     private static Shader basicShader = null;
 
     private final int ADDRESS_COLOR = 0;
-    private final int ADDRESS_COLOR2 = 16;
     private final int BINDING_COLOR_TEX = 0;
 }

@@ -1,7 +1,6 @@
 package com.rayferric.comet.scenegraph.component.material;
 
-import com.rayferric.comet.math.Vector2f;
-import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.math.*;
 import com.rayferric.comet.scenegraph.component.Component;
 import com.rayferric.comet.scenegraph.resource.video.buffer.UniformBuffer;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
@@ -12,6 +11,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -63,10 +63,42 @@ public class Material implements Component {
         }
     }
 
+    protected Vector2i readUniformVector2i(int address) {
+        synchronized(uniformData) {
+            uniformData.position(address);
+            IntBuffer tmp = uniformData.asIntBuffer();
+            return new Vector2i(tmp.get(), tmp.get());
+        }
+    }
+
+    protected Vector3i readUniformVector3i(int address) {
+        synchronized(uniformData) {
+            uniformData.position(address);
+            IntBuffer tmp = uniformData.asIntBuffer();
+            return new Vector3i(tmp.get(), tmp.get(), tmp.get());
+        }
+    }
+
+    protected Vector4i readUniformVector4i(int address) {
+        synchronized(uniformData) {
+            uniformData.position(address);
+            IntBuffer tmp = uniformData.asIntBuffer();
+            return new Vector4i(tmp.get(), tmp.get(), tmp.get(), tmp.get());
+        }
+    }
+
     protected float readUniformFloat(int address) {
         synchronized(uniformData) {
             uniformData.position(address);
             return uniformData.asFloatBuffer().get();
+        }
+    }
+
+    protected Vector2f readUniformVector2f(int address) {
+        synchronized(uniformData) {
+            uniformData.position(address);
+            FloatBuffer tmp = uniformData.asFloatBuffer();
+            return new Vector2f(tmp.get(), tmp.get());
         }
     }
 
@@ -78,7 +110,23 @@ public class Material implements Component {
         }
     }
 
-    // TODO More read methods
+    protected Vector4f readUniformVector4f(int address) {
+        synchronized(uniformData) {
+            uniformData.position(address);
+            FloatBuffer tmp = uniformData.asFloatBuffer();
+            return new Vector4f(tmp.get(), tmp.get(), tmp.get(), tmp.get());
+        }
+    }
+
+    protected Matrix4f readUniformMatrix4f(int address) {
+        synchronized(uniformData) {
+            Vector4f x = readUniformVector4f(address);
+            Vector4f y = readUniformVector4f(address += Vector4f.BYTES);
+            Vector4f z = readUniformVector4f(address += Vector4f.BYTES);
+            Vector4f w = readUniformVector4f(address + Vector4f.BYTES);
+            return new Matrix4f(x, y, z, w);
+        }
+    }
 
     protected void writeUniformData(int address, int[] values) {
         synchronized(uniformData) {

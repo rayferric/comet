@@ -1,6 +1,6 @@
 package com.rayferric.comet.scenegraph.resource.video.texture;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.recipe.texture.Texture2DRecipe;
 import com.rayferric.comet.util.ResourceLoader;
@@ -17,7 +17,7 @@ import java.nio.IntBuffer;
 import static org.lwjgl.stb.STBImage.*;
 
 public class ImageTexture extends Texture {
-    public ImageTexture(boolean fromJar, String path, TextureFilter filter) {
+    public ImageTexture(boolean fromJar, String path, boolean filter) {
         properties = new Properties();
         properties.fromJar = fromJar;
         properties.path = path;
@@ -82,7 +82,7 @@ public class ImageTexture extends Texture {
     private static class Properties {
         public boolean fromJar;
         public String path;
-        public TextureFilter filter;
+        public boolean filter;
     }
 
     private final Properties properties;

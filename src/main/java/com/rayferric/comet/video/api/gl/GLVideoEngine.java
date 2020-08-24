@@ -1,16 +1,21 @@
 package com.rayferric.comet.video.api.gl;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
+import com.rayferric.comet.engine.Layer;
+import com.rayferric.comet.engine.LayerManager;
+import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.scenegraph.component.material.Material;
+import com.rayferric.comet.scenegraph.node.Camera;
+import com.rayferric.comet.scenegraph.node.Mesh;
 import com.rayferric.comet.scenegraph.node.Model;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.api.gl.buffer.GLUniformBuffer;
 import com.rayferric.comet.video.util.texture.TextureFilter;
 import com.rayferric.comet.video.util.texture.TextureFormat;
-import com.rayferric.comet.video.api.gl.mesh.GLMesh;
+import com.rayferric.comet.video.api.gl.geometry.GLGeometry;
 import com.rayferric.comet.video.api.gl.shader.GLBinaryShader;
 import com.rayferric.comet.video.api.gl.shader.GLShader;
 import com.rayferric.comet.video.api.gl.shader.GLSourceShader;
@@ -24,7 +29,6 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.opengl.GL45.*;
@@ -42,29 +46,35 @@ public class GLVideoEngine extends VideoEngine {
 
     @Override
     public void drawModel(Model model) {
-        Material material = model.getMaterial();
+        Matrix4f modelMatrix = model.getGlobalTransform();
+        updateModelUBO(modelMatrix);
 
-        GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
-        if(glShader == null) return;
-        glShader.bind();
+        for(Mesh mesh : model.snapMeshes()) {
+            Material material = mesh.getMaterial();
 
-        GLUniformBuffer glUniformBuffer = (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
-        if(glUniformBuffer == null) return;
-        glUniformBuffer.bind(2);
-        try(MemoryStack stack = MemoryStack.stackPush()) {
-            glUniformBuffer.nativeUpdate(material.nativeUniformData(stack));
+            GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
+            if(glShader == null) return;
+            glShader.bind();
+
+            GLUniformBuffer materialUniformBuffer =
+                    (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
+            if(materialUniformBuffer == null) return;
+            materialUniformBuffer.bind(2);
+            try(MemoryStack stack = MemoryStack.stackPush()) {
+                materialUniformBuffer.nativeUpdate(material.nativeUniformData(stack));
+            }
+
+            material.getTextures().forEach((binding, texture) -> {
+                glActiveTexture(GL_TEXTURE0 + binding);
+                ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
+            });
+
+            GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
+            if(glGeometry == null) return;
+            glGeometry.bind();
+
+            glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
         }
-
-        material.getTextures().forEach((binding, texture) -> {
-            glActiveTexture(GL_TEXTURE0 + binding);
-            ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
-        });
-
-        GLMesh glMesh = (GLMesh)getServerMeshOrNull(model.getMesh());
-        if(glMesh == null) return;
-        glMesh.bind();
-
-        glDrawElements(GL_TRIANGLES, glMesh.getIndexCount(), GL_UNSIGNED_INT, 0);
     }
 
     @Override
@@ -73,8 +83,8 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public ServerResource createMesh(FloatBuffer vertices, IntBuffer indices) {
-        return new GLMesh(vertices, indices);
+    public ServerResource createGeometry(GeometryData data) {
+        return new GLGeometry(data);
     }
 
     @Override
@@ -83,7 +93,7 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public ServerResource createTexture2D(Buffer data, Vector2i size, TextureFormat format, TextureFilter filter) {
+    public ServerResource createTexture2D(Buffer data, Vector2i size, TextureFormat format, boolean filter) {
         return new GLTexture2D(data, size, format, filter);
     }
 
@@ -102,11 +112,19 @@ public class GLVideoEngine extends VideoEngine {
 
         glClearColor(0, 0, 0, 0);
 
+        frameUBO = new GLUniformBuffer(FRAME_UBO_BYTES);
+        modelUBO = new GLUniformBuffer(MODEL_UBO_BYTES);
+        frameUBO.bind(0);
+        modelUBO.bind(1);
+
         System.out.println("OpenGL video engine started.");
     }
 
     @Override
     protected void onStop() {
+        frameUBO.destroy();
+        modelUBO.destroy();
+
         System.out.println("OpenGL video engine stopped.");
     }
 
@@ -114,16 +132,24 @@ public class GLVideoEngine extends VideoEngine {
     protected void onDraw() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        Vector2i size = getSize();
+        float ratio = (float)size.getX() / size.getY();
+
+        for(Layer layer : Engine.getInstance().getLayerManager().getLayers()) {
+            Camera camera = layer.getCamera();
+            if(camera == null) continue;
+            Matrix4f projectionMatrix = camera.getProjection(ratio);
+            Matrix4f viewMatrix = camera.getGlobalTransform().inverse();
+            updateFrameUBO(projectionMatrix, viewMatrix);
+
+            layer.getRoot().drawAll(this);
+        }
+
         int error = glGetError();
-        if(error != 0) System.out.println("OpenGL Error: " + error);
-
-        Engine.getInstance().root.draw(this);
-
+        if(error != 0)
+            throw new RuntimeException("Encountered OpenGL error: " + error);
         glFlush();
-
-        if(++frames % 1000 == 0) System.out.println("Reached 1000 frames.");
     }
-    private long frames = 0;
 
     @Override
     protected void onResize() {
@@ -147,9 +173,32 @@ public class GLVideoEngine extends VideoEngine {
         ByteBuffer nativeData = MemoryUtil.memAlloc(3);
         nativeData.put(data);
         nativeData.flip();
-        GLTexture texture = new GLTexture2D(nativeData, new Vector2i(1), TextureFormat.RGB8, TextureFilter.NEAREST);
+        GLTexture texture = new GLTexture2D(nativeData, new Vector2i(1), TextureFormat.RGB8, false);
         MemoryUtil.memFree(nativeData);
 
         return texture;
+    }
+
+    private static final int FRAME_UBO_BYTES = 2 * Matrix4f.BYTES;
+    private static final int MODEL_UBO_BYTES = Matrix4f.BYTES;
+
+    private GLUniformBuffer frameUBO;
+    private GLUniformBuffer modelUBO;
+
+    private void updateFrameUBO(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer buf = stack.mallocFloat(FRAME_UBO_BYTES / Float.BYTES);
+            buf.put(projectionMatrix.toArray());
+            buf.put(viewMatrix.toArray());
+            frameUBO.nativeUpdate(buf.flip());
+        }
+    }
+
+    private void updateModelUBO(Matrix4f modelMatrix) {
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            FloatBuffer buf = stack.mallocFloat(MODEL_UBO_BYTES / Float.BYTES);
+            buf.put(modelMatrix.toArray());
+            modelUBO.nativeUpdate(buf.flip());
+        }
     }
 }

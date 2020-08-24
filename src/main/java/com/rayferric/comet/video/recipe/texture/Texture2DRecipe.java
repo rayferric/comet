@@ -10,8 +10,7 @@ import com.rayferric.comet.video.util.texture.TextureFormat;
 import java.nio.Buffer;
 
 public class Texture2DRecipe extends VideoRecipe {
-    public Texture2DRecipe(Runnable cleanUpCallback, Buffer data, Vector2i size, TextureFormat format,
-                           TextureFilter filter) {
+    public Texture2DRecipe(Runnable cleanUpCallback, Buffer data, Vector2i size, TextureFormat format, boolean filter) {
         super(cleanUpCallback);
 
         this.data = data;
@@ -28,5 +27,5 @@ public class Texture2DRecipe extends VideoRecipe {
     private final Buffer data;
     private final Vector2i size;
     private final TextureFormat format;
-    private final TextureFilter filter;
+    private final boolean filter;
 }

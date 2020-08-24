@@ -1,7 +1,8 @@
-package com.rayferric.comet;
+package com.rayferric.comet.engine;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.api.VideoAPI;
+import com.rayferric.comet.video.util.texture.TextureFilter;
 
 /**
  * Encapsulates engine configuration.<br>
@@ -59,6 +60,29 @@ public class EngineInfo {
         this.jobThreads = jobThreads;
     }
 
+    public int getLayerCount() {
+        return layerCount;
+    }
+
+    public void setLayerCount(int layerCount) {
+        this.layerCount = layerCount;
+    }
+
+    public TextureFilter getTextureFilter() {
+        return textureFilter;
+    }
+
+    public void setTextureFilter(TextureFilter textureFilter) {
+        this.textureFilter = textureFilter;
+    }
+
+    public float getTextureAnisotropy() {
+        return textureAnisotropy;
+    }
+
+    public void setTextureAnisotropy(float textureAnisotropy) {
+        this.textureAnisotropy = textureAnisotropy;
+    }
 
     // </editor-fold>
 
@@ -67,7 +91,11 @@ public class EngineInfo {
 
     private VideoAPI videoApi = VideoAPI.OPENGL;
     private boolean vSync = true;
+    private TextureFilter textureFilter = TextureFilter.TRILINEAR;
+    private float textureAnisotropy = 1;
 
     private int loaderThreads = 4;
     private int jobThreads = 4;
+
+    private int layerCount = 1;
 }

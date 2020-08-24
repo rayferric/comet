@@ -1,4 +1,4 @@
-package com.rayferric.comet.manager;
+package com.rayferric.comet.engine;
 
 import com.rayferric.comet.scenegraph.resource.Resource;
 

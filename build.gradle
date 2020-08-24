@@ -5,11 +5,11 @@ plugins {
 
 // Project Configuration
 
-String projectGroup = 'com.rayferric'
-String projectVersion = '1.0.0'
-String mainClass = 'com.rayferric.spatialwalker.Main'
-JavaVersion javaVersion = JavaVersion.VERSION_14
-String gradleVersion = '6.6'
+final String projectGroup = 'com.rayferric'
+final String projectVersion = '1.0.0'
+final String mainClass = 'com.rayferric.spatialwalker.Main'
+final JavaVersion javaVersion = JavaVersion.VERSION_14
+final String gradleVersion = '6.6'
 
 // Apply Configuration
 

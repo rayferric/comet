@@ -1,9 +1,6 @@
 package com.rayferric.comet.scenegraph.resource.video.shader;
 
-import com.rayferric.comet.Engine;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
-
-import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Shader extends VideoResource {
     public Shader(boolean fromJar, String vertPath, String fragPath) {

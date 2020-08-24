@@ -1,41 +1,40 @@
 package com.rayferric.comet.scenegraph.node;
 
-import com.rayferric.comet.scenegraph.component.material.Material;
-import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
 import com.rayferric.comet.video.VideoEngine;
 
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Model extends Node {
-    public Model(Mesh mesh, Material material) {
+    public Model(Mesh[] meshes) {
         setName("Model");
-        this.mesh.set(mesh);
-        this.material.set(material);
+        this.meshes = Arrays.asList(meshes);
     }
 
     @Override
-    public void draw(VideoEngine videoEngine) {
-        if(mesh == null) return;
-        if(material == null) return;
+    public void drawAll(VideoEngine videoEngine) {
+        super.drawAll(videoEngine);
         videoEngine.drawModel(this);
     }
 
-    public Mesh getMesh() {
-        return mesh.get();
+    public List<Mesh> snapMeshes() {
+        synchronized(meshes) {
+            return new ArrayList<>(meshes);
+        }
     }
 
-    public void setMesh(Mesh mesh) {
-        this.mesh.set(mesh);
+    public void addMesh(Mesh mesh) {
+        synchronized(meshes) {
+            meshes.add(mesh);
+        }
     }
 
-    public Material getMaterial() {
-        return material.get();
+    public void removeMesh(int index) {
+        synchronized(meshes) {
+            meshes.remove(index);
+        }
     }
 
-    public void setMaterial(Material material) {
-        this.material.set(material);
-    }
-
-    private final AtomicReference<Mesh> mesh = new AtomicReference<>();
-    private final AtomicReference<Material> material = new AtomicReference<>();
+    private final List<Mesh> meshes;
 }

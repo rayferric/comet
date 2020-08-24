@@ -1,7 +1,8 @@
 package com.rayferric.comet.video.api.gl.texture;
 
+import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.video.util.texture.TextureFilter;
+import com.rayferric.comet.video.VideoServer;
 import com.rayferric.comet.video.util.texture.TextureFormat;
 
 import java.nio.Buffer;
@@ -11,25 +12,23 @@ import java.nio.FloatBuffer;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 import static org.lwjgl.opengl.EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 
 public class GLTexture2D extends GLTexture {
-    public GLTexture2D(Buffer data, Vector2i size, TextureFormat format, TextureFilter filter) {
-        int minFilter, magFilter;
-        switch(filter) {
-            default:
-            case NEAREST:
-                minFilter = GL_NEAREST;
-                magFilter = GL_NEAREST;
-                break;
-            case BILINEAR:
-                minFilter = GL_LINEAR;
-                magFilter = GL_LINEAR;
-                break;
-            case TRILINEAR:
-                minFilter = GL_LINEAR_MIPMAP_LINEAR;
-                magFilter = GL_LINEAR;
-                break;
-        }
+    public GLTexture2D(Buffer data, Vector2i size, TextureFormat format, boolean filter) {
+        VideoServer videoServer = Engine.getInstance().getVideoServer();
+        int minFilter = switch(videoServer.getTextureFilter()) {
+            case NEAREST -> GL_NEAREST;
+            case BILINEAR -> GL_LINEAR;
+            case TRILINEAR -> GL_LINEAR_MIPMAP_LINEAR;
+        };
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter ? GL_LINEAR : GL_NEAREST);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
+
+        float maxAnisotropy = glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+        float anisotropy = Math.min(videoServer.getTextureAnisotropy(), maxAnisotropy);
+        glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy);
 
         boolean compressed, hdr;
         int internalFormat, baseFormat, type;
@@ -176,9 +175,6 @@ public class GLTexture2D extends GLTexture {
                 type = GL_UNSIGNED_BYTE;
                 break;
         }
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter);
 
         if(compressed)
             glCompressedTexImage2D(GL_TEXTURE_2D, 0, internalFormat, size.getX(), size.getY(), 0, (ByteBuffer)data);

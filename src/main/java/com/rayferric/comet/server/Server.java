@@ -1,6 +1,6 @@
 package com.rayferric.comet.server;
 
-import com.rayferric.comet.Engine;
+import com.rayferric.comet.engine.Engine;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;

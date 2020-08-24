@@ -3,6 +3,8 @@ package com.rayferric.comet.math;
 import java.util.Objects;
 
 public class Matrix4f {
+    public static final int BYTES = 64;
+
     public Matrix4f() {
         x = new Vector4f(1, 0, 0, 0);
         y = new Vector4f(0, 1, 0, 0);
@@ -49,7 +51,18 @@ public class Matrix4f {
 
     @Override
     public String toString() {
-        return String.format("Matrix4d{x=%s, y=%s, z=%s, w=%s}", x, y, z, w);
+        return String.format("Matrix4f{x=%s, y=%s, z=%s, w=%s}", x, y, z, w);
+    }
+
+    public float[] toArray() {
+        float[] array = new float[4 * 4];
+
+        System.arraycopy(x.toArray(), 0, array, 0, 4);
+        System.arraycopy(y.toArray(), 0, array, 4, 4);
+        System.arraycopy(z.toArray(), 0, array, 8, 4);
+        System.arraycopy(w.toArray(), 0, array, 12, 4);
+
+        return array;
     }
 
     public Matrix4f mul(Matrix4f rhs) {
@@ -112,12 +125,12 @@ public class Matrix4f {
         );
     }
 
-    public static Matrix4f perspective(float fov, float aspect, float near, float far) {
+    public static Matrix4f perspective(float fov, float ratio, float near, float far) {
         float ht = (float)Math.tan(Math.toRadians(fov) / 2);
 
         Matrix4f result = new Matrix4f(0);
 
-        result.x.setX(1 / (aspect * ht));
+        result.x.setX(1 / (ratio * ht));
         result.y.setY(1 / ht);
         result.z.setZ((near + far) / (near - far));
         result.z.setW(-1);
@@ -180,17 +193,6 @@ public class Matrix4f {
                         (x.getZ() * s3 - y.getZ() * s1 + z.getZ() * s0)
                 ).mul(invDet)
         );
-    }
-
-    public float[] toArray() {
-        float[] array = new float[16];
-
-        System.arraycopy(getX().toArray(), 0, array, 0, 4);
-        System.arraycopy(getY().toArray(), 0, array, 4, 4);
-        System.arraycopy(getZ().toArray(), 0, array, 8, 4);
-        System.arraycopy(getW().toArray(), 0, array, 12, 4);
-
-        return array;
     }
 
     public Vector4f getX() {
