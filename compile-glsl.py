@@ -8,5 +8,6 @@ def compile(name):
 print('Compiling using glslangValidator...\n')
 
 compile('basic')
+compile('gltf')
 
 input('Press ENTER to continue...')

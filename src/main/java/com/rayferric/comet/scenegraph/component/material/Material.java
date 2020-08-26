@@ -14,6 +14,7 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Material implements Component {
@@ -49,6 +50,19 @@ public class Material implements Component {
         synchronized(textures) {
             return new HashMap<>(textures);
         }
+    }
+
+    public boolean hasCulling() {
+        return culling.get();
+    }
+
+    public void setCulling(boolean culling) {
+        this.culling.set(culling);
+    }
+
+    protected static int nextAddress(int prevAddress, int prevBytes) {
+        prevBytes = prevBytes - (prevBytes % 16) + 16;
+        return prevAddress + prevBytes;
     }
 
     protected Material(int uniformBufferSize) {
@@ -161,4 +175,5 @@ public class Material implements Component {
     private final UniformBuffer uniformBuffer;
     private final ByteBuffer uniformData;
     private final HashMap<Integer, Texture> textures = new HashMap<>();
+    private final AtomicBoolean culling = new AtomicBoolean(true);
 }

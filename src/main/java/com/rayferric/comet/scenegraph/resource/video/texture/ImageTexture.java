@@ -67,10 +67,11 @@ public class ImageTexture extends Texture {
                             stbi_image_free((FloatBuffer)data);
                         else
                             stbi_image_free((ByteBuffer)data);
-                        finishLoading();
                     }, data, size, format, properties.filter);
 
                     serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
+
+                    finishLoading();
                 }
             } catch(Throwable e) {
                 e.printStackTrace();

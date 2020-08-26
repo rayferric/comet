@@ -18,8 +18,10 @@ public class SourceShader extends Shader {
                 String vertSrc = ResourceLoader.readTextFileToString(properties.fromJar, properties.vertPath);
                 String fragSrc = ResourceLoader.readTextFileToString(properties.fromJar, properties.fragPath);
 
-                SourceShaderRecipe recipe = new SourceShaderRecipe(this::finishLoading, vertSrc, fragSrc);
+                SourceShaderRecipe recipe = new SourceShaderRecipe(null, vertSrc, fragSrc);
                 serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
+
+                finishLoading();
             } catch(Throwable e) {
                 e.printStackTrace();
                 System.exit(1);

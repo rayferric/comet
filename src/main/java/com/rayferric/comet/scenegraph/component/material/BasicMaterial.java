@@ -7,7 +7,7 @@ import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 public class BasicMaterial extends Material {
     public BasicMaterial() {
-        super(12);
+        super(Vector3f.BYTES);
 
         synchronized(BASIC_SHADER_LOCK) {
             if(basicShader == null)
@@ -17,7 +17,7 @@ public class BasicMaterial extends Material {
         }
         setShader(basicShader);
 
-        writeUniformData(ADDRESS_COLOR, new Vector3f(1).toArray());
+        setColor(new Vector3f(1));
     }
 
     public Vector3f getColor() {
@@ -36,9 +36,10 @@ public class BasicMaterial extends Material {
         setTexture(BINDING_COLOR_TEX, colorTex);
     }
 
+    private static final int ADDRESS_COLOR = 0;
+
+    private static final int BINDING_COLOR_TEX = 0;
+
     private static final Object BASIC_SHADER_LOCK = new Object();
     private static Shader basicShader = null;
-
-    private final int ADDRESS_COLOR = 0;
-    private final int BINDING_COLOR_TEX = 0;
 }

@@ -26,8 +26,10 @@ public class PlaneGeometry extends Geometry {
         Engine.getInstance().getLoaderPool().execute(() -> {
             GeometryData data = GeometryGenerator.genPlane(properties.size, properties.shadeSmooth);
 
-            GeometryRecipe recipe = new GeometryRecipe(this::finishLoading, data);
+            GeometryRecipe recipe = new GeometryRecipe(null, data);
             serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
+
+            finishLoading();
         });
     }
 

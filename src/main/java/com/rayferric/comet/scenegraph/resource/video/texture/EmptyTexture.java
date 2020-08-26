@@ -21,9 +21,10 @@ public class EmptyTexture extends Texture {
         super.load();
 
         Texture2DRecipe recipe =
-                new Texture2DRecipe(this::finishLoading, null, properties.size, properties.format,
-                        properties.filter);
+                new Texture2DRecipe(null, null, properties.size, properties.format, properties.filter);
         serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
+
+        finishLoading();
     }
 
     private static class Properties {

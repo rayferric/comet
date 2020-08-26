@@ -14,6 +14,8 @@ public abstract class VideoResource extends Resource {
     }
 
     public long getServerHandle() {
+        if(!isLoaded())
+            throw new RuntimeException("Requested server handle of an unloaded resource.");
         return serverHandle.get();
     }
 

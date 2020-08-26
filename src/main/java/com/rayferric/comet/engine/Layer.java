@@ -1,6 +1,6 @@
 package com.rayferric.comet.engine;
 
-import com.rayferric.comet.scenegraph.node.Camera;
+import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.Node;
 
 import java.util.concurrent.atomic.AtomicReference;

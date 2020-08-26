@@ -1,4 +1,4 @@
-package com.rayferric.comet.scenegraph.node;
+package com.rayferric.comet.scenegraph.node.camera;
 
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.util.AtomicFloat;

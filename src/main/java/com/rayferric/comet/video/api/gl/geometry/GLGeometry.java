@@ -12,8 +12,6 @@ import static org.lwjgl.opengl.GL45.*;
 
 public class GLGeometry implements ServerResource {
     public GLGeometry(GeometryData data) {
-        System.out.println("Creating GLGeometry...");
-
         float[] vertices = data.getVertices();
         int[] indices = data.getIndices();
 
@@ -44,7 +42,6 @@ public class GLGeometry implements ServerResource {
 
     @Override
     public void destroy() {
-        System.out.println("Destroying GLGeometry...");
         glDeleteBuffers(vertexBuffers);
         glDeleteVertexArrays(vertexArray);
     }

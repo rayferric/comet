@@ -26,9 +26,10 @@ public class BinaryShader extends Shader {
                 BinaryShaderRecipe recipe = new BinaryShaderRecipe(() -> {
                     MemoryUtil.memFree(vertBin);
                     MemoryUtil.memFree(fragBin);
-                    finishLoading();
                 }, vertBin, fragBin);
                 serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
+
+                finishLoading();
             } catch(Throwable e) {
                 e.printStackTrace();
                 System.exit(1);

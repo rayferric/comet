@@ -5,3 +5,6 @@
 /.gradle/
 /build/
 /lib/
+
+# Large Assets
+/data/local/

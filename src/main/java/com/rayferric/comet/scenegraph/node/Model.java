@@ -1,5 +1,6 @@
 package com.rayferric.comet.scenegraph.node;
 
+import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.video.VideoEngine;
 
 import java.util.ArrayList;

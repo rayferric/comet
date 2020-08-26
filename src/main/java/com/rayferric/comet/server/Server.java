@@ -2,6 +2,8 @@ package com.rayferric.comet.server;
 
 import com.rayferric.comet.engine.Engine;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -15,12 +17,7 @@ public abstract class Server {
      *
      * @return current state in text format
      */
-    @Override
-    public String toString() {
-        return String
-                .format("Server{running=%s, resources=%s, creationQueue=%s, destructionQueue=%s}", running.get(),
-                        resources, creationQueue, destructionQueue);
-    }
+    // TODO toString
 
     // <editor-fold desc="Internal API">
 
@@ -51,18 +48,18 @@ public abstract class Server {
                     onStart();
                     while(shouldProcess.get()) {
                         if(!resourceCreationPaused) {
-                            createNextPendingResource();
-                            if(creationQueue.size() == 0)
+                            if(createNextPendingResource()) {
                                 synchronized(creationQueue) {
                                     creationQueue.notifyAll();
                                 }
+                            }
                         }
 
-                        destroyNextPendingResource();
-                        if(destructionQueue.size() == 0)
+                        if(destroyNextPendingResource()) {
                             synchronized(destructionQueue) {
                                 destructionQueue.notifyAll();
                             }
+                        }
 
                         onLoop();
                     }
@@ -115,10 +112,9 @@ public abstract class Server {
     }
 
     public void scheduleResourceDestruction(long handle) {
-        ServerResource serverResource = resources.remove(handle);
-        if(serverResource == null)
-            throw new IllegalStateException("Attempted to destroy a non-existent server resource.");
-        destructionQueue.add(serverResource);
+        synchronized(destructionQueue) {
+            destructionQueue.add(handle);
+        }
     }
 
     /**
@@ -181,25 +177,43 @@ public abstract class Server {
     private final ConcurrentHashMap<Long, ServerResource> resources = new ConcurrentHashMap<>();
     private final AtomicLong handleGenerator = new AtomicLong(0);
     private final ConcurrentLinkedQueue<ServerRecipe> creationQueue = new ConcurrentLinkedQueue<>();
-    private final ConcurrentLinkedQueue<ServerResource> destructionQueue = new ConcurrentLinkedQueue<>();
+    private final List<Long> destructionQueue = new ArrayList<>();
 
     // <editor-fold desc="Helpers">
 
-    private void createNextPendingResource() {
+    // Returns whether the work is done
+    private boolean createNextPendingResource() {
         ServerRecipe recipe = creationQueue.poll();
-        if(recipe == null) return;
+        if(recipe == null) return true;
 
         ServerResource serverResource = resourceFromRecipe(recipe);
 
-        recipe.getCleanUpCallback().run();
+        Runnable cleanUpCb = recipe.getCleanUpCallback();
+        if(cleanUpCb != null) cleanUpCb.run();
+
         resources.put(recipe.getHandle(), serverResource);
+        return false;
     }
 
-    private void destroyNextPendingResource() {
-        ServerResource serverResource = destructionQueue.poll();
-        if(serverResource == null) return;
+    // Returns whether all resources are destroyed
+    private boolean destroyNextPendingResource() {
+        ServerResource serverResource;
+        int i = 0;
+        synchronized(destructionQueue) {
+            do {
+                Long handle;
+                try {
+                    handle = destructionQueue.get(i++);
+                } catch(IndexOutOfBoundsException e) {
+                    return true;
+                }
+                serverResource = resources.remove(handle);
+            } while(serverResource == null);
+            destructionQueue.remove(i - 1);
+        }
 
         serverResource.destroy();
+        return false;
     }
 
     // </editor-fold>

@@ -2,18 +2,16 @@ package com.rayferric.comet.video.api.gl;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
-import com.rayferric.comet.engine.LayerManager;
 import com.rayferric.comet.geometry.GeometryData;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.component.material.Material;
-import com.rayferric.comet.scenegraph.node.Camera;
-import com.rayferric.comet.scenegraph.node.Mesh;
+import com.rayferric.comet.scenegraph.node.camera.Camera;
+import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.scenegraph.node.Model;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.api.gl.buffer.GLUniformBuffer;
-import com.rayferric.comet.video.util.texture.TextureFilter;
 import com.rayferric.comet.video.util.texture.TextureFormat;
 import com.rayferric.comet.video.api.gl.geometry.GLGeometry;
 import com.rayferric.comet.video.api.gl.shader.GLBinaryShader;
@@ -28,7 +26,6 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
 
 import static org.lwjgl.glfw.GLFW.glfwSwapInterval;
 import static org.lwjgl.opengl.GL45.*;
@@ -51,6 +48,11 @@ public class GLVideoEngine extends VideoEngine {
 
         for(Mesh mesh : model.snapMeshes()) {
             Material material = mesh.getMaterial();
+
+            if(material.hasCulling())
+                glEnable(GL_CULL_FACE);
+            else
+                glDisable(GL_CULL_FACE);
 
             GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
             if(glShader == null) return;
@@ -110,7 +112,8 @@ public class GLVideoEngine extends VideoEngine {
     protected void onStart() {
         GL.createCapabilities();
 
-        glClearColor(0, 0, 0, 0);
+        glClearColor(0.08F, 0.08F, 0.1F, 0);
+        glEnable(GL_DEPTH_TEST);
 
         frameUBO = new GLUniformBuffer(FRAME_UBO_BYTES);
         modelUBO = new GLUniformBuffer(MODEL_UBO_BYTES);

@@ -109,13 +109,13 @@ public abstract class VideoEngine {
     protected abstract ServerResource createDefaultTexture2D();
 
     protected ServerResource getServerGeometryOrNull(Geometry geometry) {
-        if(geometry == null) return null;
+        if(geometry == null || !geometry.isLoaded()) return null;
         long handle = geometry.getServerHandle();
         return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 
     protected ServerResource getServerTexture2DOrDefault(Texture texture) {
-        if(texture == null) return defaultTexture2D;
+        if(texture == null || !texture.isLoaded()) return defaultTexture2D;
         long handle = texture.getServerHandle();
         ServerResource resource = Engine.getInstance().getVideoServer().getServerResource(handle);
         if(resource == null) return defaultTexture2D;
@@ -123,13 +123,13 @@ public abstract class VideoEngine {
     }
 
     protected ServerResource getServerShaderOrNull(Shader shader) {
-        if(shader == null) return null;
+        if(shader == null || !shader.isLoaded()) return null;
         long handle = shader.getServerHandle();
         return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 
     protected ServerResource getServerUniformBufferOrNull(UniformBuffer uniformBuffer) {
-        if(uniformBuffer == null) return null;
+        if(uniformBuffer == null || !uniformBuffer.isLoaded()) return null;
         long handle = uniformBuffer.getServerHandle();
         return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
