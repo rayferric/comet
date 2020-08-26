@@ -11,14 +11,12 @@ import static org.lwjgl.opengl.GL45.*;
 
 public class GLUniformBuffer implements ServerResource {
     public GLUniformBuffer(int size) {
-        System.out.println("Creating GLUniformBuffer...");
         handle = glGenBuffers();
         glBindBuffer(GL_UNIFORM_BUFFER, handle);
         glBufferData(GL_UNIFORM_BUFFER, size, GL_DYNAMIC_DRAW);
     }
 
     public void destroy() {
-        System.out.println("Destroying GLUniformBuffer...");
         glDeleteBuffers(handle);
     }
 

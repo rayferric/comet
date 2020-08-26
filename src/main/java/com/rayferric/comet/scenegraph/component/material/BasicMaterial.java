@@ -3,15 +3,16 @@ package com.rayferric.comet.scenegraph.component.material;
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
+import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 public class BasicMaterial extends Material {
     public BasicMaterial() {
-        super(Vector3f.BYTES);
+        super(ADDRESS_COLOR + Vector3f.BYTES);
 
         synchronized(BASIC_SHADER_LOCK) {
             if(basicShader == null)
-                basicShader = new BinaryShader(false, "src/main/resources/shaders/basic.vert.spv", "src/main/resources/shaders/basic.frag.spv");
+                basicShader = new SourceShader(false, "data/shaders/basic.vert", "data/shaders/basic.frag");
             else if(!basicShader.isLoaded() && !basicShader.isLoading())
                 basicShader.load();
         }

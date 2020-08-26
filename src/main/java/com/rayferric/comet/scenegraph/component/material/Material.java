@@ -60,14 +60,23 @@ public class Material implements Component {
         this.culling.set(culling);
     }
 
-    protected static int nextAddress(int prevAddress, int prevBytes) {
-        prevBytes = prevBytes - (prevBytes % 16) + 16;
-        return prevAddress + prevBytes;
-    }
-
     protected Material(int uniformBufferSize) {
         uniformBuffer = new UniformBuffer(uniformBufferSize);
         uniformData = ByteBuffer.allocate(uniformBufferSize);
+    }
+
+    protected static int nextStd140(int prevAddress, int prevBytes, int nextBytes) {
+        int offset = prevAddress + prevBytes;
+
+        int baseAlignment = 16;
+        if(nextBytes <= 4) baseAlignment = 4;
+        else if(nextBytes <= 8) baseAlignment = 8;
+
+        int alignedOffset = offset;
+        while(alignedOffset % baseAlignment != 0)
+            alignedOffset += 4;
+
+        return alignedOffset;
     }
 
     protected int readUniformInt(int address) {
@@ -164,10 +173,7 @@ public class Material implements Component {
 
     protected void setTexture(int binding, Texture texture) {
         synchronized(textures) {
-            if(texture == null)
-                textures.remove(binding);
-            else
-                textures.put(binding, texture);
+            textures.put(binding, texture);
         }
     }
 

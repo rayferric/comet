@@ -34,7 +34,7 @@ public class Main {
         info.setTextureFilter(TextureFilter.TRILINEAR);
         info.setTextureAnisotropy(8);
 
-        info.setLoaderThreads(1);
+        info.setLoaderThreads(4);
         info.setJobThreads(4);
 
         info.setLayerCount(1);
@@ -42,7 +42,7 @@ public class Main {
         try {
             engine.start(info);
 
-            Scene scene = new GLTFScene("data\\local\\sponza-gltf-pbr\\sponza.glb");
+            Scene scene = new GLTFScene("data\\local\\flight-helmet\\FlightHelmet.gltf");
             while(!scene.isLoaded()) {
                 try {
                     Thread.sleep(100);
@@ -67,12 +67,12 @@ public class Main {
             Rotor rotor = new Rotor();
             mainLayer.getRoot().addChild(rotor);
             rotor.addChild(nodes[0]);
-            nodes[0].setScale(new Vector3f(0.1F));
-            nodes[0].setTranslation(new Vector3f(0, -10, 0));
+            nodes[0].setScale(new Vector3f(3F));
+            nodes[0].setTranslation(new Vector3f(0, -1, 0));
 
             Model model = new Model(new Mesh[] { new Mesh(geometry, material) });
             model.setName("Model");
-            rotor.addChild(model);
+            //rotor.addChild(model);
 
             Camera camera = new PerspectiveCamera(0.1F, 1000, 90);
             camera.setTranslation(new Vector3f(0, 0, 2));

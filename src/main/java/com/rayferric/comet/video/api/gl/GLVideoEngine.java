@@ -55,12 +55,12 @@ public class GLVideoEngine extends VideoEngine {
                 glDisable(GL_CULL_FACE);
 
             GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
-            if(glShader == null) return;
+            if(glShader == null) continue;
             glShader.bind();
 
             GLUniformBuffer materialUniformBuffer =
                     (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
-            if(materialUniformBuffer == null) return;
+            if(materialUniformBuffer == null) continue;
             materialUniformBuffer.bind(2);
             try(MemoryStack stack = MemoryStack.stackPush()) {
                 materialUniformBuffer.nativeUpdate(material.nativeUniformData(stack));
@@ -72,7 +72,7 @@ public class GLVideoEngine extends VideoEngine {
             });
 
             GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
-            if(glGeometry == null) return;
+            if(glGeometry == null) continue;
             glGeometry.bind();
 
             glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);

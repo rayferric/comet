@@ -23,7 +23,7 @@ public class Node {
     public Node(Node other) {
         name.set(other.name + "~");
 
-        setParent(other.parent);
+        setParent(other.getParent());
 
         setTranslation(other.getTranslation());
         setRotation(other.getRotation());
@@ -54,23 +54,21 @@ public class Node {
     }
 
     public Node getParent() {
-        synchronized(parentLock) {
-            return parent;
-        }
+        return parent.get();
     }
 
     public void setParent(Node parent) {
-        synchronized(parentLock) {
-            if(this.parent != null) {
-                synchronized(this.parent.childrenLock) {
-                    this.parent.children.remove(this);
-                }
+        Node prevParent = this.parent.get();
+        this.parent.set(parent);
+
+        if(prevParent != null) {
+            synchronized(prevParent.childrenLock) {
+                prevParent.children.remove(this);
             }
-            this.parent = parent;
-            if(this.parent != null) {
-                synchronized(this.parent.childrenLock) {
-                    this.parent.children.add(this);
-                }
+        }
+        if(parent != null) {
+            synchronized(parent.childrenLock) {
+                parent.children.add(this);
             }
         }
         invalidateGlobalTransform();
@@ -263,10 +261,8 @@ public class Node {
 
     private final AtomicReference<String> name = new AtomicReference<>();
 
-    private Node parent = null;
+    private final AtomicReference<Node> parent = new AtomicReference<>(null);
     private final List<Node> children = new ArrayList<>();
-
-    private final Object parentLock = new Object();
     private final Object childrenLock = new Object();
 
     private final AtomicReference<Vector3f> translation = new AtomicReference<>();
@@ -287,6 +283,7 @@ public class Node {
     }
 
     private void updateGlobalTransform() {
+        Node parent = this.parent.get();
         if(parent != null) globalTransformCache = parent.getGlobalTransform().mul(getLocalTransform());
         else globalTransformCache = getLocalTransform();
         globalTransformValid = true;

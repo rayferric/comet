@@ -15,7 +15,6 @@ import static org.lwjgl.opengl.GL45.*;
 public abstract class GLShader implements ServerResource {
     @Override
     public void destroy() {
-        System.out.println("Destroying GLShader...");
         glDeleteProgram(handle);
     }
 
@@ -28,8 +27,6 @@ public abstract class GLShader implements ServerResource {
     }
 
     protected void link(int vertShader, int fragShader) {
-        System.out.println("Creating GLShader...");
-
         handle = glCreateProgram();
 
         glAttachShader(handle, vertShader);

@@ -1,27 +1,36 @@
 package com.rayferric.comet.scenegraph.component.material;
 
-import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.math.Vector3i;
 import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
+import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 public class GLTFMaterial extends Material {
     public GLTFMaterial() {
-        super(Vector4f.BYTES + Vector3f.BYTES);
+        super(ADDRESS_EMISSIVE + Vector3f.BYTES);
 
         synchronized(GLTF_SHADER_LOCK) {
             if(gltfShader == null)
-                gltfShader = new BinaryShader(false, "src/main/resources/shaders/gltf.vert.spv", "src/main/resources/shaders/gltf.frag.spv");
+                gltfShader = new SourceShader(false, "data/shaders/gltf.vert", "data/shaders/gltf.frag");
             else if(!gltfShader.isLoaded() && !gltfShader.isLoading())
                 gltfShader.load();
         }
         setShader(gltfShader);
 
         setAlbedo(new Vector3f(1));
-        setOccRghMtl(new Vector3f(1, 0, 0));
+        setEmissive(new Vector3f(1));
+
+        setAlbedoTex(null);
+        setNormalTex(null);
+        setMetallicRoughnessTex(null);
+        setOcclusionTex(null);
+        setEmissiveTex(null);
     }
+
+    // <editor-fold desc="Uniforms">
 
     public Vector3f getAlbedo() {
         return readUniformVector3f(ADDRESS_ALBEDO);
@@ -31,29 +40,17 @@ public class GLTFMaterial extends Material {
         writeUniformData(ADDRESS_ALBEDO, albedo.toArray());
     }
 
-    public float getMetallic() {
-        return readUniformFloat(ADDRESS_METALLIC);
+    public Vector3f getEmissive() {
+        return readUniformVector3f(ADDRESS_EMISSIVE);
     }
 
-    public void setMetallic(float metallic) {
-        writeUniformData(ADDRESS_METALLIC, new float[] { metallic });
+    public void setEmissive(Vector3f emissive) {
+        writeUniformData(ADDRESS_EMISSIVE, emissive.toArray());
     }
 
-    public float getRoughness() {
-        return readUniformFloat(ADDRESS_ROUGHNESS);
-    }
+    // </editor-fold>
 
-    public void setRoughness(float roughness) {
-        writeUniformData(ADDRESS_ROUGHNESS, new float[] { roughness });
-    }
-
-    public float getMetallic() {
-        return readUniformFloat(ADDRESS_OCCLUSION);
-    }
-
-    public void setMetallic(float occlusion) {
-        writeUniformData(ADDRESS_OCCLUSION, new float[] { metallic });
-    }
+    // <editor-fold desc="Textures">
 
     public Texture getAlbedoTex() {
         return getTexture(BINDING_ALBEDO_TEX);
@@ -71,19 +68,34 @@ public class GLTFMaterial extends Material {
         setTexture(BINDING_NORMAL_TEX, tex);
     }
 
-    public Texture getOccRghMtlTex() {
-        return getTexture(BINDING_OCC_RGH_MTL);
+    public Texture getMetallicRoughnessTex() {
+        return getTexture(BINDING_METALLIC_ROUGHNESS);
     }
 
-    public void setOccRghMtlTex(Texture tex) {
-        setTexture(BINDING_OCC_RGH_MTL, tex);
+    public void setMetallicRoughnessTex(Texture tex) {
+        setTexture(BINDING_METALLIC_ROUGHNESS, tex);
     }
+
+    public Texture getOcclusionTex() {
+        return getTexture(BINDING_OCCLUSION);
+    }
+
+    public void setOcclusionTex(Texture tex) {
+        setTexture(BINDING_OCCLUSION, tex);
+    }
+
+    public Texture getEmissiveTex() {
+        return getTexture(BINDING_EMISSIVE);
+    }
+
+    public void setEmissiveTex(Texture tex) {
+        setTexture(BINDING_EMISSIVE, tex);
+    }
+
+    // </editor-fold>
 
     private static final int ADDRESS_ALBEDO = 0;
-    private static final int ADDRESS_METALLIC = nextAddress(ADDRESS_ALBEDO, Vector3f.BYTES);
-    private static final int ADDRESS_ROUGHNESS = nextAddress(ADDRESS_METALLIC, Float.BYTES);
-    private static final int ADDRESS_OCCLUSION = nextAddress(ADDRESS_ROUGHNESS, Float.BYTES);
-    private static final int ADDRESS_EMISSIVE = nextAddress(ADDRESS_OCCLUSION, Float.BYTES);
+    private static final int ADDRESS_EMISSIVE = nextStd140(ADDRESS_ALBEDO, Vector3f.BYTES, Vector3f.BYTES);
 
     private static final int BINDING_ALBEDO_TEX = 0;
     private static final int BINDING_NORMAL_TEX = 1;
