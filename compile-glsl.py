@@ -9,5 +9,7 @@ print('Compiling using glslangValidator...\n')
 
 compile('basic')
 compile('gltf')
+compile('sprite')
+compile('font')
 
 input('Press ENTER to continue...')

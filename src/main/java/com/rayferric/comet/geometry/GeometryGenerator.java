@@ -2,25 +2,121 @@ package com.rayferric.comet.geometry;
 
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.text.FontCharacter;
+import com.rayferric.comet.text.FontMetadata;
+import com.rayferric.comet.text.HorizontalAlignment;
+import com.rayferric.comet.text.VerticalAlignment;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 public class GeometryGenerator {
-    public static GeometryData genPlane(Vector2f size, boolean shadeSmooth) {
-        float sx = size.getX() * 0.5F;
-        float sy = size.getY() * 0.5F;
+    public static GeometryData genText(String text, FontMetadata meta, HorizontalAlignment hAlign,
+                                       VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
+                                       float lineSpacing) {
+        // Splits by spaces, removes just one.
+        String[] words = text.split("(?<! ) |(?<= {2})");
+        float[] wordWidths = new float[words.length];
+        List<String[]> lines = new ArrayList<>(text.length());
+        List<Float> lineWidths = new ArrayList<>(text.length());
 
+        float spaceWidth = meta.getCharacter(' ').getAdvance() * charSpacing;
+        {
+            List<String> lineWords = new ArrayList<>();
+            float lineWidth = 0;
+            for(int i = 0; i < words.length; i++) {
+                String word = words[i];
+                float wordWidth = 0;
+                for(int j = 0; j < word.length(); j++) {
+                    FontCharacter character = meta.getCharacter(word.charAt(j));
+                    if(character == null) continue;
+                    wordWidth += character.getAdvance() * charSpacing;
+                }
+                wordWidths[i] = wordWidth;
+
+                if(autoWrap && !lineWords.isEmpty() && lineWidth + wordWidth > wrapSize) {
+                    lines.add(lineWords.toArray(new String[0]));
+                    lineWidths.add(lineWidth);
+                    lineWords.clear();
+                    lineWidth = 0;
+                }
+
+                lineWords.add(word);
+                lineWidth += wordWidth + spaceWidth;
+            }
+            lines.add(lineWords.toArray(new String[0]));
+            lineWidths.add(lineWidth);
+        }
+
+        System.out.println(Arrays.toString(words));
+        System.out.println(Arrays.toString(wordWidths));
+        System.out.println(lines);
+        System.out.println(lineWidths);
+
+        List<Face> faces = new ArrayList<>(text.length());
+
+        for(int lineIdx = 0; lineIdx < lines.size(); lineIdx++) {
+            String[] line = lines.get(lineIdx);
+            float charOffset = 0;
+            for(int wordIdx = 0; wordIdx < line.length; wordIdx++) {
+                String word = line[wordIdx];
+                if(wordIdx != line.length - 1) word += " ";
+                for(int charIdx = 0; charIdx < word.length(); charIdx++) {
+                    FontCharacter character = meta.getCharacter(word.charAt(charIdx));
+                    if(character == null) continue;
+                    Vector2f size = character.getSize();
+                    float lineHeight = meta.getLineHeight();
+
+                    Vector2f lowerLeftPos = new Vector2f(charOffset, -lineIdx * lineSpacing - 1).add(character.getOffset());
+
+                    switch(hAlign) {
+                        case CENTER:
+                            lowerLeftPos.setX(lowerLeftPos.getX() - lineWidths.get(lineIdx) * 0.5F);
+                            break;
+                        case RIGHT:
+                            lowerLeftPos.setX(lowerLeftPos.getX() - lineWidths.get(lineIdx));
+                            break;
+                    }
+
+                    switch(vAlign) {
+                        case CENTER:
+                            lowerLeftPos.setY(lowerLeftPos.getY() + ((lines.size() - 1) * lineSpacing + 1) * 0.5F);
+                            break;
+                        case BOTTOM:
+                            lowerLeftPos.setY(lowerLeftPos.getY() + ((lines.size() - 1) * lineSpacing + 1));
+                            break;
+                    }
+
+                    Vector2f upperRightPos =
+                            lowerLeftPos.add(new Vector2f(size.getX() / lineHeight, size.getY() / lineHeight));
+
+                    Vector2f lowerLeftTex = character.getPos();
+                    Vector2f upperRightTex = lowerLeftTex.add(size);
+
+                    charOffset += character.getAdvance() * charSpacing;
+                    faces.add(buildRect(lowerLeftPos, upperRightPos, lowerLeftTex, upperRightTex));
+                }
+            }
+        }
+
+        return index(triangulate(faces.toArray(new Face[0])), true);
+    }
+
+    public static GeometryData genPlane(Vector2f size) {
+        Face face = buildRect(size.mul(-0.5F), size.mul(0.5F), new Vector2f(0), new Vector2f(1));
+        return index(triangulate(new Face[] { face }), true);
+    }
+
+    private static Face buildRect(Vector2f lowerLeftPos, Vector2f upperRightPos, Vector2f lowerLeftTex,
+                                  Vector2f upperRightTex) {
         Vertex[] vertices = {
-                new Vertex(-sx, -sy, 0, 0, 0),
-                new Vertex(sx, -sy, 0, 1, 0),
-                new Vertex(sx,  sy, 0, 1, 1),
-                new Vertex(-sx,  sy, 0, 0, 1)
+                new Vertex(lowerLeftPos.getX(), lowerLeftPos.getY(), 0, lowerLeftTex.getX(), lowerLeftTex.getY()),
+                new Vertex(upperRightPos.getX(), lowerLeftPos.getY(), 0, upperRightTex.getX(), lowerLeftTex.getY()),
+                new Vertex(upperRightPos.getX(), upperRightPos.getY(), 0, upperRightTex.getX(), upperRightTex.getY()),
+                new Vertex(lowerLeftPos.getX(), upperRightPos.getY(), 0, lowerLeftTex.getX(), upperRightTex.getY())
         };
-        Face face = new Face(vertices);
-        Triangle[] triangles = triangulate(new Face[] { face });
-        return index(triangles, shadeSmooth);
+        return new Face(vertices);
     }
 
     private static Triangle[] triangulate(Face[] faces) {

@@ -9,9 +9,8 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Model extends Node {
-    public Model(Mesh[] meshes) {
+    public Model() {
         setName("Model");
-        this.meshes = Arrays.asList(meshes);
     }
 
     @Override
@@ -38,5 +37,5 @@ public class Model extends Node {
         }
     }
 
-    private final List<Mesh> meshes;
+    private final List<Mesh> meshes = new ArrayList<>();
 }

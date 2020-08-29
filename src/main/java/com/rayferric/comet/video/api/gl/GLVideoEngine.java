@@ -4,12 +4,17 @@ import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
 import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.geometry.GeometryGenerator;
 import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.scenegraph.component.material.Material;
+import com.rayferric.comet.scenegraph.node.Label;
+import com.rayferric.comet.scenegraph.node.Sprite;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.scenegraph.node.Model;
+import com.rayferric.comet.scenegraph.resource.font.Font;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.VideoEngine;
@@ -75,11 +80,14 @@ public class GLVideoEngine extends VideoEngine {
 
         glClearColor(0.08F, 0.08F, 0.1F, 0);
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
         cpuTimer = new Timer();
         gpuTimer = new GLTimerQuery();
         frameUBO = new GLUniformBuffer(FRAME_UBO_BYTES);
         modelUBO = new GLUniformBuffer(MODEL_UBO_BYTES);
+        drawQuad = new GLGeometry(GeometryGenerator.genPlane(new Vector2f(2)));
 
         cpuTimer.start();
         frameUBO.bind(0);
@@ -93,6 +101,7 @@ public class GLVideoEngine extends VideoEngine {
         gpuTimer.destroy();
         frameUBO.destroy();
         modelUBO.destroy();
+        drawQuad.destroy();
 
         System.out.println("OpenGL video engine stopped.");
     }
@@ -101,10 +110,10 @@ public class GLVideoEngine extends VideoEngine {
     protected void onDraw() {
         double cpuDelta = cpuTimer.getElapsed();
         cpuTimer.reset();
-        Engine.getInstance().getProfiler().addVideoCpuTime(cpuDelta);
+        Engine.getInstance().getProfiler().getCpuAccumulator().accumulate(cpuDelta);
         if(gpuTimer.hasResult()) {
             double gpuDelta = gpuTimer.read();
-            Engine.getInstance().getProfiler().addVideoGpuTime(gpuDelta);
+            Engine.getInstance().getProfiler().getGpuAccumulator().accumulate(gpuDelta);
             gpuTimer.begin();
         }
 
@@ -122,36 +131,13 @@ public class GLVideoEngine extends VideoEngine {
             updateFrameUBO(projectionMatrix, viewMatrix);
 
             LayerIndex index = layer.getIndex();
+
             for(Model model : index.getModels()) {
                 Matrix4f modelMatrix = model.getGlobalTransform().getMatrix();
                 updateModelUBO(modelMatrix);
 
                 for(Mesh mesh : model.snapMeshes()) {
-                    Material material = mesh.getMaterial();
-
-                    if(material.hasCulling())
-                        glEnable(GL_CULL_FACE);
-                    else
-                        glDisable(GL_CULL_FACE);
-
-                    GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
-                    if(glShader == null) continue;
-                    glShader.bind();
-
-                    GLUniformBuffer glUniformBuffer =
-                            (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
-                    if(glUniformBuffer == null) continue;
-                    if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
-                        try(MemoryStack stack = MemoryStack.stackPush()) {
-                            glUniformBuffer.update(material.snapUniformData(stack));
-                        }
-                    }
-                    glUniformBuffer.bind(2);
-
-                    material.getTextures().forEach((binding, texture) -> {
-                        glActiveTexture(GL_TEXTURE0 + binding);
-                        ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
-                    });
+                    if(!useMaterial(mesh.getMaterial())) continue;
 
                     GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
                     if(glGeometry == null) continue;
@@ -159,6 +145,29 @@ public class GLVideoEngine extends VideoEngine {
 
                     glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
                 }
+            }
+
+            for(Sprite sprite : index.getSprites()) {
+                Matrix4f modelMatrix = sprite.getGlobalTransform().getMatrix();
+                updateModelUBO(modelMatrix);
+
+                if(!useMaterial(sprite.getMaterial())) continue;
+                drawQuad.bind();
+
+                glDrawElements(GL_TRIANGLES, drawQuad.getIndexCount(), GL_UNSIGNED_INT, 0);
+            }
+
+            for(Label label : index.getLabels()) {
+                Matrix4f modelMatrix = label.getGlobalTransform().getMatrix();
+                updateModelUBO(modelMatrix);
+
+                if(!useMaterial(label.getMaterial())) continue;
+
+                GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(label.getGeometry());
+                if(glGeometry == null) continue;
+                glGeometry.bind();
+
+                glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
             }
         }
 
@@ -206,6 +215,7 @@ public class GLVideoEngine extends VideoEngine {
     private GLTimerQuery gpuTimer;
     private GLUniformBuffer frameUBO;
     private GLUniformBuffer modelUBO;
+    private GLGeometry drawQuad;
 
     private void updateFrameUBO(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         try(MemoryStack stack = MemoryStack.stackPush()) {
@@ -222,5 +232,36 @@ public class GLVideoEngine extends VideoEngine {
             buf.put(modelMatrix.toArray());
             modelUBO.update(buf.flip());
         }
+    }
+
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean useMaterial(Material material) {
+        if(material == null) return false;
+
+        if(material.hasCulling())
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
+
+        GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
+        if(glShader == null) return false;
+        glShader.bind();
+
+        GLUniformBuffer glUniformBuffer =
+                (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
+        if(glUniformBuffer == null) return false;
+        if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
+            try(MemoryStack stack = MemoryStack.stackPush()) {
+                glUniformBuffer.update(material.snapUniformData(stack));
+            }
+        }
+        glUniformBuffer.bind(2);
+
+        material.getTextures().forEach((binding, texture) -> {
+            glActiveTexture(GL_TEXTURE0 + binding);
+            ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
+        });
+
+        return true;
     }
 }

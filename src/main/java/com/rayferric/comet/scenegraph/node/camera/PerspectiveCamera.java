@@ -11,12 +11,6 @@ public class PerspectiveCamera extends Camera {
     }
 
     @Override
-    public void indexAll(LayerIndex index) {
-        index.add(this);
-        super.indexAll(index);
-    }
-
-    @Override
     public Matrix4f getProjection(float ratio) {
         return Matrix4f.perspective(getFov(), ratio, getNear(), getFar());
     }

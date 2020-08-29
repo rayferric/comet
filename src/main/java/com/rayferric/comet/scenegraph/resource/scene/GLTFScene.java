@@ -6,6 +6,7 @@ import com.rayferric.comet.scenegraph.component.material.GLTFMaterial;
 import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
+import com.rayferric.comet.util.ResourceLoader;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryStack;
 
@@ -17,8 +18,7 @@ import static org.lwjgl.assimp.Assimp.*;
 public class GLTFScene extends AssimpScene {
     public GLTFScene(String path) {
         super(path);
-        int slashIndex = path.replaceAll("\\\\", "/").lastIndexOf('/') + 1;
-        sceneDir = path.substring(0, slashIndex);
+        sceneDir = ResourceLoader.getDir(path);
     }
 
     @Override

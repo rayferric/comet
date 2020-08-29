@@ -26,6 +26,16 @@ public class Matrix4f {
         this.w = w;
     }
 
+    public Matrix4f(float xx, float xy, float xz, float xw,
+                    float yx, float yy, float yz, float yw,
+                    float zx, float zy, float zz, float zw,
+                    float wx, float wy, float wz, float ww) {
+        x = new Vector4f(xx, xy, xz, xw);
+        y = new Vector4f(yx, yy, yz, yw);
+        z = new Vector4f(zx, zy, zz, zw);
+        w = new Vector4f(wx, wy, wz, ww);
+    }
+
     public Matrix4f(Matrix4f other) {
         x = other.x;
         y = other.y;

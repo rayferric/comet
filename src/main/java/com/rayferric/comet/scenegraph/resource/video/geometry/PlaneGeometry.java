@@ -11,10 +11,9 @@ import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
 public class PlaneGeometry extends Geometry {
-    public PlaneGeometry(Vector2f size, boolean shadeSmooth) {
+    public PlaneGeometry(Vector2f size) {
         properties = new Properties();
         properties.size = size;
-        properties.shadeSmooth = shadeSmooth;
 
         load();
     }
@@ -24,7 +23,7 @@ public class PlaneGeometry extends Geometry {
         super.load();
 
         Engine.getInstance().getLoaderPool().execute(() -> {
-            GeometryData data = GeometryGenerator.genPlane(properties.size, properties.shadeSmooth);
+            GeometryData data = GeometryGenerator.genPlane(properties.size);
 
             GeometryRecipe recipe = new GeometryRecipe(null, data);
             serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
@@ -35,7 +34,6 @@ public class PlaneGeometry extends Geometry {
 
     private static class Properties {
         public Vector2f size;
-        public boolean shadeSmooth;
     }
 
     private final Properties properties;

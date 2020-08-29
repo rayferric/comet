@@ -15,6 +15,7 @@ public class ResourceLoader {
      *
      * @param fromJar whether to search in a JAR file
      * @param path    path to resource
+     *
      * @return text data
      */
     public static String readTextFileToString(boolean fromJar, String path) {
@@ -28,6 +29,7 @@ public class ResourceLoader {
      *
      * @param fromJar whether to search in a JAR file
      * @param path    path to resource
+     *
      * @return binary data
      */
     public static ByteBuffer readBinaryFileToNativeBuffer(boolean fromJar, String path) {
@@ -41,10 +43,23 @@ public class ResourceLoader {
     }
 
     /**
+     * Extracts parent directory from file path.
+     *
+     * @param path path to extract from
+     *
+     * @return parent directory path with ending slash
+     */
+    public static String getDir(String path) {
+        int slashIndex = path.replaceAll("\\\\", "/").lastIndexOf('/') + 1;
+        return path.substring(0, slashIndex);
+    }
+
+    /**
      * Reads data from resource to byte array.
      *
      * @param fromJar whether to search in a JAR file
      * @param path    path to resource
+     *
      * @return byte array
      */
     private static byte[] readFile(boolean fromJar, String path) {
@@ -79,6 +94,7 @@ public class ResourceLoader {
      *
      * @param fromJar whether it's a JAR resource
      * @param path    path to resource
+     *
      * @return failure message
      */
     private static String formatErrorMessage(boolean fromJar, String path) throws RuntimeException {

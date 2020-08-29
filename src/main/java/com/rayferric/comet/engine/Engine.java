@@ -1,14 +1,11 @@
 package com.rayferric.comet.engine;
 
-import com.rayferric.comet.scenegraph.node.Node;
+import com.rayferric.comet.profiling.Profiler;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.VideoServer;
 import org.lwjgl.glfw.GLFWErrorCallback;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;

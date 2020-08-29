@@ -1,8 +1,15 @@
 package com.rayferric.comet.geometry;
 
+import java.util.Arrays;
+
 public class Face {
     public Face(Vertex[] vertices) {
         this.vertices = vertices;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("Face{vertices=%s}", Arrays.toString(vertices));
     }
 
     public int getTriangleCount() {

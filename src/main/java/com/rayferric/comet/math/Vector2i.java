@@ -41,6 +41,10 @@ public class Vector2i {
         return String.format("Vector2i{x=%s, y=%s}", x, y);
     }
 
+    public int[] toArray() {
+        return new int[] { x, y };
+    }
+
     public Vector2i add(Vector2i rhs) {
         return new Vector2i(x + rhs.x, y + rhs.y);
     }

@@ -1,7 +1,10 @@
 package com.rayferric.comet.engine;
 
+import com.rayferric.comet.scenegraph.node.Label;
 import com.rayferric.comet.scenegraph.node.Model;
 import com.rayferric.comet.scenegraph.node.Node;
+import com.rayferric.comet.scenegraph.node.Sprite;
+import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.camera.PerspectiveCamera;
 import com.rayferric.comet.scenegraph.node.light.DirectionalLight;
@@ -28,6 +31,30 @@ public class LayerIndex {
         return models;
     }
 
+    public List<Camera> getCameras() {
+        return cameras;
+    }
+
+    public List<DirectionalLight> getDirectionalLights() {
+        return directionalLights;
+    }
+
+    public List<PointLight> getPointLights() {
+        return pointLights;
+    }
+
+    public List<SpotLight> getSpotLights() {
+        return spotLights;
+    }
+
+    public List<Sprite> getSprites() {
+        return sprites;
+    }
+
+    public List<Label> getLabels() {
+        return labels;
+    }
+
     /**
      * Adds a {@link Model} to the index.<br>
      * • Is implicitly called by the constructor when traversing the node tree.<br>
@@ -41,27 +68,15 @@ public class LayerIndex {
     }
 
     /**
-     * Adds a {@link PerspectiveCamera} to the index.<br>
+     * Adds a {@link Camera} to the index.<br>
      * • Is implicitly called by the constructor when traversing the node tree.<br>
      * • Must not be called by the user, this is an internal method.<br>
      * • May be called from any thread.
      *
-     * @param camera the {@link PerspectiveCamera} to be indexed
+     * @param camera the {@link Camera} to be indexed
      */
-    public void add(PerspectiveCamera camera) {
-        perspectiveCameras.add(camera);
-    }
-
-    /**
-     * Adds a {@link OrthographicCamera} to the index.<br>
-     * • Is implicitly called by the constructor when traversing the node tree.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     *
-     * @param camera the {@link OrthographicCamera} to be indexed
-     */
-    public void add(OrthographicCamera camera) {
-        orthographicCameras.add(camera);
+    public void add(Camera camera) {
+        cameras.add(camera);
     }
 
     /**
@@ -100,10 +115,35 @@ public class LayerIndex {
         spotLights.add(light);
     }
 
+    /**
+     * Adds a {@link Sprite} to the index.<br>
+     * • Is implicitly called by the constructor when traversing the node tree.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread.
+     *
+     * @param sprite the {@link Sprite} to be indexed
+     */
+    public void add(Sprite sprite) {
+        sprites.add(sprite);
+    }
+
+    /**
+     * Adds a {@link Label} to the index.<br>
+     * • Is implicitly called by the constructor when traversing the node tree.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread.
+     *
+     * @param label the {@link Label} to be indexed
+     */
+    public void add(Label label) {
+        labels.add(label);
+    }
+
     private final List<Model> models = new ArrayList<>();
-    private final List<PerspectiveCamera> perspectiveCameras = new ArrayList<>();
-    private final List<OrthographicCamera> orthographicCameras = new ArrayList<>();
+    private final List<Camera> cameras = new ArrayList<>();
     private final List<DirectionalLight> directionalLights = new ArrayList<>();
     private final List<PointLight> pointLights = new ArrayList<>();
     private final List<SpotLight> spotLights = new ArrayList<>();
+    private final List<Sprite> sprites = new ArrayList<>();
+    private final List<Label> labels = new ArrayList<>();
 }

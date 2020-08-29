@@ -3,24 +3,23 @@ package com.rayferric.spatialwalker;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.EngineInfo;
 import com.rayferric.comet.engine.Layer;
-import com.rayferric.comet.math.Transform;
-import com.rayferric.comet.math.Vector2f;
-import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.math.Vector3f;
-import com.rayferric.comet.scenegraph.component.Mesh;
+import com.rayferric.comet.math.*;
 import com.rayferric.comet.scenegraph.node.*;
-import com.rayferric.comet.scenegraph.component.material.BasicMaterial;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
+import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.camera.PerspectiveCamera;
+import com.rayferric.comet.scenegraph.resource.font.Font;
 import com.rayferric.comet.scenegraph.resource.scene.GLTFScene;
 import com.rayferric.comet.scenegraph.resource.scene.Scene;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
-import com.rayferric.comet.scenegraph.resource.video.geometry.PlaneGeometry;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
-import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
+import com.rayferric.comet.text.HorizontalAlignment;
+import com.rayferric.comet.text.VerticalAlignment;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.util.texture.TextureFilter;
 import com.rayferric.spatialwalker.node.Rotor;
+import org.lwjgl.system.CallbackI;
+
+import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
@@ -43,35 +42,49 @@ public class Main {
         try {
             engine.start(info);
 
-            Scene scene = new GLTFScene("data\\local\\flight-helmet\\FlightHelmet.gltf");
-
-            Geometry geometry = new PlaneGeometry(new Vector2f(1), false);
-
-            Texture imageTexture = new ImageTexture(false, "data/textures/texture.png", true);
-
-            BasicMaterial material = new BasicMaterial();
-            material.setColorMap(imageTexture);
+            Scene scene = new GLTFScene("untitled.gltf");
 
             Layer mainLayer = engine.getLayerManager().getLayers()[0];
 
             Rotor rotor = new Rotor();
             mainLayer.getRoot().addChild(rotor);
 
-            Model model = new Model(new Mesh[] { new Mesh(geometry, material) });
-            model.setName("Model");
-            rotor.addChild(model);
-
-            Camera camera = new PerspectiveCamera(0.1F, 1000, 90);
+            Sprite sprite = new Sprite(new ImageTexture(false, "data/textures/texture.png", true));
             {
-                Transform transform = new Transform();
-                transform.setTranslation(new Vector3f(0, 0, 2));
-                camera.setTransform(transform);
+                Transform t = new Transform();
+                t.setTranslation(0, 0, -1);
+                sprite.setTransform(t);
+            }
+            rotor.addChild(sprite);
+
+            Camera camera = new PerspectiveCamera(0.1F, 1000, 70);
+            {
+                Transform t = new Transform();
+                t.setTranslation(0, 0, 2);
+                camera.setTransform(t);
             }
             mainLayer.setCamera(camera);
 
             mainLayer.getRoot().initAll();
 
-            // engine.getVideoServer().getWindow().setFullscreen(true);
+            Font font = new Font(false, "data/fonts/bernard-mt-condensed.fnt");
+            Label label = new Label();
+            label.setColor(new Vector4f(1, 1, 1, 1F));
+            label.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed id diam sit amet quam cursus laoreet. Mauris vestibulum, arcu sed venenatis tempus, neque tortor vehicula odio, id consequat mauris leo ut erat. Nullam tempus mi quis sem aliquam porttitor. Maecenas mattis consequat semper. Praesent sit amet enim efficitur, vehicula nibh eget, pharetra purus. Sed venenatis efficitur quam vitae faucibus. Suspendisse lobortis fringilla consequat.");
+            label.setAutoWrap(true);
+            label.setWrapSize(20);
+            label.setCharSpacing(0.85F);
+            label.setLineSpacing(0.7F);
+            label.setHAlign(HorizontalAlignment.CENTER);
+            label.setVAlign(VerticalAlignment.CENTER);
+            label.setFont(font);
+            label.getMaterial().setCulling(false);
+            {
+                Transform t = new Transform();
+                t.setScale(0.25F);
+                label.setTransform(t);
+            }
+            rotor.addChild(label);
 
             var ref = new Object() {
                 public boolean sceneInstantiated = false;
@@ -83,7 +96,7 @@ public class Main {
 
                 if(scene.isLoaded() && !ref.sceneInstantiated) {
                     ref.sceneInstantiated = true;
-                    Node[] nodes = scene.instantiate();
+                    List<Node> nodes = scene.instantiate();
                     scene.unload();
                     Node gltfModel = new Node();
                     gltfModel.setName("GLTF Model");
@@ -92,8 +105,8 @@ public class Main {
                     rotor.addChild(gltfModel);
                     {
                         Transform transform = new Transform();
-                        transform.setScale(3);
-                        transform.setTranslation(new Vector3f(0, -1, 0));
+                        transform.setScale(0.3F);
+                        transform.setTranslation(new Vector3f(0, 0, 0));
                         gltfModel.setTransform(transform);
                     }
                 }

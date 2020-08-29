@@ -63,6 +63,7 @@ public class GLTFMaterial extends Material {
     }
 
     public void setNormalMap(Texture map) {
+        writeUniformData(ADDRESS_HAS_NORMAL_MAP, new int[] { map == null ? 0 : 1 });
         setTexture(BINDING_NORMAL, map);
     }
 
@@ -92,7 +93,8 @@ public class GLTFMaterial extends Material {
 
     // </editor-fold>
 
-    private static final int ADDRESS_COLOR = 0;
+    private static final int ADDRESS_HAS_NORMAL_MAP = 0;
+    private static final int ADDRESS_COLOR = nextStd140(ADDRESS_HAS_NORMAL_MAP, Integer.BYTES, Vector4f.BYTES);
     private static final int ADDRESS_EMISSIVE = nextStd140(ADDRESS_COLOR, Vector4f.BYTES, Vector3f.BYTES);
 
     private static final int BINDING_COLOR = 0;

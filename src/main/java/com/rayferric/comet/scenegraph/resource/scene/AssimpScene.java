@@ -2,6 +2,8 @@ package com.rayferric.comet.scenegraph.resource.scene;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.scenegraph.node.Model;
@@ -61,7 +63,7 @@ public abstract class AssimpScene extends Scene {
     }
 
     @Override
-    public Node[] instantiate() {
+    public List<Node> instantiate() {
         if(!isLoaded())
             throw new IllegalStateException("Attempted to instantiate unloaded scene.\n" + properties.path);
 
@@ -93,21 +95,14 @@ public abstract class AssimpScene extends Scene {
         if(aiRoot == null)
             throw new RuntimeException("Failed to fetch root node of the scene.\n" + properties.path);
 
-        int numChildren = aiRoot.mNumChildren();
-        Node[] nodes = new Node[numChildren];
-
-        PointerBuffer aiChildren = aiRoot.mChildren();
-        if(aiChildren != null) {
-            for(int i = 0; i < numChildren; i++) {
-                AINode aiChild = AINode.create(aiChildren.get(i));
-                nodes[i] = processAiNode(aiChild, meshes);
-            }
+        Node root = processAiNode(aiRoot, meshes);
+        List<Node> children = root.getChildren();
+        for(Node child : children) {
+            child.setParent(null);
+            child.initAll();
         }
 
-        for(Node node : nodes)
-            node.initAll();
-
-        return nodes;
+        return children;
     }
 
     protected AIScene aiScene;
@@ -122,13 +117,13 @@ public abstract class AssimpScene extends Scene {
 
         IntBuffer aiMeshes = aiNode.mMeshes();
         if(aiMeshes != null) {
+            Model model = new Model();
+
             int numMeshes = aiNode.mNumMeshes();
-            List<Mesh> modelMeshes = new ArrayList<>(numMeshes);
-
             for(int i = 0; i < numMeshes; i++)
-                modelMeshes.add(meshes[aiMeshes.get(i)]);
+                model.addMesh(meshes[aiMeshes.get(i)]);
 
-            node = new Model(modelMeshes.toArray(new Mesh[0]));
+            node = model;
         } else
             node = new Node();
 
@@ -142,6 +137,16 @@ public abstract class AssimpScene extends Scene {
         }
 
         node.setName(aiNode.mName().dataString());
+
+        AIMatrix4x4 matrix = aiNode.mTransformation();
+        Transform transform = new Transform(new Matrix4f(
+                matrix.a1(), matrix.b1(), matrix.c1(), matrix.d1(),
+                matrix.a2(), matrix.b2(), matrix.c2(), matrix.d2(),
+                matrix.a3(), matrix.b3(), matrix.c3(), matrix.d3(),
+                matrix.a4(), matrix.b4(), matrix.c4(), matrix.d4()
+        ));
+        node.setTransform(transform);
+
         return node;
     }
 

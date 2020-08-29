@@ -43,6 +43,10 @@ public class Vector3i {
         return String.format("Vector3i{x=%s, y=%s, z=%s}", x, y, z);
     }
 
+    public int[] toArray() {
+        return new int[] { x, y, z };
+    }
+
     public Vector3i add(Vector3i rhs) {
         return new Vector3i(x + rhs.x, y + rhs.y, z + rhs.z);
     }
@@ -65,10 +69,6 @@ public class Vector3i {
 
     public Vector3i div(int rhs) {
         return new Vector3i(x / rhs, y / rhs, z / rhs);
-    }
-
-    public int[] toArray() {
-        return new int[] { x, y, z };
     }
 
     public int getX() {

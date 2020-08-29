@@ -11,12 +11,6 @@ public class OrthographicCamera extends Camera {
     }
 
     @Override
-    public void indexAll(LayerIndex index) {
-        index.add(this);
-        super.indexAll(index);
-    }
-
-    @Override
     public Matrix4f getProjection(float ratio) {
         float size = getSize();
         return Matrix4f.ortho(ratio * size, size, getNear(), getFar());

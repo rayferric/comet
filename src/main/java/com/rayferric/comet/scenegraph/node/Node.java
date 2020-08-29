@@ -140,8 +140,8 @@ public class Node {
     public Transform getGlobalTransform() {
         synchronized(globalTransformValidLock) {
             if(!globalTransformValid) updateGlobalTransform();
+            return globalTransformCache;
         }
-        return globalTransformCache;
     }
 
     // <editor-fold desc="Internal API">
@@ -153,7 +153,6 @@ public class Node {
      * • May be called from any thread. (This implementation uses the main thread for full freedom of use.)
      */
     public void initAll() {
-        System.out.println("Initializing: " + getName());
         init();
         for(Node child : getChildren())
             child.initAll();

@@ -1,8 +1,6 @@
 package com.rayferric.comet.scenegraph.component.material;
 
-import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.math.Vector4f;
-import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
