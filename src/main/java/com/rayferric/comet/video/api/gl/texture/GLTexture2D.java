@@ -9,9 +9,8 @@ import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.opengl.EXTTextureCompressionS3TC.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
-import static org.lwjgl.opengl.EXTTextureCompressionS3TC.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.EXTTextureCompressionS3TC.*;
+import static org.lwjgl.opengl.GL43.*;
 import static org.lwjgl.opengl.EXTTextureFilterAnisotropic.*;
 
 public class GLTexture2D extends GLTexture {

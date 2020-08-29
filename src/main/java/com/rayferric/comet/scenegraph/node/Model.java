@@ -1,5 +1,6 @@
 package com.rayferric.comet.scenegraph.node;
 
+import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.video.VideoEngine;
 
@@ -14,9 +15,9 @@ public class Model extends Node {
     }
 
     @Override
-    public void drawAll(VideoEngine videoEngine) {
-        super.drawAll(videoEngine);
-        videoEngine.drawModel(this);
+    public void indexAll(LayerIndex index) {
+        index.add(this);
+        super.indexAll(index);
     }
 
     public List<Mesh> snapMeshes() {

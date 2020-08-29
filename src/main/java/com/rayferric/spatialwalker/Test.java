@@ -1,5 +1,9 @@
 package com.rayferric.spatialwalker;
 
+import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.math.Quaternion;
+import com.rayferric.comet.math.Transform;
+import com.rayferric.comet.math.Vector3f;
 import org.lwjgl.opengl.GL;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -10,67 +14,34 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 
 import static org.lwjgl.glfw.GLFW.*;
-import static org.lwjgl.opengl.ARBGLSPIRV.GL_SHADER_BINARY_FORMAT_SPIR_V_ARB;
-import static org.lwjgl.opengl.ARBGLSPIRV.glSpecializeShaderARB;
-import static org.lwjgl.opengl.GL11.glGetError;
-import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
-import static org.lwjgl.opengl.GL20.glCreateShader;
-import static org.lwjgl.opengl.GL41.glShaderBinary;
+import static org.lwjgl.opengl.ARBGLSPIRV.*;
+import static org.lwjgl.opengl.GL43.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class Test {
     public static void main(String[] args) {
-        glfwInit();
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-        long window = glfwCreateWindow(800, 600, "Test", NULL, NULL);
-        if(window == NULL)
-            throw new RuntimeException("Failed to create glfw window");
-        glfwMakeContextCurrent(window);
-        GL.createCapabilities();
+        Vector3f euler = new Vector3f(0, 5, 0);
 
-        ByteBuffer data = readBinaryFileToNativeBuffer("shader.vert.spv");
+        printMatrix(Matrix4f.transform(new Vector3f(1), euler, new Vector3f(1)));
 
-        int shader = glCreateShader(GL_VERTEX_SHADER);
-        System.out.println("Shader created. " + glGetError());
+        Transform transform = new Transform();
+        //transform.translate(1, 1, 1);
+        Quaternion q = Quaternion.fromEuler(euler);
+        Quaternion q2 = new Quaternion();
 
-        try(MemoryStack stack = MemoryStack.stackPush()) {
-            glShaderBinary(new int[] { shader }, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, data);
-            System.out.println("Binary loaded. " + glGetError());
-
-            glSpecializeShaderARB(shader, "main", stack.mallocInt(0), stack.mallocInt(0));
-
-            System.out.println("Binary specialized. " + glGetError());
+        for(int i = 0; i < 100; i++) {
+            System.out.println(q2.toEuler());
+            q2 = q2.mul(q);
         }
 
-        while(!glfwWindowShouldClose(window)) {
-            glfwPollEvents();
-            try {
-                Thread.sleep(10);
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
+        //printMatrix(transform.getMatrix());
     }
 
-    private static ByteBuffer readBinaryFileToNativeBuffer(String path) {
-        File file = new File(path);
-        ByteBuffer buffer = ByteBuffer.allocate((int)file.length());
-
-        try {
-            InputStream stream = new FileInputStream(file);
-            stream.read(buffer.array());
-            stream.close();
-        } catch(Exception e) {
-            throw new RuntimeException(String.format("Failed to read file.\n%s\n%s", path, e.getMessage()));
-        }
-
-        ByteBuffer nativeBuffer = MemoryUtil.memAlloc(buffer.capacity());
-        nativeBuffer.put(buffer);
-        nativeBuffer.flip();
-
-        return nativeBuffer;
+    private static void printMatrix(Matrix4f matrix) {
+        System.out.println(matrix.getX());
+        System.out.println(matrix.getY());
+        System.out.println(matrix.getZ());
+        System.out.println(matrix.getW());
+        System.out.println();
     }
 }

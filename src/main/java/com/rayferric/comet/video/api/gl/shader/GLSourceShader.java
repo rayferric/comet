@@ -4,8 +4,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL11.GL_FALSE;
-import static org.lwjgl.opengl.GL20.*;
+import static org.lwjgl.opengl.GL43.*;
 
 public class GLSourceShader extends GLShader {
     public GLSourceShader(String vertSrc, String fragSrc) {

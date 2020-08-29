@@ -91,9 +91,23 @@ public abstract class AssimpScene extends Scene {
 
         AINode aiRoot = aiScene.mRootNode();
         if(aiRoot == null)
-            throw new RuntimeException("Failed to fetch root node of a scene.\n" + properties.path);
+            throw new RuntimeException("Failed to fetch root node of the scene.\n" + properties.path);
 
-        return new Node[] { processAiNode(aiRoot, meshes) };
+        int numChildren = aiRoot.mNumChildren();
+        Node[] nodes = new Node[numChildren];
+
+        PointerBuffer aiChildren = aiRoot.mChildren();
+        if(aiChildren != null) {
+            for(int i = 0; i < numChildren; i++) {
+                AINode aiChild = AINode.create(aiChildren.get(i));
+                nodes[i] = processAiNode(aiChild, meshes);
+            }
+        }
+
+        for(Node node : nodes)
+            node.initAll();
+
+        return nodes;
     }
 
     protected AIScene aiScene;
@@ -138,29 +152,34 @@ public abstract class AssimpScene extends Scene {
         AIVector3D.Buffer aiNormals = aiMesh.mNormals();
         AIVector3D.Buffer aiTangents = aiMesh.mTangents();
 
-        if(aiTexCoords == null || aiNormals == null || aiTangents == null)
-            throw new RuntimeException("Failed to read scene meshes.\n" + properties.path);
-
         int numVertices = aiMesh.mNumVertices();
         float[] vertices = new float[numVertices * 11];
 
         for(int i = 0; i < numVertices; i++) {
             AIVector3D position = aiPositions.get(i);
-            AIVector3D texCoord = aiTexCoords.get(i);
-            AIVector3D normal = aiNormals.get(i);
-            AIVector3D tangent = aiTangents.get(i);
-
             vertices[i * 11] = position.x();
             vertices[i * 11 + 1] = position.y();
             vertices[i * 11 + 2] = position.z();
-            vertices[i * 11 + 3] = texCoord.x();
-            vertices[i * 11 + 4] = texCoord.y();
-            vertices[i * 11 + 5] = normal.x();
-            vertices[i * 11 + 6] = normal.y();
-            vertices[i * 11 + 7] = normal.z();
-            vertices[i * 11 + 8] = tangent.x();
-            vertices[i * 11 + 9] = tangent.y();
-            vertices[i * 11 + 10] = tangent.z();
+
+            if(aiTexCoords != null) {
+                AIVector3D texCoord = aiTexCoords.get(i);
+                vertices[i * 11 + 3] = texCoord.x();
+                vertices[i * 11 + 4] = texCoord.y();
+            }
+
+            if(aiNormals != null) {
+                AIVector3D normal = aiNormals.get(i);
+                vertices[i * 11 + 5] = normal.x();
+                vertices[i * 11 + 6] = normal.y();
+                vertices[i * 11 + 7] = normal.z();
+            }
+
+            if(aiTangents != null) {
+                AIVector3D tangent = aiTangents.get(i);
+                vertices[i * 11 + 8] = tangent.x();
+                vertices[i * 11 + 9] = tangent.y();
+                vertices[i * 11 + 10] = tangent.z();
+            }
         }
 
         // Read indices:

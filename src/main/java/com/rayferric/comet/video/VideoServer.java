@@ -30,10 +30,8 @@ public class VideoServer extends Server {
     public VideoServer(EngineInfo info) {
         VideoAPI api = info.getVideoApi();
 
-        if(api == VideoAPI.OPENGL) {
+        if(api == VideoAPI.OPENGL)
             window.set(new GLWindow(info.getWindowTitle(), info.getWindowSize()));
-            videoEngine = new GLVideoEngine(getWindow().getFramebufferSize());
-        }
 
         this.api.set(api);
         vSync.set(info.hasVSync());
@@ -92,10 +90,8 @@ public class VideoServer extends Server {
         resourceCreationPaused = false;
 
         Window oldWindow = getWindow();
-        if(api == VideoAPI.OPENGL) {
+        if(api == VideoAPI.OPENGL)
             window.set(new GLWindow(oldWindow));
-            videoEngine = new GLVideoEngine(videoEngine);
-        }
         oldWindow.destroy();
 
         for(Resource resource : videoResources)
@@ -156,7 +152,7 @@ public class VideoServer extends Server {
     @Override
     protected void onStart() {
         Window.makeCurrent(getWindow());
-        videoEngine.start();
+        videoEngine = new GLVideoEngine(getWindow().getFramebufferSize(), vSync.get());
     }
 
     @Override
@@ -165,13 +161,14 @@ public class VideoServer extends Server {
             videoEngineReadyNotifier.notifyAll();
         }
         videoEngine.update(getWindow().getFramebufferSize(), vSync.get());
+
         getWindow().swapBuffers();
         videoEngine.draw();
     }
 
     @Override
     protected void onStop() {
-        videoEngine.stop();
+        videoEngine.destroy();
         Window.makeCurrent(null);
     }
 
@@ -181,12 +178,12 @@ public class VideoServer extends Server {
     }
 
     private final AtomicReference<Window> window = new AtomicReference<>();
-    private VideoEngine videoEngine;
 
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicBoolean vSync = new AtomicBoolean();
     private final AtomicReference<TextureFilter> textureFilter = new AtomicReference<>();
     private final AtomicFloat textureAnisotropy = new AtomicFloat();
 
+    private VideoEngine videoEngine;
     private final Object videoEngineReadyNotifier = new Object();
 }

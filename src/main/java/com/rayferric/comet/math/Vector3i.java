@@ -67,27 +67,6 @@ public class Vector3i {
         return new Vector3i(x / rhs, y / rhs, z / rhs);
     }
 
-    public static int dot(Vector3i lhs, Vector3i rhs) {
-        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
-    }
-
-    public static Vector3i cross(Vector3i lhs, Vector3i rhs) {
-        return new Vector3i(
-                (lhs.y * rhs.z) - (rhs.y * lhs.z),
-                (lhs.z * rhs.x) - (rhs.z * lhs.x),
-                (lhs.x * rhs.y) - (rhs.x * lhs.y)
-        );
-    }
-
-    public int length() {
-        return (int)Math.sqrt(dot(this, this));
-    }
-
-    public Vector3i normalize() {
-        int length = length();
-        return length == 0 ? new Vector3i(0) : this.div(length);
-    }
-
     public int[] toArray() {
         return new int[] { x, y, z };
     }

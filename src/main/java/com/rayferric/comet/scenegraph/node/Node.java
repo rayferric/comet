@@ -1,6 +1,8 @@
 package com.rayferric.comet.scenegraph.node;
 
+import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.video.VideoEngine;
@@ -12,29 +14,20 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Node {
     public Node() {
         name.set("Node");
-
-        setTranslation(new Vector3f(0));
-        setRotation(new Vector3f(0));
-        setScale(new Vector3f(1));
-
-        updateLocalTransform();
+        setTransform(new Transform());
     }
 
     public Node(Node other) {
-        name.set(other.name + "~");
+        name.set(other.getName() + "~");
 
         setParent(other.getParent());
 
-        setTranslation(other.getTranslation());
-        setRotation(other.getRotation());
-        setScale(other.getScale());
-
-        updateLocalTransform();
+        setTransform(other.getTransform());
     }
 
     @Override
     public String toString() {
-        return String.format("Node{translation=%s, rotation=%s, scale=%s}", translation.get(), rotation.get(), scale.get());
+        return String.format("Node{translation=%s, rotation=%s, scale=%s}", getTransform().getTranslation(), getTransform().getRotation(), getTransform().getScale());
     }
 
     /**
@@ -54,21 +47,25 @@ public class Node {
     }
 
     public Node getParent() {
-        return parent.get();
+        synchronized(parentLock) {
+            return parent;
+        }
     }
 
     public void setParent(Node parent) {
-        Node prevParent = this.parent.get();
-        this.parent.set(parent);
-
-        if(prevParent != null) {
-            synchronized(prevParent.childrenLock) {
-                prevParent.children.remove(this);
+        synchronized(parentLock) {
+            if(this.parent != null) {
+                synchronized(this.parent.childrenLock) {
+                    this.parent.children.remove(this);
+                }
             }
-        }
-        if(parent != null) {
-            synchronized(parent.childrenLock) {
-                parent.children.add(this);
+
+            this.parent = parent;
+
+            if(this.parent != null) {
+                synchronized(this.parent.childrenLock) {
+                    this.parent.children.add(this);
+                }
             }
         }
         invalidateGlobalTransform();
@@ -114,97 +111,37 @@ public class Node {
     // <editor-fold desc="Translation, Rotation and Scale">
 
     /**
-     * Retrieves current translation of the node.<br>
-     * • Returns the original reference.<br>
+     * Retrieves current transform of the node.<br>
+     * • Returns the a reference to the original object.<br>
      * • The return value must not be ever modified, but may be read from.<br>
      * • May be called from any thread.
      *
-     * @return read-only translation
+     * @return read-only transform
      */
-    public Vector3f getTranslation() {
-        return translation.get();
+    public Transform getTransform() {
+        return transform.get();
     }
 
     /**
-     * Sets the current translation of the node.<br>
+     * Sets the current transform of the node.<br>
      * • Does not copy the parameter.<br>
-     * • The passed value must not be modified now, but may be read from.<br>
+     * • The passed value must not be modified from now on, but may be read from.<br>
      * • May be called from any thread.
      *
-     * @param translation read-only translation
+     * @param transform read-only transform
      */
-    public void setTranslation(Vector3f translation) {
-        this.translation.set(translation);
-        invalidateLocalTransform();
-        invalidateGlobalTransform();
-    }
-
-    /**
-     * Retrieves current rotation of the node.<br>
-     * • Returns the original reference.<br>
-     * • The return value must not be ever modified, but may be read from.<br>
-     * • May be called from any thread.
-     *
-     * @return read-only rotation
-     */
-    public Vector3f getRotation() {
-        return rotation.get();
-    }
-
-    /**
-     * Sets the current rotation of the node.<br>
-     * • Does not copy the parameter.<br>
-     * • The passed value must not be modified now, but may be read from.<br>
-     * • May be called from any thread.
-     *
-     * @param rotation read-only rotation
-     */
-    public void setRotation(Vector3f rotation) {
-        this.rotation.set(rotation);
-        invalidateLocalTransform();
-        invalidateGlobalTransform();
-    }
-
-    /**
-     * Retrieves current scale of the node.<br>
-     * • Returns the original reference.<br>
-     * • The return value must not be ever modified, but may be read from.<br>
-     * • May be called from any thread.
-     *
-     * @return read-only scale
-     */
-    public Vector3f getScale() {
-        return scale.get();
-    }
-
-    /**
-     * Sets the current scale of the node.<br>
-     * • Does not copy the parameter.<br>
-     * • The passed value must not be modified now, but may be read from.<br>
-     * • May be called from any thread.
-     *
-     * @param scale read-only scale
-     */
-    public void setScale(Vector3f scale) {
-        this.scale.set(scale);
-        invalidateLocalTransform();
+    public void setTransform(Transform transform) {
+        this.transform.set(transform);
         invalidateGlobalTransform();
     }
 
     // </editor-fold>
 
-    public Matrix4f getLocalTransform() {
-        synchronized(localTransformValidLock) {
-            if(!localTransformValid) updateLocalTransform();
-        }
-        return new Matrix4f(localTransformCache);
-    }
-
-    public Matrix4f getGlobalTransform() {
+    public Transform getGlobalTransform() {
         synchronized(globalTransformValidLock) {
             if(!globalTransformValid) updateGlobalTransform();
         }
-        return new Matrix4f(globalTransformCache);
+        return globalTransformCache;
     }
 
     // <editor-fold desc="Internal API">
@@ -216,6 +153,7 @@ public class Node {
      * • May be called from any thread. (This implementation uses the main thread for full freedom of use.)
      */
     public void initAll() {
+        System.out.println("Initializing: " + getName());
         init();
         for(Node child : getChildren())
             child.initAll();
@@ -225,7 +163,7 @@ public class Node {
      * Calls {@link #update(double)} method of this node and all its descendants.<br>
      * • Is internally used by the engine.<br>
      * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread. (This implementation uses the main thread for full freedom of use.)
+     * • May be called from any thread.
      *
      * @param delta delta time of the update frame
      */
@@ -236,17 +174,17 @@ public class Node {
     }
 
     /**
-     * Uses supplied video engine to draw this node and all its descendants.<br>
-     * The video engine itself calls this command to avoid the type check.<br>
-     * • Is internally used by the video engine.<br>
+     * Adds this node and all its descendants to corresponding lists in the supplied index.<br>
+     * The layer index' constructor calls this method itself.<br>
+     * • Is internally used by the {@link LayerIndex} constructor.<br>
      * • Must not be called by the user, this is an internal method.<br>
-     * • Must only be called from the video thread.
+     * • May be called from any thread, but only by the {@link LayerIndex} constructor.
      *
-     * @param videoEngine video engine that invoked this method
+     * @param index the {@link LayerIndex} to save this hierarchy to
      */
-    public void drawAll(VideoEngine videoEngine) {
+    public void indexAll(LayerIndex index) {
         for(Node child : getChildren())
-            child.drawAll(videoEngine);
+            child.indexAll(index);
     }
 
     // </editor-fold>
@@ -261,44 +199,32 @@ public class Node {
 
     private final AtomicReference<String> name = new AtomicReference<>();
 
-    private final AtomicReference<Node> parent = new AtomicReference<>(null);
+    private Node parent = null;
+    private final Object parentLock = new Object();
+
     private final List<Node> children = new ArrayList<>();
     private final Object childrenLock = new Object();
 
-    private final AtomicReference<Vector3f> translation = new AtomicReference<>();
-    private final AtomicReference<Vector3f> rotation = new AtomicReference<>();
-    private final AtomicReference<Vector3f> scale = new AtomicReference<>();
+    private final AtomicReference<Transform> transform = new AtomicReference<>();
 
-    private Matrix4f localTransformCache;
-    private boolean localTransformValid;
-    private final Object localTransformValidLock = new Object();
-
-    private Matrix4f globalTransformCache;
+    private Transform globalTransformCache;
     private boolean globalTransformValid;
     private final Object globalTransformValidLock = new Object();
 
-    private void updateLocalTransform() {
-        localTransformCache = Matrix4f.transform(translation.get(), rotation.get(), scale.get());
-        localTransformValid = true;
-    }
-
     private void updateGlobalTransform() {
-        Node parent = this.parent.get();
-        if(parent != null) globalTransformCache = parent.getGlobalTransform().mul(getLocalTransform());
-        else globalTransformCache = getLocalTransform();
+        Node parent = getParent();
+        if(parent != null) globalTransformCache = parent.getGlobalTransform().add(getTransform());
+        else globalTransformCache = getTransform();
         globalTransformValid = true;
-    }
-
-    private void invalidateLocalTransform() {
-        synchronized(localTransformValidLock) {
-            localTransformValid = false;
-        }
     }
 
     private void invalidateGlobalTransform() {
         synchronized(globalTransformValidLock) {
             globalTransformValid = false;
         }
-        for(Node node : children) node.invalidateGlobalTransform();
+        synchronized(childrenLock) {
+            for(Node child : children)
+                child.invalidateGlobalTransform();
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.rayferric.comet.scenegraph.node.camera;
 
+import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.util.AtomicFloat;
 
@@ -7,6 +8,12 @@ public class PerspectiveCamera extends Camera {
     public PerspectiveCamera(float near, float far, float fov) {
         super(near, far);
         this.fov = new AtomicFloat(fov);
+    }
+
+    @Override
+    public void indexAll(LayerIndex index) {
+        index.add(this);
+        super.indexAll(index);
     }
 
     @Override

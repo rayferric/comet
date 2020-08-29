@@ -20,7 +20,7 @@ public class GLWindow extends Window {
 
     @Override
     protected String getCreationFailMessage() {
-        return "Failed to create window instance.\nOpenGL 4.5 is required.";
+        return "Failed to create window instance.\nOpenGL 4.3 is required.";
     }
 
     @Override
@@ -32,7 +32,7 @@ public class GLWindow extends Window {
     private void setUpGl() {
         glfwDefaultWindowHints();
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     }
 

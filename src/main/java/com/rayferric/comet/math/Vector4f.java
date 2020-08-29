@@ -20,6 +20,13 @@ public class Vector4f {
         this.w = w;
     }
 
+    public Vector4f(double x, double y, double z, double w) {
+        this.x = (float)x;
+        this.y = (float)y;
+        this.z = (float)z;
+        this.w = (float)w;
+    }
+
     public Vector4f(Vector4f other) {
         x = other.x;
         y = other.y;
@@ -73,12 +80,12 @@ public class Vector4f {
         return new Vector4f(x / rhs, y / rhs, z / rhs, w / rhs);
     }
 
-    public static float dot(Vector4f lhs, Vector4f rhs) {
-        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z + lhs.w * rhs.w;
+    public float dot(Vector4f rhs) {
+        return x * rhs.x + y * rhs.y + z * rhs.z + w * rhs.w;
     }
 
     public float length() {
-        return (float)Math.sqrt(dot(this, this));
+        return Mathf.sqrt(dot(this));
     }
 
     public Vector4f normalize() {

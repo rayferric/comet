@@ -1,5 +1,6 @@
 package com.rayferric.comet.scenegraph.node.camera;
 
+import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.util.AtomicFloat;
 
@@ -7,6 +8,12 @@ public class OrthographicCamera extends Camera {
     public OrthographicCamera(float near, float far, float size) {
         super(near, far);
         this.size = new AtomicFloat(size);
+    }
+
+    @Override
+    public void indexAll(LayerIndex index) {
+        index.add(this);
+        super.indexAll(index);
     }
 
     @Override

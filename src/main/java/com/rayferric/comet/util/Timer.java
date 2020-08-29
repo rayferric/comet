@@ -27,10 +27,10 @@ public class Timer {
     }
 
     public double getElapsed() {
-        return (double)((running ? System.nanoTime() : endTime) - startTime) / FREQUENCY;
+        return ((running ? System.nanoTime() : endTime) - startTime) * INVERSE_FREQUENCY;
     }
 
-    private static final long FREQUENCY = (long)1e+9;
+    private static final double INVERSE_FREQUENCY = 1e-9;
 
     private boolean running;
     private long startTime;

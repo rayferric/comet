@@ -31,14 +31,25 @@ public class Material implements Component {
     }
 
     /**
-     * Creates copy of the current state of the uniform data allocated on a stack
-     * and returns it as a native {@link FloatBuffer}.
+     * Returns whether this material was modified from after last call to this method.<br>
+     * • Is internally used by the video engine to determine if the uniform buffer needs an update.<br>
+     * • Must not be called by the user, this is an internal method.<br>
      *
-     * @param stack native memory stack
-     *
-     * @return native float buffer
+     * @return true if modified
      */
-    public FloatBuffer nativeUniformData(MemoryStack stack) {
+    public boolean needsUpdate() {
+        return modified.compareAndSet(true, false);
+    }
+
+    /**
+     * Creates a snapshot of the current state of the uniform data
+     * and returns it as a {@link FloatBuffer} allocated on the stack.
+     *
+     * @param stack memory stack
+     *
+     * @return float buffer
+     */
+    public FloatBuffer snapUniformData(MemoryStack stack) {
         synchronized(uniformData) {
             uniformData.position(0);
             ByteBuffer nativeData = stack.malloc(uniformData.capacity());
@@ -156,6 +167,7 @@ public class Material implements Component {
             uniformData.position(address);
             uniformData.asIntBuffer().put(values);
         }
+        modified.set(true);
     }
 
     protected void writeUniformData(int address, float[] values) {
@@ -163,6 +175,7 @@ public class Material implements Component {
             uniformData.position(address);
             uniformData.asFloatBuffer().put(values);
         }
+        modified.set(true);
     }
 
     protected Texture getTexture(int binding) {
@@ -180,6 +193,7 @@ public class Material implements Component {
     private AtomicReference<Shader> shader = new AtomicReference<>();
     private final UniformBuffer uniformBuffer;
     private final ByteBuffer uniformData;
+    private final AtomicBoolean modified = new AtomicBoolean(true);
     private final HashMap<Integer, Texture> textures = new HashMap<>();
     private final AtomicBoolean culling = new AtomicBoolean(true);
 }

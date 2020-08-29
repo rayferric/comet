@@ -1,16 +1,11 @@
 package com.rayferric.comet.video.api.gl.shader;
 
-import com.rayferric.comet.math.Matrix4f;
-import com.rayferric.comet.math.Vector3f;
-import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.server.ServerResource;
 import org.lwjgl.system.MemoryStack;
 
-import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL41.glProgramUniform4f;
-import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.GL43.*;
 
 public abstract class GLShader implements ServerResource {
     @Override

@@ -3,6 +3,7 @@ package com.rayferric.spatialwalker;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.EngineInfo;
 import com.rayferric.comet.engine.Layer;
+import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.math.Vector3f;
@@ -43,48 +44,59 @@ public class Main {
             engine.start(info);
 
             Scene scene = new GLTFScene("data\\local\\flight-helmet\\FlightHelmet.gltf");
-            while(!scene.isLoaded()) {
-                try {
-                    Thread.sleep(100);
-                } catch(InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            Node[] nodes = scene.instantiate();
-
-            System.out.println("Instantiated.");
 
             Geometry geometry = new PlaneGeometry(new Vector2f(1), false);
 
             Texture imageTexture = new ImageTexture(false, "data/textures/texture.png", true);
 
             BasicMaterial material = new BasicMaterial();
-            material.setColor(new Vector3f(1));
-            material.setColorTex(imageTexture);
+            material.setColorMap(imageTexture);
 
             Layer mainLayer = engine.getLayerManager().getLayers()[0];
 
             Rotor rotor = new Rotor();
             mainLayer.getRoot().addChild(rotor);
-            rotor.addChild(nodes[0]);
-            nodes[0].setScale(new Vector3f(3F));
-            nodes[0].setTranslation(new Vector3f(0, -1, 0));
 
             Model model = new Model(new Mesh[] { new Mesh(geometry, material) });
             model.setName("Model");
-            //rotor.addChild(model);
+            rotor.addChild(model);
 
             Camera camera = new PerspectiveCamera(0.1F, 1000, 90);
-            camera.setTranslation(new Vector3f(0, 0, 2));
+            {
+                Transform transform = new Transform();
+                transform.setTranslation(new Vector3f(0, 0, 2));
+                camera.setTransform(transform);
+            }
             mainLayer.setCamera(camera);
 
-            engine.getVideoServer().waitForVideoEngine();
+            mainLayer.getRoot().initAll();
 
             // engine.getVideoServer().getWindow().setFullscreen(true);
+
+            var ref = new Object() {
+                public boolean sceneInstantiated = false;
+            };
 
             engine.run((delta) -> {
                 if(engine.getVideoServer().getWindow().shouldClose())
                     engine.exit();
+
+                if(scene.isLoaded() && !ref.sceneInstantiated) {
+                    ref.sceneInstantiated = true;
+                    Node[] nodes = scene.instantiate();
+                    scene.unload();
+                    Node gltfModel = new Node();
+                    gltfModel.setName("GLTF Model");
+                    for(Node node : nodes)
+                        gltfModel.addChild(node);
+                    rotor.addChild(gltfModel);
+                    {
+                        Transform transform = new Transform();
+                        transform.setScale(3);
+                        transform.setTranslation(new Vector3f(0, -1, 0));
+                        gltfModel.setTransform(transform);
+                    }
+                }
 
                 try {
                     Thread.sleep(10);

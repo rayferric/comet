@@ -18,6 +18,11 @@ public class Vector2f {
         this.y = y;
     }
 
+    public Vector2f(double x, double y) {
+        this.x = (float)x;
+        this.y = (float)y;
+    }
+
     public Vector2f(Vector2f other) {
         x = other.x;
         y = other.y;
@@ -69,12 +74,12 @@ public class Vector2f {
         return new Vector2f(x / rhs, y / rhs);
     }
 
-    public static float dot(Vector2f lhs, Vector2f rhs) {
-        return lhs.x * rhs.x + lhs.y * rhs.y;
+    public float dot(Vector2f rhs) {
+        return x * rhs.x + y * rhs.y;
     }
 
     public float length() {
-        return (float)Math.sqrt(dot(this, this));
+        return Mathf.sqrt(dot(this));
     }
 
     public Vector2f normalize() {

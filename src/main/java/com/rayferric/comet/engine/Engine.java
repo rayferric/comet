@@ -74,9 +74,13 @@ public class Engine {
         // Create managers:
         resourceManager.set(new ResourceManager());
         layerManager.set(new LayerManager(info.getLayerCount()));
+        profiler.set(new Profiler());
 
         // Start the servers:
         getVideoServer().start();
+
+        // Wait for them to initialize:
+        getVideoServer().waitForVideoEngine();
     }
 
     /**
@@ -147,9 +151,6 @@ public class Engine {
         Timer timer = new Timer();
         timer.start();
 
-        for(Layer layer : getLayerManager().getLayers())
-            layer.getRoot().initAll();
-
         shouldExit.set(false);
         while(!shouldExit.get()) {
             process();
@@ -157,8 +158,10 @@ public class Engine {
             double delta = timer.getElapsed();
             timer.reset();
 
-            for(Layer layer : getLayerManager().getLayers())
+            for(Layer layer : getLayerManager().getLayers()) {
                 layer.getRoot().updateAll(delta);
+                layer.genIndex();
+            }
 
             if(iteration != null) iteration.accept(delta);
         }
@@ -228,6 +231,16 @@ public class Engine {
         return layerManager.get();
     }
 
+    /**
+     * Returns the profiler.<br>
+     * • May be called from any thread.
+     *
+     * @return profiler
+     */
+    public Profiler getProfiler() {
+        return profiler.get();
+    }
+
     // </editor-fold>
 
     private static final Engine INSTANCE = new Engine();
@@ -245,4 +258,5 @@ public class Engine {
     // Managers
     private final AtomicReference<ResourceManager> resourceManager = new AtomicReference<>(null);
     private final AtomicReference<LayerManager> layerManager = new AtomicReference<>(null);
+    private final AtomicReference<Profiler> profiler = new AtomicReference<>(null);
 }

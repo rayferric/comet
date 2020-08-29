@@ -5,11 +5,8 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.ARBGLSPIRV.GL_SHADER_BINARY_FORMAT_SPIR_V_ARB;
-import static org.lwjgl.opengl.ARBGLSPIRV.glSpecializeShaderARB;
-import static org.lwjgl.opengl.GL11.GL_FALSE;
-import static org.lwjgl.opengl.GL20.*;
-import static org.lwjgl.opengl.GL41.glShaderBinary;
+import static org.lwjgl.opengl.ARBGLSPIRV.*;
+import static org.lwjgl.opengl.GL43.*;
 
 public class GLBinaryShader extends GLShader {
     public GLBinaryShader(ByteBuffer vertBin, ByteBuffer fragBin) {

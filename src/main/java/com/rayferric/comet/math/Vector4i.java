@@ -69,19 +69,6 @@ public class Vector4i {
         return new Vector4i(x / rhs, y / rhs, z / rhs, w / rhs);
     }
 
-    public static int dot(Vector4i lhs, Vector4i rhs) {
-        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z + lhs.w * rhs.w;
-    }
-
-    public int length() {
-        return (int)Math.sqrt(dot(this, this));
-    }
-
-    public Vector4i normalize() {
-        int length = length();
-        return length == 0 ? new Vector4i(0) : this.div(length);
-    }
-
     public int[] toArray() {
         return new int[] { x, y, z, w };
     }

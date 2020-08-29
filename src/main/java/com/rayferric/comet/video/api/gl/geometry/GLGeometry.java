@@ -8,7 +8,7 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.GL43.*;
 
 public class GLGeometry implements ServerResource {
     public GLGeometry(GeometryData data) {

@@ -30,15 +30,9 @@ public abstract class VideoEngine {
 
     // <editor-fold desc="Internal Server API">
 
-    public void start() {
-        onStart();
-        defaultTexture2D = createDefaultTexture2D();
-        onResize();
-        onVSyncUpdate();
-    }
-
-    public void stop() {
+    public void destroy() {
         defaultTexture2D.destroy();
+
         onStop();
     }
 
@@ -61,8 +55,6 @@ public abstract class VideoEngine {
 
     // <editor-fold desc="Internal API">
 
-    public abstract void drawModel(Model model);
-
     public abstract ServerResource createBinaryShader(ByteBuffer vertBin, ByteBuffer fragBin);
 
     public abstract ServerResource createGeometry(GeometryData data);
@@ -75,13 +67,15 @@ public abstract class VideoEngine {
 
     // </editor-fold>
 
-    protected VideoEngine(Vector2i size) {
+    protected VideoEngine(Vector2i size, boolean vSync) {
         this.size = size;
-    }
+        this.vSync = vSync;
 
-    @SuppressWarnings("CopyConstructorMissesField")
-    protected VideoEngine(VideoEngine other) {
-        this.size = other.size;
+        onStart();
+        onResize();
+        onVSyncUpdate();
+
+        defaultTexture2D = createDefaultTexture2D();
     }
 
     protected Vector2i getSize() {
@@ -138,5 +132,6 @@ public abstract class VideoEngine {
 
     private Vector2i size;
     private boolean vSync = true;
+
     private ServerResource defaultTexture2D;
 }

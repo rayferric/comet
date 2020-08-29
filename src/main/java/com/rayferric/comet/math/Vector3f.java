@@ -19,6 +19,12 @@ public class Vector3f {
         this.z = z;
     }
 
+    public Vector3f(double x, double y, double z) {
+        this.x = (float)x;
+        this.y = (float)y;
+        this.z = (float)z;
+    }
+
     public Vector3f(Vector3f other) {
         x = other.x;
         y = other.y;
@@ -71,20 +77,20 @@ public class Vector3f {
         return new Vector3f(x / rhs, y / rhs, z / rhs);
     }
 
-    public static float dot(Vector3f lhs, Vector3f rhs) {
-        return lhs.x * rhs.x + lhs.y * rhs.y + lhs.z * rhs.z;
+    public float dot(Vector3f rhs) {
+        return x * rhs.x + y * rhs.y + z * rhs.z;
     }
 
-    public static Vector3f cross(Vector3f lhs, Vector3f rhs) {
+    public Vector3f cross(Vector3f rhs) {
         return new Vector3f(
-                (lhs.y * rhs.z) - (rhs.y * lhs.z),
-                (lhs.z * rhs.x) - (rhs.z * lhs.x),
-                (lhs.x * rhs.y) - (rhs.x * lhs.y)
+                (y * rhs.z) - (rhs.y * z),
+                (z * rhs.x) - (rhs.z * x),
+                (x * rhs.y) - (rhs.x * y)
         );
     }
 
     public float length() {
-        return (float)Math.sqrt(dot(this, this));
+        return Mathf.sqrt(dot(this));
     }
 
     public Vector3f normalize() {

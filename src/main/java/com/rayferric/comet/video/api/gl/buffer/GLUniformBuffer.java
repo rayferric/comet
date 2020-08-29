@@ -1,13 +1,10 @@
 package com.rayferric.comet.video.api.gl.buffer;
 
-import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.server.ServerResource;
-import org.lwjgl.system.MemoryStack;
 
-import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.opengl.GL45.*;
+import static org.lwjgl.opengl.GL43.*;
 
 public class GLUniformBuffer implements ServerResource {
     public GLUniformBuffer(int size) {
@@ -21,14 +18,21 @@ public class GLUniformBuffer implements ServerResource {
     }
 
     public void bind(int binding) {
-        glBindBuffer(GL_UNIFORM_BUFFER, handle);
         glBindBufferBase(GL_UNIFORM_BUFFER, binding, handle);
     }
 
-    public void nativeUpdate(FloatBuffer nativeData) {
+    public void update(FloatBuffer data) {
         glBindBuffer(GL_UNIFORM_BUFFER, handle);
-        glBufferSubData(GL_UNIFORM_BUFFER, 0, nativeData);
+        glBufferSubData(GL_UNIFORM_BUFFER, 0, data);
+    }
+
+    public boolean isJustCreated() {
+        if(justCreated) {
+            justCreated = false;
+            return true;
+        } else return false;
     }
 
     private final int handle;
+    private boolean justCreated = true;
 }

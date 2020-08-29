@@ -1,6 +1,7 @@
 package com.rayferric.comet.scenegraph.resource.scene;
 
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.scenegraph.component.material.GLTFMaterial;
 import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
@@ -34,7 +35,7 @@ public class GLTFScene extends AssimpScene {
 
         AIColor4D aiColor = AIColor4D.create();
         aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, aiColor);
-        material.setAlbedo(new Vector3f(aiColor.r(), aiColor.g(), aiColor.b()));
+        material.setColor(new Vector4f(aiColor.r(), aiColor.g(), aiColor.b(), aiColor.a()));
         aiColor.clear();
         aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_EMISSIVE, aiTextureType_NONE, 0, aiColor);
         material.setEmissive(new Vector3f(aiColor.r(), aiColor.g(), aiColor.b()));
@@ -44,33 +45,31 @@ public class GLTFScene extends AssimpScene {
         Assimp.aiGetMaterialTexture(aiMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, 0, aiString, (IntBuffer)null, null, null, null, null, null);
         String fileName = aiString.dataString();
         if(!fileName.isEmpty())
-            material.setAlbedoTex(getCachedTexture(sceneDir + fileName));
+            material.setColorMap(getCachedTexture(sceneDir + fileName));
 
         aiString.clear();
         Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_NORMALS, 0, aiString, (IntBuffer)null, null, null, null, null, null);
         fileName = aiString.dataString();
         if(!fileName.isEmpty())
-            material.setNormalTex(getCachedTexture(sceneDir + fileName));
+            material.setNormalMap(getCachedTexture(sceneDir + fileName));
 
         aiString.clear();
         Assimp.aiGetMaterialTexture(aiMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLICROUGHNESS_TEXTURE, 0, aiString, (IntBuffer)null, null, null, null, null, null);
         fileName = aiString.dataString();
         if(!fileName.isEmpty())
-            material.setMetallicRoughnessTex(getCachedTexture(sceneDir + fileName));
+            material.setMetallicRoughnessMap(getCachedTexture(sceneDir + fileName));
 
         aiString.clear();
         Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_LIGHTMAP, 0, aiString, (IntBuffer)null, null, null, null, null, null);
         fileName = aiString.dataString();
         if(!fileName.isEmpty())
-            material.setOcclusionTex(getCachedTexture(sceneDir + fileName));
+            material.setOcclusionMap(getCachedTexture(sceneDir + fileName));
 
         aiString.clear();
         Assimp.aiGetMaterialTexture(aiMaterial, aiTextureType_EMISSIVE, 0, aiString, (IntBuffer)null, null, null, null, null, null);
         fileName = aiString.dataString();
-        if(!fileName.isEmpty()) {
-            System.out.println(fileName);
-            material.setEmissiveTex(getCachedTexture(sceneDir + fileName));
-        }
+        if(!fileName.isEmpty())
+            material.setEmissiveMap(getCachedTexture(sceneDir + fileName));
 
         return material;
     }

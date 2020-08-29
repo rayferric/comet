@@ -54,47 +54,18 @@ public class Matrix4f {
         return String.format("Matrix4f{x=%s, y=%s, z=%s, w=%s}", x, y, z, w);
     }
 
-    public float[] toArray() {
-        float[] array = new float[4 * 4];
-
-        System.arraycopy(x.toArray(), 0, array, 0, 4);
-        System.arraycopy(y.toArray(), 0, array, 4, 4);
-        System.arraycopy(z.toArray(), 0, array, 8, 4);
-        System.arraycopy(w.toArray(), 0, array, 12, 4);
-
-        return array;
-    }
-
-    public Matrix4f mul(Matrix4f rhs) {
-        return new Matrix4f(
-                x.mul(rhs.x.getX()).add(y.mul(rhs.x.getY())).add(z.mul(rhs.x.getZ())).add(w.mul(rhs.x.getW())),
-                x.mul(rhs.y.getX()).add(y.mul(rhs.y.getY())).add(z.mul(rhs.y.getZ())).add(w.mul(rhs.y.getW())),
-                x.mul(rhs.z.getX()).add(y.mul(rhs.z.getY())).add(z.mul(rhs.z.getZ())).add(w.mul(rhs.z.getW())),
-                x.mul(rhs.w.getX()).add(y.mul(rhs.w.getY())).add(z.mul(rhs.w.getZ())).add(w.mul(rhs.w.getW()))
-        );
-    }
-
-    public Vector4f mul(Vector4f rhs) {
-        return new Vector4f(
-                x.getX() * rhs.getX() + y.getX() * rhs.getY() + z.getX() * rhs.getZ() + w.getX() * rhs.getW(),
-                x.getY() * rhs.getX() + y.getY() * rhs.getY() + z.getY() * rhs.getZ() + w.getY() * rhs.getW(),
-                x.getZ() * rhs.getX() + y.getZ() * rhs.getY() + z.getZ() * rhs.getZ() + w.getZ() * rhs.getW(),
-                x.getW() * rhs.getX() + y.getW() * rhs.getY() + z.getW() * rhs.getZ() + w.getW() * rhs.getW()
-        );
-    }
-
     public static Matrix4f transform(Vector3f translation, Vector3f rotation, Vector3f scale) {
-        float rx = (float)Math.toRadians(rotation.getX());
-        float ry = (float)Math.toRadians(rotation.getY());
-        float rz = (float)Math.toRadians(rotation.getZ());
+        float pitch = rotation.getX();
+        float yaw = rotation.getY();
+        float roll = rotation.getZ();
 
-        float sx = (float)Math.sin(rx);
-        float sy = (float)Math.sin(ry);
-        float sz = (float)Math.sin(rz);
+        float sx = Mathf.sin(pitch);
+        float sy = Mathf.sin(yaw);
+        float sz = Mathf.sin(roll);
 
-        float cx = (float)Math.cos(rx);
-        float cy = (float)Math.cos(ry);
-        float cz = (float)Math.cos(rz);
+        float cx = Mathf.cos(pitch);
+        float cy = Mathf.cos(yaw);
+        float cz = Mathf.cos(roll);
 
 
         return new Matrix4f(
@@ -126,7 +97,7 @@ public class Matrix4f {
     }
 
     public static Matrix4f perspective(float fov, float ratio, float near, float far) {
-        float ht = (float)Math.tan(Math.toRadians(fov) / 2);
+        float ht = Mathf.tan(fov * 0.5F);
 
         Matrix4f result = new Matrix4f(0);
 
@@ -148,6 +119,35 @@ public class Matrix4f {
         result.w.setZ((near + far) / (near - far));
 
         return result;
+    }
+
+    public float[] toArray() {
+        float[] array = new float[4 * 4];
+
+        System.arraycopy(x.toArray(), 0, array, 0, 4);
+        System.arraycopy(y.toArray(), 0, array, 4, 4);
+        System.arraycopy(z.toArray(), 0, array, 8, 4);
+        System.arraycopy(w.toArray(), 0, array, 12, 4);
+
+        return array;
+    }
+
+    public Matrix4f mul(Matrix4f rhs) {
+        return new Matrix4f(
+                x.mul(rhs.x.getX()).add(y.mul(rhs.x.getY())).add(z.mul(rhs.x.getZ())).add(w.mul(rhs.x.getW())),
+                x.mul(rhs.y.getX()).add(y.mul(rhs.y.getY())).add(z.mul(rhs.y.getZ())).add(w.mul(rhs.y.getW())),
+                x.mul(rhs.z.getX()).add(y.mul(rhs.z.getY())).add(z.mul(rhs.z.getZ())).add(w.mul(rhs.z.getW())),
+                x.mul(rhs.w.getX()).add(y.mul(rhs.w.getY())).add(z.mul(rhs.w.getZ())).add(w.mul(rhs.w.getW()))
+        );
+    }
+
+    public Vector4f mul(Vector4f rhs) {
+        return new Vector4f(
+                x.getX() * rhs.getX() + y.getX() * rhs.getY() + z.getX() * rhs.getZ() + w.getX() * rhs.getW(),
+                x.getY() * rhs.getX() + y.getY() * rhs.getY() + z.getY() * rhs.getZ() + w.getY() * rhs.getW(),
+                x.getZ() * rhs.getX() + y.getZ() * rhs.getY() + z.getZ() * rhs.getZ() + w.getZ() * rhs.getW(),
+                x.getW() * rhs.getX() + y.getW() * rhs.getY() + z.getW() * rhs.getZ() + w.getW() * rhs.getW()
+        );
     }
 
     public Matrix4f inverse() {
@@ -227,6 +227,6 @@ public class Matrix4f {
         this.w = w;
     }
 
-    // Those are columns
+    // Those are columns:
     private Vector4f x, y, z, w;
 }
