@@ -1,12 +1,10 @@
 package com.rayferric.comet.engine;
 
-import com.rayferric.comet.scenegraph.node.Label;
-import com.rayferric.comet.scenegraph.node.Model;
+import com.rayferric.comet.scenegraph.node.model.Label;
+import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
-import com.rayferric.comet.scenegraph.node.Sprite;
+import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
-import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
-import com.rayferric.comet.scenegraph.node.camera.PerspectiveCamera;
 import com.rayferric.comet.scenegraph.node.light.DirectionalLight;
 import com.rayferric.comet.scenegraph.node.light.PointLight;
 import com.rayferric.comet.scenegraph.node.light.SpotLight;
@@ -45,14 +43,6 @@ public class LayerIndex {
 
     public List<SpotLight> getSpotLights() {
         return spotLights;
-    }
-
-    public List<Sprite> getSprites() {
-        return sprites;
-    }
-
-    public List<Label> getLabels() {
-        return labels;
     }
 
     /**
@@ -115,35 +105,9 @@ public class LayerIndex {
         spotLights.add(light);
     }
 
-    /**
-     * Adds a {@link Sprite} to the index.<br>
-     * • Is implicitly called by the constructor when traversing the node tree.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     *
-     * @param sprite the {@link Sprite} to be indexed
-     */
-    public void add(Sprite sprite) {
-        sprites.add(sprite);
-    }
-
-    /**
-     * Adds a {@link Label} to the index.<br>
-     * • Is implicitly called by the constructor when traversing the node tree.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     *
-     * @param label the {@link Label} to be indexed
-     */
-    public void add(Label label) {
-        labels.add(label);
-    }
-
     private final List<Model> models = new ArrayList<>();
     private final List<Camera> cameras = new ArrayList<>();
     private final List<DirectionalLight> directionalLights = new ArrayList<>();
     private final List<PointLight> pointLights = new ArrayList<>();
     private final List<SpotLight> spotLights = new ArrayList<>();
-    private final List<Sprite> sprites = new ArrayList<>();
-    private final List<Label> labels = new ArrayList<>();
 }

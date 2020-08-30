@@ -13,6 +13,7 @@ import com.rayferric.comet.video.recipe.VideoRecipe;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.api.gl.GLVideoEngine;
 import com.rayferric.comet.video.api.gl.GLWindow;
+import com.rayferric.comet.video.util.VideoInfo;
 import com.rayferric.comet.video.util.texture.TextureFilter;
 
 import java.util.ArrayList;
@@ -51,6 +52,11 @@ public class VideoServer extends Server {
 
     public Window getWindow() {
         return window.get();
+    }
+
+    // Returns null if queried before start.
+    public VideoInfo getVideoInfo() {
+        return videoInfo.get();
     }
 
     /**
@@ -157,6 +163,7 @@ public class VideoServer extends Server {
 
     @Override
     protected void onLoop() {
+        videoInfo.set(videoEngine.getInfo());
         synchronized(videoEngineReadyNotifier) {
             videoEngineReadyNotifier.notifyAll();
         }
@@ -179,6 +186,7 @@ public class VideoServer extends Server {
 
     private final AtomicReference<Window> window = new AtomicReference<>();
 
+    private final AtomicReference<VideoInfo> videoInfo = new AtomicReference<>(null);
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicBoolean vSync = new AtomicBoolean();
     private final AtomicReference<TextureFilter> textureFilter = new AtomicReference<>();

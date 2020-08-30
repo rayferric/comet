@@ -1,9 +1,8 @@
-package com.rayferric.comet.scenegraph.node;
+package com.rayferric.comet.scenegraph.node.model;
 
-import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Vector4f;
+import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.scenegraph.component.material.FontMaterial;
-import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.resource.font.Font;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.TextGeometry;
@@ -14,15 +13,15 @@ import com.rayferric.comet.util.AtomicFloat;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Label extends Node {
+public class Label extends Model {
     public Label() {
         setName("Label");
+
+        addMesh(new Mesh(null, new FontMaterial()));
     }
 
-    @Override
-    public void indexAll(LayerIndex index) {
-        index.add(this);
-        super.indexAll(index);
+    public FontMaterial getMaterial() {
+        return (FontMaterial)getMesh(0).getMaterial();
     }
 
     public String getText() {
@@ -31,7 +30,7 @@ public class Label extends Node {
 
     public void setText(String text) {
         this.text.set(text);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public Font getFont() {
@@ -40,39 +39,39 @@ public class Label extends Node {
 
     public void setFont(Font font) {
         this.font.set(font);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public Vector4f getColor() {
-        return material.getColor();
+        return getMaterial().getColor();
     }
 
     public void setColor(Vector4f color) {
-        material.setColor(color);
+        getMaterial().setColor(color);
     }
 
     public float getCutoff() {
-        return material.getCutoff();
+        return getMaterial().getCutoff();
     }
 
     public void setCutoff(float cutoff) {
-        material.setCutoff(cutoff);
+        getMaterial().setCutoff(cutoff);
     }
 
     public float getSoftness() {
-        return material.getSoftness();
+        return getMaterial().getSoftness();
     }
 
     public void setSoftness(float softness) {
-        material.setSoftness(softness);
+        getMaterial().setSoftness(softness);
     }
 
     public boolean getShowBounds() {
-        return material.getShowBounds();
+        return getMaterial().getShowBounds();
     }
 
     public void setShowBounds(boolean show) {
-        material.setShowBounds(show);
+        getMaterial().setShowBounds(show);
     }
 
     public HorizontalAlignment getHAlign() {
@@ -81,7 +80,7 @@ public class Label extends Node {
 
     public void setHAlign(HorizontalAlignment alignment) {
         hAlign.set(alignment);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public VerticalAlignment getVAlign() {
@@ -90,7 +89,7 @@ public class Label extends Node {
 
     public void setVAlign(VerticalAlignment alignment) {
         vAlign.set(alignment);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public boolean getAutoWrap() {
@@ -99,7 +98,7 @@ public class Label extends Node {
 
     public void setAutoWrap(boolean enabled) {
         autoWrap.set(enabled);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public float getWrapSize() {
@@ -108,7 +107,7 @@ public class Label extends Node {
 
     public void setWrapSize(float size) {
         wrapSize.set(size);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public float getCharSpacing() {
@@ -117,7 +116,7 @@ public class Label extends Node {
 
     public void setCharSpacing(float spacing) {
         charSpacing.set(spacing);
-        dispatchUpdate();
+        requireUpdate();
     }
 
     public float getLineSpacing() {
@@ -126,21 +125,37 @@ public class Label extends Node {
 
     public void setLineSpacing(float spacing) {
         lineSpacing.set(spacing);
-        dispatchUpdate();
+        requireUpdate();
     }
 
-    public Material getMaterial() {
-        return material;
+    @Override
+    protected synchronized void update(double delta) {
+        super.update(delta);
+
+        if(nextGeometry != null) {
+            if(!nextGeometry.isLoaded() || !nextGeometry.isServerResourceReady()) return;
+
+            Mesh mesh = getMesh(0);
+            Geometry oldGeometry = mesh.getGeometry();
+            mesh.setGeometry(nextGeometry);
+            nextGeometry = null;
+            if(oldGeometry != null) oldGeometry.unload();
+        }
+
+        if(!needsUpdate) return;
+
+        Font font = getFont();
+        if(font == null || !font.isLoaded()) return;
+
+        getMaterial().setAtlas(font.getAtlas());
+        nextGeometry = new TextGeometry(getText(), font.getMetadata(), getHAlign(), getVAlign(), getAutoWrap(), getWrapSize(),
+                getCharSpacing(), getLineSpacing());
+
+        needsUpdate = false;
     }
 
-    public Geometry getGeometry() {
-        processUpdates();
-        return frontGeometry;
-    }
-
-    private final FontMaterial material = new FontMaterial();
-    private Geometry frontGeometry = null, backGeometry = null;
     private boolean needsUpdate = false;
+    private Geometry nextGeometry = null;
     private final AtomicReference<String> text = new AtomicReference<>("");
     private final AtomicReference<Font> font = new AtomicReference<>(null);
     private final AtomicReference<HorizontalAlignment> hAlign = new AtomicReference<>(HorizontalAlignment.LEFT);
@@ -150,29 +165,7 @@ public class Label extends Node {
     private final AtomicFloat charSpacing = new AtomicFloat(1);
     private final AtomicFloat lineSpacing = new AtomicFloat(1);
 
-    private synchronized void dispatchUpdate() {
+    private synchronized void requireUpdate() {
         needsUpdate = true;
-    }
-
-    private synchronized void processUpdates() {
-        if(backGeometry != null) {
-            if(!backGeometry.isLoaded() || !backGeometry.isServerResourceReady()) return;
-
-            Geometry oldGeometry = frontGeometry;
-            frontGeometry = backGeometry;
-            backGeometry = null;
-            if(oldGeometry != null) oldGeometry.unload();
-        }
-
-        if(!needsUpdate) return;
-
-        Font font = getFont();
-        if(font == null || !font.isLoaded()) return;
-
-        material.setAtlas(font.getAtlas());
-        backGeometry = new TextGeometry(getText(), font.getMetadata(), getHAlign(), getVAlign(), getAutoWrap(), getWrapSize(),
-                getCharSpacing(), getLineSpacing());
-
-        needsUpdate = false;
     }
 }

@@ -3,17 +3,12 @@ package com.rayferric.comet.scenegraph.resource.video.geometry;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.geometry.GeometryData;
 import com.rayferric.comet.geometry.GeometryGenerator;
-import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.video.recipe.geometry.GeometryRecipe;
-import org.lwjgl.system.MemoryUtil;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-public class PlaneGeometry extends Geometry {
-    public PlaneGeometry(Vector2f size) {
+public class GraphGeometry extends Geometry {
+    public GraphGeometry(float[] values) {
         properties = new Properties();
-        properties.size = size;
+        properties.values = values;
 
         load();
     }
@@ -23,19 +18,23 @@ public class PlaneGeometry extends Geometry {
         if(!super.load()) return false;
 
         Engine.getInstance().getLoaderPool().execute(() -> {
-            GeometryData data = GeometryGenerator.genPlane(properties.size);
+            try {
+                GeometryData data = GeometryGenerator.genGraph(properties.values);
+                GeometryRecipe recipe = new GeometryRecipe(null, data);
+                serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
 
-            GeometryRecipe recipe = new GeometryRecipe(null, data);
-            serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
-
-            finishLoading();
+                finishLoading();
+            } catch(Throwable e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
         });
 
         return true;
     }
 
     private static class Properties {
-        public Vector2f size;
+        public float[] values;
     }
 
     private final Properties properties;

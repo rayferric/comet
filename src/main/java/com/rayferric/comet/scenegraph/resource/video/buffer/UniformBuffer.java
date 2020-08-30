@@ -13,13 +13,14 @@ public class UniformBuffer extends VideoResource {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public boolean load() {
+        if(!super.load()) return false;
 
         UniformBufferRecipe recipe = new UniformBufferRecipe(null, properties.size);
         serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
-
         finishLoading();
+
+        return true;
     }
 
     private static class Properties {

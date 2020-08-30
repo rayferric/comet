@@ -6,7 +6,7 @@ import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.component.Mesh;
-import com.rayferric.comet.scenegraph.node.Model;
+import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.video.geometry.ArrayGeometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
@@ -14,8 +14,7 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 
 import java.nio.IntBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.lwjgl.assimp.Assimp.*;
@@ -26,8 +25,8 @@ public abstract class AssimpScene extends Scene {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public boolean load() {
+        if(!super.load()) return false;
 
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
@@ -54,16 +53,19 @@ public abstract class AssimpScene extends Scene {
                 System.exit(1);
             }
         });
+
+        return true;
     }
 
     @Override
-    public void unload() {
-        super.unload();
+    public boolean unload() {
+        if(!super.unload()) return false;
         aiReleaseImport(aiScene);
+        return true;
     }
 
     @Override
-    public List<Node> instantiate() {
+    public Node instantiate() {
         if(!isLoaded())
             throw new IllegalStateException("Attempted to instantiate unloaded scene.\n" + properties.path);
 
@@ -96,13 +98,8 @@ public abstract class AssimpScene extends Scene {
             throw new RuntimeException("Failed to fetch root node of the scene.\n" + properties.path);
 
         Node root = processAiNode(aiRoot, meshes);
-        List<Node> children = root.getChildren();
-        for(Node child : children) {
-            child.setParent(null);
-            child.initAll();
-        }
-
-        return children;
+        root.initAll();
+        return root;
     }
 
     protected AIScene aiScene;

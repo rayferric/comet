@@ -14,7 +14,7 @@ public abstract class Scene extends Resource {
         load();
     }
 
-    public abstract List<Node> instantiate();
+    public abstract Node instantiate();
 
     protected static class Properties {
         public String path;

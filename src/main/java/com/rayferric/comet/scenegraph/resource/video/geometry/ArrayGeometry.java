@@ -13,13 +13,14 @@ public class ArrayGeometry extends Geometry {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public boolean load() {
+        if(!super.load()) return false;
 
         GeometryRecipe recipe = new GeometryRecipe(null, properties.data);
         serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
-
         finishLoading();
+
+        return true;
     }
 
     private static class Properties {

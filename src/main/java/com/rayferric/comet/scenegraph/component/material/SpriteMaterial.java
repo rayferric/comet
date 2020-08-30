@@ -2,6 +2,7 @@ package com.rayferric.comet.scenegraph.component.material;
 
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.math.Vector4f;
+import com.rayferric.comet.math.Vector4i;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
@@ -13,16 +14,25 @@ public class SpriteMaterial extends Material {
         synchronized(SPRITE_SHADER_LOCK) {
             if(spriteShader == null)
                 spriteShader = new SourceShader(false, "data/shaders/sprite.vert", "data/shaders/sprite.frag");
-            else if(!spriteShader.isLoaded() && !spriteShader.isLoading())
-                spriteShader.load();
         }
+        spriteShader.load();
+
         setShader(spriteShader);
 
+        setColor(new Vector4f(1));
         setFrames(new Vector2i(1));
         setFrame(0);
 
         setColorMap(null);
         setNormalMap(null);
+    }
+
+    public Vector4f getColor() {
+        return readUniformVector4f(ADDRESS_COLOR);
+    }
+
+    public void setColor(Vector4f color) {
+        writeUniformData(ADDRESS_COLOR, color.toArray());
     }
 
     public Vector2i getFrames() {
@@ -59,7 +69,8 @@ public class SpriteMaterial extends Material {
     }
 
     private static final int ADDRESS_HAS_NORMAL_MAP = 0;
-    private static final int ADDRESS_FRAMES = nextStd140(ADDRESS_HAS_NORMAL_MAP, Integer.BYTES, Vector2i.BYTES);
+    private static final int ADDRESS_COLOR = nextStd140(ADDRESS_HAS_NORMAL_MAP, Integer.BYTES, Vector4f.BYTES);
+    private static final int ADDRESS_FRAMES = nextStd140(ADDRESS_COLOR, Vector4f.BYTES, Vector2i.BYTES);
     private static final int ADDRESS_FRAME = nextStd140(ADDRESS_FRAMES, Vector2i.BYTES, Integer.BYTES);
 
     private static final int BINDING_COLOR = 0;

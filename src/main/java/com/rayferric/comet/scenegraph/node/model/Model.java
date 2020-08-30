@@ -1,7 +1,8 @@
-package com.rayferric.comet.scenegraph.node;
+package com.rayferric.comet.scenegraph.node.model;
 
 import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.scenegraph.component.Mesh;
+import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.video.VideoEngine;
 
 import java.util.ArrayList;
@@ -22,6 +23,12 @@ public class Model extends Node {
     public List<Mesh> snapMeshes() {
         synchronized(meshes) {
             return new ArrayList<>(meshes);
+        }
+    }
+
+    public Mesh getMesh(int index) {
+        synchronized(meshes) {
+            return meshes.get(index);
         }
     }
 

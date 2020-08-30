@@ -12,6 +12,28 @@ import java.util.Arrays;
 import java.util.List;
 
 public class GeometryGenerator {
+    public static GeometryData genGraph(float[] values) {
+        Face[] faces = new Face[Math.max(values.length - 1, 0)];
+
+        for(int i = 0; i < values.length - 1; i++) {
+            float v1 = values[i];
+            float v2 = values[i + 1];
+
+            float x1 = (float)i / (values.length - 1);
+            float x2 = (float)(i + 1) / (values.length - 1);
+
+            Vertex[] vertices = {
+                    new Vertex(x1, 0, 0, 0, 0),
+                    new Vertex(x2, 0, 0, 0, 0),
+                    new Vertex(x2, v2, 0, 0, 0),
+                    new Vertex(x1, v1, 0, 0, 0)
+            };
+            faces[i] = new Face(vertices);
+        }
+
+        return index(triangulate(faces), true);
+    }
+
     public static GeometryData genText(String text, FontMetadata meta, HorizontalAlignment hAlign,
                                        VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
                                        float lineSpacing) {

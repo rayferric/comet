@@ -29,8 +29,8 @@ public class TextGeometry extends Geometry {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public boolean load() {
+        if(!super.load()) return false;
 
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
@@ -48,6 +48,8 @@ public class TextGeometry extends Geometry {
                 System.exit(1);
             }
         });
+
+        return true;
     }
 
     private static class Properties {

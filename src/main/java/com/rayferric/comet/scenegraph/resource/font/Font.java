@@ -17,9 +17,8 @@ public class Font extends Resource {
     }
 
     @Override
-    public void load() {
-        super.load();
-
+    public boolean load() {
+        if(!super.load()) return false;
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
                 String contents = ResourceLoader.readTextFileToString(properties.fromJar, properties.path);
@@ -32,6 +31,14 @@ public class Font extends Resource {
                 System.exit(1);
             }
         });
+        return true;
+    }
+
+    @Override
+    public boolean unload() {
+        if(!super.unload()) return false;
+        atlas.unload();
+        return true;
     }
 
     public FontMetadata getMetadata() {

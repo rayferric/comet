@@ -3,19 +3,17 @@ package com.rayferric.comet.video;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.geometry.GeometryData;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.node.Model;
 import com.rayferric.comet.scenegraph.resource.video.buffer.UniformBuffer;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.video.util.texture.TextureFilter;
+import com.rayferric.comet.video.util.VideoInfo;
 import com.rayferric.comet.video.util.texture.TextureFormat;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A cross-API video interface.<br>
@@ -26,6 +24,10 @@ public abstract class VideoEngine {
     @Override
     public String toString() {
         return String.format("VideoEngine{size=%s}", size);
+    }
+
+    public VideoInfo getInfo() {
+        return info;
     }
 
     // <editor-fold desc="Internal Server API">
@@ -76,6 +78,11 @@ public abstract class VideoEngine {
         onVSyncUpdate();
 
         defaultTexture2D = createDefaultTexture2D();
+    }
+
+    // To be called inside onStart() (which is called from the constructor)
+    protected void setInfo(VideoInfo info) {
+        this.info = info;
     }
 
     protected Vector2i getSize() {
@@ -130,8 +137,9 @@ public abstract class VideoEngine {
 
     // </editor-fold>
 
+    private VideoInfo info;
     private Vector2i size;
     private boolean vSync = true;
 
-    private ServerResource defaultTexture2D;
+    private final ServerResource defaultTexture2D;
 }

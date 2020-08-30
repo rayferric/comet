@@ -8,6 +8,8 @@ layout(location = 1) in mat3 v_TBN;
 layout(std140, binding = 2) uniform MaterialUBO {
 	bool hasNormalMap;
 	vec4 color;
+	float metallic;
+	float roughness;
 	vec3 emissive;
 } u_Material;
 
@@ -27,8 +29,8 @@ void main() {
 	vec3 N = normalize((normalMap * 2.0 - 1.0) * v_TBN);
 
 	vec2 metallicRoughness = texture(tex_MetallicRoughness, v_TexCoord).zy;
-	float metallic = metallicRoughness.x;
-	float roughness = metallicRoughness.y;
+	float metallic = metallicRoughness.x * u_Material.metallic;
+	float roughness = metallicRoughness.y * u_Material.roughness;
 
 	float occlusion = texture(tex_Occlusion, v_TexCoord).x;
 

@@ -7,10 +7,10 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class VideoResource extends Resource {
     @Override
-    public void unload() {
-        super.unload();
-
+    public boolean unload() {
+        if(!super.unload()) return false;
         Engine.getInstance().getVideoServer().scheduleResourceDestruction(serverHandle.get());
+        return true;
     }
 
     public long getServerHandle() {

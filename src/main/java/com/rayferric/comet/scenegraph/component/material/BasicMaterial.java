@@ -12,9 +12,9 @@ public class BasicMaterial extends Material {
         synchronized(BASIC_SHADER_LOCK) {
             if(basicShader == null)
                 basicShader = new SourceShader(false, "data/shaders/basic.vert", "data/shaders/basic.frag");
-            else if(!basicShader.isLoaded() && !basicShader.isLoading())
-                basicShader.load();
         }
+        basicShader.load();
+
         setShader(basicShader);
 
         setColor(new Vector4f(1));

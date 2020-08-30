@@ -71,6 +71,14 @@ public class Material implements Component {
         this.culling.set(culling);
     }
 
+    public boolean isTranslucent() {
+        return translucent.get();
+    }
+
+    public void setTranslucent(boolean translucent) {
+        this.translucent.set(translucent);
+    }
+
     protected Material(int uniformBufferSize) {
         uniformBuffer = new UniformBuffer(uniformBufferSize);
         uniformData = ByteBuffer.allocate(uniformBufferSize);
@@ -196,4 +204,5 @@ public class Material implements Component {
     private final AtomicBoolean modified = new AtomicBoolean(true);
     private final HashMap<Integer, Texture> textures = new HashMap<>();
     private final AtomicBoolean culling = new AtomicBoolean(true);
+    private final AtomicBoolean translucent = new AtomicBoolean(false);
 }

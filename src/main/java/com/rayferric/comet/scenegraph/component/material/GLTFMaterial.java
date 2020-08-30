@@ -13,13 +13,15 @@ public class GLTFMaterial extends Material {
         synchronized(GLTF_SHADER_LOCK) {
             if(gltfShader == null)
                 gltfShader = new SourceShader(false, "data/shaders/gltf.vert", "data/shaders/gltf.frag");
-            else if(!gltfShader.isLoaded() && !gltfShader.isLoading())
-                gltfShader.load();
         }
+        gltfShader.load();
+
         setShader(gltfShader);
 
         setColor(new Vector4f(1));
-        setEmissive(new Vector3f(1));
+        setMetallic(1);
+        setRoughness(1);
+        setEmissive(new Vector3f(0));
 
         setColorMap(null);
         setNormalMap(null);
@@ -36,6 +38,22 @@ public class GLTFMaterial extends Material {
 
     public void setColor(Vector4f color) {
         writeUniformData(ADDRESS_COLOR, color.toArray());
+    }
+
+    public float getMetallic() {
+        return readUniformFloat(ADDRESS_METALLIC);
+    }
+
+    public void setMetallic(float metallic) {
+        writeUniformData(ADDRESS_METALLIC, new float[] { metallic });
+    }
+
+    public float getRoughness() {
+        return readUniformFloat(ADDRESS_ROUGHNESS);
+    }
+
+    public void setRoughness(float roughness) {
+        writeUniformData(ADDRESS_ROUGHNESS, new float[] { roughness });
     }
 
     public Vector3f getEmissive() {
@@ -95,7 +113,9 @@ public class GLTFMaterial extends Material {
 
     private static final int ADDRESS_HAS_NORMAL_MAP = 0;
     private static final int ADDRESS_COLOR = nextStd140(ADDRESS_HAS_NORMAL_MAP, Integer.BYTES, Vector4f.BYTES);
-    private static final int ADDRESS_EMISSIVE = nextStd140(ADDRESS_COLOR, Vector4f.BYTES, Vector3f.BYTES);
+    private static final int ADDRESS_METALLIC = nextStd140(ADDRESS_COLOR, Vector4f.BYTES, Float.BYTES);
+    private static final int ADDRESS_ROUGHNESS = nextStd140(ADDRESS_METALLIC, Float.BYTES, Float.BYTES);
+    private static final int ADDRESS_EMISSIVE = nextStd140(ADDRESS_ROUGHNESS, Float.BYTES, Vector3f.BYTES);
 
     private static final int BINDING_COLOR = 0;
     private static final int BINDING_NORMAL = 1;

@@ -3,10 +3,10 @@ package com.rayferric.spatialwalker.node;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.*;
 import com.rayferric.comet.profiling.TimeAccumulator;
-import com.rayferric.comet.scenegraph.node.Label;
+import com.rayferric.comet.scenegraph.node.model.Label;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.util.Timer;
-import org.lwjgl.system.CallbackI;
+import com.rayferric.comet.video.util.VideoInfo;
 
 public class Rotor extends Node {
     // Thread that instantiated the scene (or any other)
@@ -19,17 +19,20 @@ public class Rotor extends Node {
     // Called as soon as node hierarchy of the scene is fully assembled
     @Override
     protected void init() {
+        super.init();
 
     }
 
     // Main thread
     @Override
     protected void update(double delta) {
+        super.update(delta);
+
         Transform transform = new Transform(getTransform());
         transform.rotate(0, (float)(45 * delta), 0);
         setTransform(transform);
 
-        if(timer.getElapsed() > 0.0) {
+        if(timer.getElapsed() > 0.1) {
             timer.reset();
             TimeAccumulator cpu = Engine.getInstance().getProfiler().getCpuAccumulator();
             TimeAccumulator gpu = Engine.getInstance().getProfiler().getGpuAccumulator();
@@ -45,8 +48,9 @@ public class Rotor extends Node {
             String cpuStr = String.format("CPU: %.2f ms (%.2f FPS) | %.2f ms - %.2f ms", cpuAvg, 1e+3 / cpuAvg, cpuMin, cpuMax);
             String gpuStr = String.format("GPU: %.2f ms (%.2f FPS) | %.2f ms - %.2f ms", gpuAvg, 1e+3 / gpuAvg, gpuMin, gpuMax);
 
+            VideoInfo videoInfo = Engine.getInstance().getVideoServer().getVideoInfo();
             Label label = (Label)getChild("Label");
-            label.setText(cpuStr);
+            label.setText(videoInfo == null ? "unavailable" : Integer.toString(videoInfo.getFreeVRam()));
         }
     }
 

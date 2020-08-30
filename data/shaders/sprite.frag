@@ -7,6 +7,7 @@ layout(location = 1) in mat3 v_TBN;
 
 layout(std140, binding = 2) uniform MaterialUBO {
 	bool hasNormalMap;
+	vec4 color;
 	ivec2 frames;
 	int frame;
 } u_Material;
@@ -20,7 +21,7 @@ void main() {
 	texCoord.x += u_Material.frame % u_Material.frames.x * frameSize.x;
 	texCoord.y += u_Material.frame / u_Material.frames.x * frameSize.y;
 
-	vec4 color = texture(tex_Color, texCoord);
+	vec4 color = texture(tex_Color, texCoord) * u_Material.color;
 	vec3 albedo = color.xyz;
 	float opacity = color.w;
 

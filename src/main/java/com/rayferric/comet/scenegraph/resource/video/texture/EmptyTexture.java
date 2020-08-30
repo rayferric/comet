@@ -17,14 +17,15 @@ public class EmptyTexture extends Texture {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public boolean load() {
+        if(!super.load()) return false;
 
         Texture2DRecipe recipe =
                 new Texture2DRecipe(null, null, properties.size, properties.format, properties.filter);
         serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
-
         finishLoading();
+
+        return true;
     }
 
     private static class Properties {

@@ -12,10 +12,11 @@ public class FontMaterial extends Material {
         synchronized(FONT_SHADER_LOCK) {
             if(fontShader == null)
                 fontShader = new SourceShader(false, "data/shaders/font.vert", "data/shaders/font.frag");
-            else if(!fontShader.isLoaded() && !fontShader.isLoading())
-                fontShader.load();
         }
+        fontShader.load();
+
         setShader(fontShader);
+        setTranslucent(true);
 
         setColor(new Vector4f(1));
         setCutoff(0.5F);

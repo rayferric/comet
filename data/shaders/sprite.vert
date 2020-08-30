@@ -32,6 +32,5 @@ void main() {
 			T.z, B.z, N.z
 	);
 	
-	// Fullscreen quad's side length is 2, so let's scale it down.
-	gl_Position = u_Frame.projection * u_Frame.view * u_Model.transform * vec4(in_Position * 0.5, 1);
+	gl_Position = u_Frame.projection * u_Frame.view * u_Model.transform * vec4(in_Position, 1);
 }

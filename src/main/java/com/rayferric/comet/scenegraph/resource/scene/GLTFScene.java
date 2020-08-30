@@ -10,6 +10,7 @@ import com.rayferric.comet.util.ResourceLoader;
 import org.lwjgl.assimp.*;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 import java.util.HashMap;
 
@@ -27,21 +28,42 @@ public class GLTFScene extends AssimpScene {
 
         try(MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer buf = stack.mallocInt(1);
-            IntBuffer max = stack.mallocInt(1);
-            max.put(1).flip();
+            IntBuffer max = stack.mallocInt(1).put(1).flip();
             aiGetMaterialIntegerArray(aiMaterial, AI_MATKEY_TWOSIDED, aiTextureType_NONE, 0, buf, max);
-            if(buf.get() > 0) material.setCulling(false);
+            if(buf.get(0) != 0) material.setCulling(false);
+        }
+
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            IntBuffer buf = stack.mallocInt(1);
+            IntBuffer max = stack.mallocInt(1).put(1).flip();
+            aiGetMaterialIntegerArray(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, aiTextureType_NONE, 0, buf, max);
+            material.setMetallic(buf.get(0));
+            aiGetMaterialIntegerArray(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, aiTextureType_NONE, 0, buf, max);
+            material.setRoughness(buf.get(0));
         }
 
         AIColor4D aiColor = AIColor4D.create();
-        aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_DIFFUSE, aiTextureType_NONE, 0, aiColor);
+        aiGetMaterialColor(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_FACTOR, aiTextureType_NONE, 0, aiColor);
         material.setColor(new Vector4f(aiColor.r(), aiColor.g(), aiColor.b(), aiColor.a()));
+
+        if(aiColor.a() < 1) {
+            material.setTranslucent(true);
+            material.setCulling(false);
+        }
+
         aiColor.clear();
         aiGetMaterialColor(aiMaterial, AI_MATKEY_COLOR_EMISSIVE, aiTextureType_NONE, 0, aiColor);
         material.setEmissive(new Vector3f(aiColor.r(), aiColor.g(), aiColor.b()));
 
         AIString aiString = AIString.create();
 
+        aiGetMaterialString(aiMaterial, aiAI_MATKEY_GLTF_ALPHAMODE, aiTextureType_NONE, 0, aiString);
+        if(aiString.dataString().equals("BLEND")) {
+            material.setTranslucent(true);
+            material.setCulling(false);
+        }
+
+        aiString.clear();
         Assimp.aiGetMaterialTexture(aiMaterial, AI_MATKEY_GLTF_PBRMETALLICROUGHNESS_BASE_COLOR_TEXTURE, 0, aiString, (IntBuffer)null, null, null, null, null, null);
         String fileName = aiString.dataString();
         if(!fileName.isEmpty())

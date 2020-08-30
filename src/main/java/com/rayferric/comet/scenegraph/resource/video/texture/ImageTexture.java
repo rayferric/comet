@@ -27,8 +27,8 @@ public class ImageTexture extends Texture {
     }
 
     @Override
-    public void load() {
-        super.load();
+    public boolean load() {
+        if(!super.load()) return false;
 
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
@@ -78,6 +78,8 @@ public class ImageTexture extends Texture {
                 System.exit(1);
             }
         });
+
+        return true;
     }
 
     private static class Properties {

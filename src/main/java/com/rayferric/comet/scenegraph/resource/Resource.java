@@ -32,29 +32,29 @@ public abstract class Resource {
 
     /**
      * Starts loading this resource.<br>
-     * • This is a non-blocking routine.<br>
+     * • Executes only if the resource is not (being) loaded at the time.<br>
+     * • This is mostly a non-blocking routine.<br>
      * • May be called from any thread.
      *
-     * @throws IllegalStateException if the resource is already (being) loaded
+     * @return false if the resource was already (being) loaded
      */
-    public void load() {
-        if(loaded.get())
-            throw new IllegalStateException("Attempted to load an already loaded resource.");
-        if(!loading.compareAndSet(false, true))
-            throw new IllegalStateException("Attempted to load a resource that is already being loaded.");
+    public boolean load() {
+        return !loaded.get() && loading.compareAndSet(false, true);
     }
 
     /**
-     * Unregisters this resource from {@link Engine#getResourceManager() resource manager} and starts unloading the server resource.<br>
-     * • This is a non-blocking routine.<br>
+     * Unregisters this resource from {@link Engine#getResourceManager() resource manager}
+     * and starts unloading the server resource.<br>
+     * • Executes only if the resource is loaded.<br>
      * • May be called from any thread.
      *
-     * @throws IllegalStateException if the resource is already unloaded
+     * @return false if the resource was already unloaded
      */
-    public void unload() {
+    public boolean unload() {
         if(!loaded.compareAndSet(true, false))
-            throw new IllegalStateException("Attempted to unload an already unloaded resource.");
+            return false;
         Engine.getInstance().getResourceManager().unregisterUnloadedResource(this);
+        return true;
     }
 
     /**
