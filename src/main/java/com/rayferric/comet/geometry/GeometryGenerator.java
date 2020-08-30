@@ -49,11 +49,6 @@ public class GeometryGenerator {
             lineWidths.add(lineWidth);
         }
 
-        System.out.println(Arrays.toString(words));
-        System.out.println(Arrays.toString(wordWidths));
-        System.out.println(lines);
-        System.out.println(lineWidths);
-
         List<Face> faces = new ArrayList<>(text.length());
 
         for(int lineIdx = 0; lineIdx < lines.size(); lineIdx++) {

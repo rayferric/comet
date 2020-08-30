@@ -42,7 +42,7 @@ public class Main {
         try {
             engine.start(info);
 
-            Scene scene = new GLTFScene("untitled.gltf");
+            Scene scene = new GLTFScene("data/local/flight-helmet/FlightHelmet.gltf");
 
             Layer mainLayer = engine.getLayerManager().getLayers()[0];
 
@@ -60,7 +60,7 @@ public class Main {
             Camera camera = new PerspectiveCamera(0.1F, 1000, 70);
             {
                 Transform t = new Transform();
-                t.setTranslation(0, 0, 2);
+                t.setTranslation(0, 0, 4);
                 camera.setTransform(t);
             }
             mainLayer.setCamera(camera);
@@ -70,11 +70,10 @@ public class Main {
             Font font = new Font(false, "data/fonts/bernard-mt-condensed.fnt");
             Label label = new Label();
             label.setColor(new Vector4f(1, 1, 1, 1F));
-            label.setText("Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed id diam sit amet quam cursus laoreet. Mauris vestibulum, arcu sed venenatis tempus, neque tortor vehicula odio, id consequat mauris leo ut erat. Nullam tempus mi quis sem aliquam porttitor. Maecenas mattis consequat semper. Praesent sit amet enim efficitur, vehicula nibh eget, pharetra purus. Sed venenatis efficitur quam vitae faucibus. Suspendisse lobortis fringilla consequat.");
             label.setAutoWrap(true);
-            label.setWrapSize(20);
+            label.setWrapSize(5);
             label.setCharSpacing(0.85F);
-            label.setLineSpacing(0.7F);
+            label.setLineSpacing(0.85F);
             label.setHAlign(HorizontalAlignment.CENTER);
             label.setVAlign(VerticalAlignment.CENTER);
             label.setFont(font);
@@ -82,6 +81,7 @@ public class Main {
             {
                 Transform t = new Transform();
                 t.setScale(0.25F);
+                t.setTranslation(0, 0.1F, 0.65F);
                 label.setTransform(t);
             }
             rotor.addChild(label);
@@ -105,18 +105,17 @@ public class Main {
                     rotor.addChild(gltfModel);
                     {
                         Transform transform = new Transform();
-                        transform.setScale(0.3F);
-                        transform.setTranslation(new Vector3f(0, 0, 0));
+                        transform.setScale(3F);
                         gltfModel.setTransform(transform);
                     }
                 }
 
+                // TODO Debug only, not to waste electricity (this destroys GC behavior and memory usage):
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(1);
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                 }
-                // System.gc();
             });
 
             engine.stop();

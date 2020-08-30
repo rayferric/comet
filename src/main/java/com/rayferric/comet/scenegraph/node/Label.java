@@ -1,13 +1,12 @@
 package com.rayferric.comet.scenegraph.node;
 
 import com.rayferric.comet.engine.LayerIndex;
-import com.rayferric.comet.geometry.GeometryGenerator;
 import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.scenegraph.component.material.FontMaterial;
 import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.resource.font.Font;
-import com.rayferric.comet.scenegraph.resource.video.geometry.ArrayGeometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
+import com.rayferric.comet.scenegraph.resource.video.geometry.TextGeometry;
 import com.rayferric.comet.text.HorizontalAlignment;
 import com.rayferric.comet.text.VerticalAlignment;
 import com.rayferric.comet.util.AtomicFloat;
@@ -30,18 +29,18 @@ public class Label extends Node {
         return text.get();
     }
 
-    public synchronized void setText(String text) {
+    public void setText(String text) {
         this.text.set(text);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public Font getFont() {
         return font.get();
     }
 
-    public synchronized void setFont(Font font) {
+    public void setFont(Font font) {
         this.font.set(font);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public Vector4f getColor() {
@@ -80,71 +79,70 @@ public class Label extends Node {
         return hAlign.get();
     }
 
-    public synchronized void setHAlign(HorizontalAlignment alignment) {
+    public void setHAlign(HorizontalAlignment alignment) {
         hAlign.set(alignment);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public VerticalAlignment getVAlign() {
         return vAlign.get();
     }
 
-    public synchronized void setVAlign(VerticalAlignment alignment) {
+    public void setVAlign(VerticalAlignment alignment) {
         vAlign.set(alignment);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public boolean getAutoWrap() {
         return autoWrap.get();
     }
 
-    public synchronized void setAutoWrap(boolean enabled) {
+    public void setAutoWrap(boolean enabled) {
         autoWrap.set(enabled);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public float getWrapSize() {
         return wrapSize.get();
     }
 
-    public synchronized void setWrapSize(float size) {
+    public void setWrapSize(float size) {
         wrapSize.set(size);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public float getCharSpacing() {
         return charSpacing.get();
     }
 
-    public synchronized void setCharSpacing(float spacing) {
+    public void setCharSpacing(float spacing) {
         charSpacing.set(spacing);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
     public float getLineSpacing() {
         return lineSpacing.get();
     }
 
-    public synchronized void setLineSpacing(float spacing) {
+    public void setLineSpacing(float spacing) {
         lineSpacing.set(spacing);
-        triggerUpdate();
+        dispatchUpdate();
     }
 
-    public synchronized Material getMaterial() {
-        if(needsUpdate) attemptUpdate();
+    public Material getMaterial() {
         return material;
     }
 
-    public synchronized Geometry getGeometry() {
-        if(needsUpdate) attemptUpdate();
-        return geometry;
+    public Geometry getGeometry() {
+        processUpdates();
+        return frontGeometry;
     }
 
+    private final FontMaterial material = new FontMaterial();
+    private Geometry frontGeometry = null, backGeometry = null;
+    private boolean needsUpdate = false;
     private final AtomicReference<String> text = new AtomicReference<>("");
     private final AtomicReference<Font> font = new AtomicReference<>(null);
-    private final FontMaterial material = new FontMaterial();
-    private Geometry geometry = null;
-    private boolean needsUpdate = true;
     private final AtomicReference<HorizontalAlignment> hAlign = new AtomicReference<>(HorizontalAlignment.LEFT);
     private final AtomicReference<VerticalAlignment> vAlign = new AtomicReference<>(VerticalAlignment.TOP);
     private final AtomicBoolean autoWrap = new AtomicBoolean(false);
@@ -152,21 +150,29 @@ public class Label extends Node {
     private final AtomicFloat charSpacing = new AtomicFloat(1);
     private final AtomicFloat lineSpacing = new AtomicFloat(1);
 
-    private void triggerUpdate() {
+    private synchronized void dispatchUpdate() {
         needsUpdate = true;
-        attemptUpdate();
     }
 
-    private void attemptUpdate() {
-        if(geometry != null) geometry.unload();
+    private synchronized void processUpdates() {
+        if(backGeometry != null) {
+            if(!backGeometry.isLoaded() || !backGeometry.isServerResourceReady()) return;
+
+            Geometry oldGeometry = frontGeometry;
+            frontGeometry = backGeometry;
+            backGeometry = null;
+            if(oldGeometry != null) oldGeometry.unload();
+        }
+
+        if(!needsUpdate) return;
+
         Font font = getFont();
-        if(font != null && font.isLoaded()) {
-            material.setAtlas(font.getAtlas());
-            geometry = new ArrayGeometry(GeometryGenerator
-                    .genText(getText(), font.getMetadata(), getHAlign(), getVAlign(), getAutoWrap(), getWrapSize(),
-                            getCharSpacing(), getLineSpacing()));
-            needsUpdate = false;
-        } else
-            geometry = null;
+        if(font == null || !font.isLoaded()) return;
+
+        material.setAtlas(font.getAtlas());
+        backGeometry = new TextGeometry(getText(), font.getMetadata(), getHAlign(), getVAlign(), getAutoWrap(), getWrapSize(),
+                getCharSpacing(), getLineSpacing());
+
+        needsUpdate = false;
     }
 }

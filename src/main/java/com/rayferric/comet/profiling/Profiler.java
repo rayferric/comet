@@ -9,6 +9,6 @@ public class Profiler {
         return gpuAccumulator;
     }
 
-    private final TimeAccumulator cpuAccumulator = new TimeAccumulator(5);
-    private final TimeAccumulator gpuAccumulator = new TimeAccumulator(5);
+    private final TimeAccumulator cpuAccumulator = new TimeAccumulator(10);
+    private final TimeAccumulator gpuAccumulator = new TimeAccumulator(10);
 }

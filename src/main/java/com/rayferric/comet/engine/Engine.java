@@ -66,7 +66,9 @@ public class Engine {
 
         // Create thread pools:
         loaderPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(info.getLoaderThreads()));
+        loaderPool.get().setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
         jobPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(info.getJobThreads()));
+        jobPool.get().setRejectedExecutionHandler(new ThreadPoolExecutor.DiscardPolicy());
 
         // Create managers:
         resourceManager.set(new ResourceManager());
@@ -103,7 +105,7 @@ public class Engine {
             System.exit(1);
         }
 
-        // Wait for server creation queues:
+        // Wait for server creation queues when loader pool is shut down:
         getVideoServer().waitForCreationQueue();
 
         // Unload resources:

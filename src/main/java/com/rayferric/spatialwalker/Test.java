@@ -11,7 +11,13 @@ public class Test {
 
         FontMetadata meta = new FontMetadata(ResourceLoader.readTextFileToString(false, "data/fonts/open-sans-bold.fnt"), "data/fonts/open-sans-bold.fnt");
 
-        //printMatrix(transform.getMatrix());
+        while(true) {
+            try {
+                Thread.sleep(10);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private static void printMatrix(Matrix4f matrix) {

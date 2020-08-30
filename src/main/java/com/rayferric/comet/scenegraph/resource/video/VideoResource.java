@@ -19,5 +19,9 @@ public abstract class VideoResource extends Resource {
         return serverHandle.get();
     }
 
+    public boolean isServerResourceReady() {
+        return Engine.getInstance().getVideoServer().getServerResource(getServerHandle()) != null;
+    }
+
     protected final AtomicLong serverHandle = new AtomicLong();
 }
