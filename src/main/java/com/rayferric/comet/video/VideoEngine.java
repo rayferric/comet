@@ -26,10 +26,6 @@ public abstract class VideoEngine {
         return String.format("VideoEngine{size=%s}", size);
     }
 
-    public VideoInfo getInfo() {
-        return info;
-    }
-
     // <editor-fold desc="Internal Server API">
 
     public void destroy() {
@@ -78,11 +74,6 @@ public abstract class VideoEngine {
         onVSyncUpdate();
 
         defaultTexture2D = createDefaultTexture2D();
-    }
-
-    // To be called inside onStart() (which is called from the constructor)
-    protected void setInfo(VideoInfo info) {
-        this.info = info;
     }
 
     protected Vector2i getSize() {
@@ -137,7 +128,6 @@ public abstract class VideoEngine {
 
     // </editor-fold>
 
-    private VideoInfo info;
     private Vector2i size;
     private boolean vSync = true;
 

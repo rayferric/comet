@@ -54,9 +54,8 @@ public class VideoServer extends Server {
         return window.get();
     }
 
-    // Returns null if queried before start.
     public VideoInfo getVideoInfo() {
-        return videoInfo.get();
+        return videoInfo;
     }
 
     /**
@@ -140,13 +139,13 @@ public class VideoServer extends Server {
      *
      * @throws IllegalStateException if the server is stopped
      */
-    public void waitForVideoEngine() {
+    public void awaitInitialization() {
         synchronized(startStopLock) {
             if(!isRunning())
                 throw new IllegalStateException("Attempted to wait for video engine while the server was down.");
-            synchronized(videoEngineReadyNotifier) {
+            synchronized(initializedNotifier) {
                 try {
-                    videoEngineReadyNotifier.wait();
+                    initializedNotifier.wait();
                 } catch(InterruptedException e) {
                     e.printStackTrace();
                     System.exit(1);
@@ -163,9 +162,8 @@ public class VideoServer extends Server {
 
     @Override
     protected void onLoop() {
-        videoInfo.set(videoEngine.getInfo());
-        synchronized(videoEngineReadyNotifier) {
-            videoEngineReadyNotifier.notifyAll();
+        synchronized(initializedNotifier) {
+            initializedNotifier.notifyAll();
         }
         videoEngine.update(getWindow().getFramebufferSize(), vSync.get());
 
@@ -186,12 +184,12 @@ public class VideoServer extends Server {
 
     private final AtomicReference<Window> window = new AtomicReference<>();
 
-    private final AtomicReference<VideoInfo> videoInfo = new AtomicReference<>(null);
+    private final VideoInfo videoInfo = new VideoInfo();
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicBoolean vSync = new AtomicBoolean();
     private final AtomicReference<TextureFilter> textureFilter = new AtomicReference<>();
     private final AtomicFloat textureAnisotropy = new AtomicFloat();
 
     private VideoEngine videoEngine;
-    private final Object videoEngineReadyNotifier = new Object();
+    private final Object initializedNotifier = new Object();
 }

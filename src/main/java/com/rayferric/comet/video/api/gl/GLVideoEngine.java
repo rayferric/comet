@@ -84,15 +84,18 @@ public class GLVideoEngine extends VideoEngine {
         GL.createCapabilities();
 
         String deviceVendor = glGetString(GL_VENDOR);
-        String deviceModel = glGetString(GL_RENDERER);
         String apiVersion = glGetString(GL_VERSION);
         if(apiVersion != null && !apiVersion.toUpperCase().startsWith("OPEN") && !apiVersion.toUpperCase().startsWith("GL"))
             apiVersion = "OpenGL " + apiVersion;
         String shaderVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
         if(shaderVersion != null && !shaderVersion.toUpperCase().startsWith("OPEN") && !shaderVersion.toUpperCase().startsWith("GL"))
             shaderVersion = "GLSL " + shaderVersion;
-        int totalVRam = queryTotalVRam(deviceVendor);
-        setInfo(new VideoInfo(deviceVendor, deviceModel, apiVersion, shaderVersion, totalVRam));
+        VideoInfo info = Engine.getInstance().getVideoServer().getVideoInfo();
+        info.setDeviceVendor(deviceVendor);
+        info.setDeviceModel(glGetString(GL_RENDERER));
+        info.setApiVersion(apiVersion);
+        info.setShaderVersion(shaderVersion);
+        info.setTotalVRam(queryTotalVRam(deviceVendor));
 
         glClearColor(0.08F, 0.08F, 0.1F, 0);
         glEnable(GL_DEPTH_TEST);
@@ -124,7 +127,7 @@ public class GLVideoEngine extends VideoEngine {
 
     @Override
     protected void onDraw() {
-        VideoInfo info = getInfo();
+        VideoInfo info = Engine.getInstance().getVideoServer().getVideoInfo();
         info.setFreeVRam(queryFreeVRam(info.getDeviceVendor()));
 
         double cpuDelta = cpuTimer.getElapsed();
@@ -138,19 +141,20 @@ public class GLVideoEngine extends VideoEngine {
 
         // Drawing code:
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT);
 
         Vector2i size = getSize();
         float ratio = (float)size.getX() / size.getY();
         for(Layer layer : Engine.getInstance().getLayerManager().getLayers()) {
             Camera camera = layer.getCamera();
-            if(camera == null) continue;
-            Matrix4f projectionMatrix = camera.getProjection(ratio);
-            Matrix4f viewMatrix = camera.getGlobalTransform().getMatrix().inverse();
+            Matrix4f projectionMatrix = (camera == null ? Matrix4f.IDENTITY : camera.getProjection(ratio));
+            Matrix4f viewMatrix = (camera == null ? Matrix4f.IDENTITY : camera.getGlobalTransform().getMatrix().inverse());
             updateFrameUBO(projectionMatrix, viewMatrix);
 
             LayerIndex index = layer.getIndex();
             List<Model> models = index.getModels();
+
+            glClear(GL_DEPTH_BUFFER_BIT);
 
             List<Model> translucentModels = drawModels(models, true);
             drawModels(translucentModels, false);
@@ -274,14 +278,14 @@ public class GLVideoEngine extends VideoEngine {
         deviceVendor = deviceVendor.toUpperCase();
 
         if(deviceVendor.contains("NVIDIA"))
-            return glGetInteger(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX);
+            return glGetInteger(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX) * 1024;
         else if(deviceVendor.contains("AMD") || deviceVendor.contains("ATI")) {
             try(MemoryStack stack = MemoryStack.stackPush()) {
                 IntBuffer ids = stack.mallocInt(1);
                 IntBuffer mem = stack.mallocInt(1);
                 wglGetGPUIDsAMD(ids);
                 wglGetGPUInfoAMD(ids.get(0), WGL_GPU_RAM_AMD, GL_UNSIGNED_INT, mem);
-                return mem.get(0);
+                return mem.get(0) * 1024;
             }
         } else
             return -1;
@@ -291,9 +295,9 @@ public class GLVideoEngine extends VideoEngine {
         deviceVendor = deviceVendor.toUpperCase();
 
         if(deviceVendor.contains("NVIDIA"))
-            return glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX);
+            return glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX) * 1024;
         else if(deviceVendor.contains("AMD") || deviceVendor.contains("ATI"))
-            return glGetInteger(GL_TEXTURE_FREE_MEMORY_ATI);
+            return glGetInteger(GL_TEXTURE_FREE_MEMORY_ATI) * 1024;
         else
             return -1;
     }

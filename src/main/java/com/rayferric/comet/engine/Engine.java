@@ -79,7 +79,7 @@ public class Engine {
         getVideoServer().start();
 
         // Wait for them to initialize:
-        getVideoServer().waitForVideoEngine();
+        getVideoServer().awaitInitialization();
     }
 
     /**

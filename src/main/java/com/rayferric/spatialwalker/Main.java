@@ -9,6 +9,7 @@ import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.scenegraph.component.material.BasicMaterial;
 import com.rayferric.comet.scenegraph.node.*;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
+import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.camera.PerspectiveCamera;
 import com.rayferric.comet.scenegraph.node.model.Graph;
 import com.rayferric.comet.scenegraph.node.model.Label;
@@ -44,20 +45,25 @@ public class Main {
         info.setLoaderThreads(4);
         info.setJobThreads(4);
 
-        info.setLayerCount(1);
+        info.setLayerCount(2);
 
         try {
             engine.start(info);
 
             Layer mainLayer = engine.getLayerManager().getLayers()[0];
+            Layer overlayLayer = engine.getLayerManager().getLayers()[1];
 
-            Camera camera = new PerspectiveCamera(0.1F, 1000, 70);
             {
+                Camera camera = new PerspectiveCamera(0.1F, 1000, 70);
                 Transform t = new Transform();
                 t.setTranslation(0, 0, 4);
                 camera.setTransform(t);
+                mainLayer.setCamera(camera);
             }
-            mainLayer.setCamera(camera);
+            {
+                Camera camera = new OrthographicCamera(-1, 1, 2);
+                overlayLayer.setCamera(camera);
+            }
 
             Rotor rotor = new Rotor();
             mainLayer.getRoot().addChild(rotor);
@@ -109,10 +115,7 @@ public class Main {
 
             {
                 Node profiler = ProfilerPack.getInstance().instantiate();
-                Transform t = new Transform();
-                t.setTranslation(0, 0, 3);
-                profiler.setTransform(t);
-                mainLayer.getRoot().addChild(profiler);
+                overlayLayer.getRoot().addChild(profiler);
             }
 
             Scene scene = new GLTFScene("data/local/damaged-helmet/DamagedHelmet.gltf");

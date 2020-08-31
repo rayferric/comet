@@ -1,34 +1,47 @@
 package com.rayferric.comet.video.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class VideoInfo {
-    public VideoInfo(String deviceVendor, String deviceModel, String apiVersion, String shaderVersion, int totalVRam) {
-        this.deviceVendor = deviceVendor;
-        this.deviceModel = deviceModel;
-        this.apiVersion = apiVersion;
-        this.shaderVersion = shaderVersion;
-        this.totalVRam = totalVRam;
+    public String getDeviceVendor() {
+        return deviceVendor.get();
     }
 
-    public String getDeviceVendor() {
-        return deviceVendor;
+    public void setDeviceVendor(String deviceVendor) {
+        this.deviceVendor.set(deviceVendor);
     }
 
     public String getDeviceModel() {
-        return deviceModel;
+        return deviceModel.get();
+    }
+
+    public void setDeviceModel(String deviceModel) {
+        this.deviceModel.set(deviceModel);
     }
 
     public String getApiVersion() {
-        return apiVersion;
+        return apiVersion.get();
+    }
+
+    public void setApiVersion(String apiVersion) {
+        this.apiVersion.set(apiVersion);
     }
 
     public String getShaderVersion() {
-        return shaderVersion;
+        return shaderVersion.get();
+    }
+
+    public void setShaderVersion(String shaderVersion) {
+        this.shaderVersion.set(shaderVersion);
     }
 
     public int getTotalVRam() {
-        return totalVRam;
+        return totalVRam.get();
+    }
+
+    public void setTotalVRam(int totalVRam) {
+        this.totalVRam.set(totalVRam);
     }
 
     public int getFreeVRam() {
@@ -39,7 +52,10 @@ public class VideoInfo {
         this.freeVRam.set(freeVRam);
     }
 
-    private final String deviceVendor, deviceModel, apiVersion, shaderVersion;
-    private final int totalVRam;
+    private final AtomicReference<String>  deviceVendor = new AtomicReference<>("NO GPU VENDOR");
+    private final AtomicReference<String> deviceModel = new AtomicReference<>("NO GPU MODEL");
+    private final AtomicReference<String> apiVersion = new AtomicReference<>("NO VIDEO API");
+    private final AtomicReference<String> shaderVersion = new AtomicReference<>("NO SHADERS");
+    private final AtomicInteger totalVRam = new AtomicInteger(0);
     private final AtomicInteger freeVRam = new AtomicInteger(0);
 }

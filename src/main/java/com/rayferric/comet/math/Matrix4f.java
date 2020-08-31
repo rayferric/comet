@@ -4,6 +4,7 @@ import java.util.Objects;
 
 public class Matrix4f {
     public static final int BYTES = 64;
+    public static final Matrix4f IDENTITY = new Matrix4f(1);
 
     public Matrix4f() {
         x = new Vector4f(1, 0, 0, 0);

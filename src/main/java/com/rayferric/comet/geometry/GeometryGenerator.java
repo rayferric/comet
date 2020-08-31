@@ -37,31 +37,31 @@ public class GeometryGenerator {
     public static GeometryData genText(String text, FontMetadata meta, HorizontalAlignment hAlign,
                                        VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
                                        float lineSpacing) {
-        // Splits by spaces, removes just one.
-        String[] words = text.split("(?<! ) |(?<= {2})");
-        float[] wordWidths = new float[words.length];
-        List<String[]> lines = new ArrayList<>(text.length());
-        List<Float> lineWidths = new ArrayList<>(text.length());
+        String[] words;
+        // Auto wrap doesn't support space series:
+        if(autoWrap) words = text.split("\\s+");
+        else words = new String[] { text };
+
+        List<String[]> lines = new ArrayList<>(words.length);
+        List<Float> lineWidths = new ArrayList<>(words.length);
 
         float spaceWidth = meta.getCharacter(' ').getAdvance() * charSpacing;
         {
             List<String> lineWords = new ArrayList<>();
-            float lineWidth = 0;
-            for(int i = 0; i < words.length; i++) {
-                String word = words[i];
+            float lineWidth = -spaceWidth;
+            for(String word : words) {
                 float wordWidth = 0;
                 for(int j = 0; j < word.length(); j++) {
                     FontCharacter character = meta.getCharacter(word.charAt(j));
                     if(character == null) continue;
                     wordWidth += character.getAdvance() * charSpacing;
                 }
-                wordWidths[i] = wordWidth;
 
                 if(autoWrap && !lineWords.isEmpty() && lineWidth + wordWidth > wrapSize) {
                     lines.add(lineWords.toArray(new String[0]));
                     lineWidths.add(lineWidth);
                     lineWords.clear();
-                    lineWidth = 0;
+                    lineWidth = -spaceWidth;
                 }
 
                 lineWords.add(word);
