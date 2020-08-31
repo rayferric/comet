@@ -4,7 +4,9 @@ import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.nodepack.NodePack;
+import com.rayferric.comet.scenegraph.component.material.BasicMaterial;
 import com.rayferric.comet.scenegraph.node.Node;
+import com.rayferric.comet.scenegraph.node.model.Graph;
 import com.rayferric.comet.scenegraph.node.model.Label;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.resource.font.Font;
@@ -42,7 +44,7 @@ public class ProfilerPack implements NodePack {
         }
         {
             Label videoTimeHeaderLabel = new Label();
-            videoTimeHeaderLabel.setText("min avg max");
+            videoTimeHeaderLabel.setText("(ms) min avg max");
             videoTimeHeaderLabel.setFont(font);
             videoTimeHeaderLabel.setHAlign(HorizontalAlignment.RIGHT);
             videoTimeHeaderLabel.getMaterial().setColor(new Vector4f(1));
@@ -139,6 +141,66 @@ public class ProfilerPack implements NodePack {
             t.setTranslation(0, -13, 0);
             shaderVersionLabel.setTransform(t);
             root.addChild(shaderVersionLabel);
+        }
+        {
+            Label cpuGraphLabel = new Label();
+            cpuGraphLabel.setText("CPU: ");
+            cpuGraphLabel.setFont(font);
+            cpuGraphLabel.setHAlign(HorizontalAlignment.RIGHT);
+            cpuGraphLabel.getMaterial().setColor(new Vector4f(1));
+            Transform t = new Transform();
+            t.setTranslation(-8, -16, 0);
+            cpuGraphLabel.setTransform(t);
+            root.addChild(cpuGraphLabel);
+        }
+        {
+            Sprite cpuGraphBg = new Sprite();
+            cpuGraphBg.getMaterial().setColor(new Vector4f(0, 0, 0, 0.5F));
+            cpuGraphBg.getMaterial().setTranslucent(true);
+            Transform t = new Transform();
+            t.setTranslation(-4, -16, -1);
+            t.setScale(8, 2, 1);
+            cpuGraphBg.setTransform(t);
+            root.addChild(cpuGraphBg);
+        }
+        {
+            Graph cpuGraph = new Graph();
+            cpuGraph.setName("CPU Graph");
+            Transform t = new Transform();
+            t.setTranslation(-8, -17, 0);
+            t.setScale(8, 2, 1);
+            cpuGraph.setTransform(t);
+            root.addChild(cpuGraph);
+        }
+        {
+            Label gpuGraphLabel = new Label();
+            gpuGraphLabel.setText("GPU: ");
+            gpuGraphLabel.setFont(font);
+            gpuGraphLabel.setHAlign(HorizontalAlignment.RIGHT);
+            gpuGraphLabel.getMaterial().setColor(new Vector4f(1));
+            Transform t = new Transform();
+            t.setTranslation(-8, -19, 0);
+            gpuGraphLabel.setTransform(t);
+            root.addChild(gpuGraphLabel);
+        }
+        {
+            Sprite gpuGraphBg = new Sprite();
+            gpuGraphBg.getMaterial().setColor(new Vector4f(0, 0, 0, 0.5F));
+            gpuGraphBg.getMaterial().setTranslucent(true);
+            Transform t = new Transform();
+            t.setTranslation(-4, -19, -1);
+            t.setScale(8, 2, 1);
+            gpuGraphBg.setTransform(t);
+            root.addChild(gpuGraphBg);
+        }
+        {
+            Graph gpuGraph = new Graph();
+            gpuGraph.setName("GPU Graph");
+            Transform t = new Transform();
+            t.setTranslation(-8, -20, 0);
+            t.setScale(8, 2, 1);
+            gpuGraph.setTransform(t);
+            root.addChild(gpuGraph);
         }
 
         root.initAll();

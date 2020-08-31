@@ -6,13 +6,18 @@ import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.profiling.Profiler;
 import com.rayferric.comet.profiling.TimeAccumulator;
 import com.rayferric.comet.scenegraph.node.Node;
+import com.rayferric.comet.scenegraph.node.model.Graph;
 import com.rayferric.comet.scenegraph.node.model.Label;
 import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.util.VideoInfo;
 
-import java.util.Locale;
+import java.util.*;
 
 public class ProfilerNode extends Node {
+    public ProfilerNode() {
+        setName("Profiler");
+    }
+
     @Override
     protected void init() {
         super.init();
@@ -25,8 +30,12 @@ public class ProfilerNode extends Node {
         videoMemoryLabel = (Label)getChild("Video Memory Label");
         videoApiVersionLabel = (Label)getChild("Video API Version Label");
         shaderVersionLabel = (Label)getChild("Shader Version Label");
+        cpuGraph = (Graph)getChild("CPU Graph");
+        gpuGraph = (Graph)getChild("GPU Graph");
 
         timer.start();
+        Arrays.fill(cpuGraphValues, 0);
+        Arrays.fill(gpuGraphValues, 0);
     }
 
     @Override
@@ -68,7 +77,6 @@ public class ProfilerNode extends Node {
             long usedVideoMem = totalVideMem - videoInfo.getFreeVRam() / (1024 * 1024);
             String videoMemoryStr = String.format("VRAM: %4d/%4d MiB", usedVideoMem, totalVideMem);
 
-
             fpsLabel.setText(fpsStr);
             frameTimeLabel.setText(frameTimeStr);
             cpuTimeLabel.setText(cpuTimeStr);
@@ -77,13 +85,27 @@ public class ProfilerNode extends Node {
             videoMemoryLabel.setText(videoMemoryStr);
             videoApiVersionLabel.setText(videoInfo.getApiVersion());
             shaderVersionLabel.setText(videoInfo.getShaderVersion());
+
+            System.arraycopy(cpuGraphValues, 1, cpuGraphValues, 0, cpuGraphValues.length - 1);
+            cpuGraphValues[cpuGraphValues.length - 1] = (float)cpuTimer.getAvg() / CPU_GRAPH_RANGE;
+            cpuGraph.setValues(cpuGraphValues);
+
+            System.arraycopy(gpuGraphValues, 1, gpuGraphValues, 0, gpuGraphValues.length - 1);
+            gpuGraphValues[gpuGraphValues.length - 1] = (float)gpuTimer.getAvg() / GPU_GRAPH_RANGE;
+            gpuGraph.setValues(gpuGraphValues);
         }
     }
 
     private static final int PIXEL_SCALE = 60;
     private static final double UPDATE_DELAY = 0.1;
+    private static final float CPU_GRAPH_RANGE = 0.016667F * 8;
+    private static final float GPU_GRAPH_RANGE = 0.016667F * 2;
 
     private Label fpsLabel, frameTimeLabel, cpuTimeLabel, gpuTimeLabel, cheapMemoryLabel, videoMemoryLabel,
             videoApiVersionLabel, shaderVersionLabel;
-    private Timer timer = new Timer();
+    private Graph cpuGraph, gpuGraph;
+
+    private final Timer timer = new Timer();
+    private final float[] cpuGraphValues = new float[256];
+    private final float[] gpuGraphValues = new float[256];
 }

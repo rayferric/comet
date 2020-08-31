@@ -1,6 +1,7 @@
 package com.rayferric.comet.scenegraph.node.model;
 
 import com.rayferric.comet.scenegraph.component.Mesh;
+import com.rayferric.comet.scenegraph.component.material.GraphMaterial;
 import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.GraphGeometry;
@@ -11,7 +12,7 @@ public class Graph extends Model {
     public Graph() {
         setName("Graph");
 
-        addMesh(new Mesh(null, null));
+        addMesh(new Mesh(null, new GraphMaterial()));
     }
 
     public Material getMaterial() {

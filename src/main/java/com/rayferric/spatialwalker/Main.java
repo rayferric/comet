@@ -79,40 +79,6 @@ public class Main {
 
             mainLayer.getRoot().initAll();
 
-            Font font = new Font(false, "data/fonts/bernard-mt-condensed.fnt");
-            Label label = new Label();
-            label.setColor(new Vector4f(1, 1, 1, 1F));
-            label.setAutoWrap(true);
-            label.setWrapSize(5);
-            label.setCharSpacing(0.85F);
-            label.setLineSpacing(0.85F);
-            label.setHAlign(HorizontalAlignment.CENTER);
-            label.setVAlign(VerticalAlignment.CENTER);
-            label.setFont(font);
-            label.getMaterial().setCulling(false);
-            {
-                Transform t = new Transform();
-                t.setScale(1F);
-                t.setTranslation(0, 0.1F, 1F);
-                label.setTransform(t);
-            }
-            rotor.addChild(label);
-
-            {
-                float[] values = new float[] { 0.3F, 0.5F, 0.1F, 0.7F, 0.3F,0.3F, 0.5F, 0.1F, 0.7F, 0.3F };
-                Graph graph = new Graph();
-                BasicMaterial material = new BasicMaterial();
-                material.setCulling(false);
-                material.setColor(new Vector4f(0, 1, 0, 1));
-                graph.setMaterial(material);
-                graph.setValues(values);
-                Transform t = new Transform();
-                t.setScale(5F);
-                t.setTranslation(-1, 0, 0);
-                graph.setTransform(t);
-                rotor.addChild(graph);
-            }
-
             {
                 Node profiler = ProfilerPack.getInstance().instantiate();
                 overlayLayer.getRoot().addChild(profiler);
@@ -133,7 +99,7 @@ public class Main {
                     scene.unload();
                 }
 
-                // TODO Debug only, not to waste electricity (this destroys GC behavior and memory usage though):
+                // TODO Debug only, not to waste electricity (this destroys GC throughput):
                 try {
                     Thread.sleep(1);
                 } catch(InterruptedException e) {
