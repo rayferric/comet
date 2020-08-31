@@ -69,10 +69,12 @@ public class Quaternion {
     }
 
     public Quaternion mul(Quaternion rhs) {
-        /*return new Quaternion(
-                w * rhs.w + v.dot(rhs.v),
-                v.mul(rhs.w).add(rhs.v.mul(w)).add(v.cross(rhs.v))
-        );*/
+//        The precision loss of this method is too high.
+//        return new Quaternion(
+//                w * rhs.w + v.dot(rhs.v),
+//                v.mul(rhs.w).add(rhs.v.mul(w)).add(v.cross(rhs.v))
+//        );
+
         float x = v.getX();
         float y = v.getY();
         float z = v.getZ();
@@ -83,15 +85,15 @@ public class Quaternion {
         float rhsZ = rhs.v.getZ();
 
         return new Quaternion(
-                w * rhsW - x * rhsX - y * rhsY - z * rhsZ,  // 1
-                w * rhsX + x * rhsW + y * rhsZ - z * rhsY,  // i
-                w * rhsY - x * rhsZ + y * rhsW + z * rhsX,  // j
-                w * rhsZ + x * rhsY - y * rhsX + z * rhsW   // k
+                w * rhsW - x * rhsX - y * rhsY - z * rhsZ,
+                w * rhsX + x * rhsW + y * rhsZ - z * rhsY,
+                w * rhsY - x * rhsZ + y * rhsW + z * rhsX,
+                w * rhsZ + x * rhsY - y * rhsX + z * rhsW
         );
     }
 
     public Vector3f mul(Vector3f rhs) {
-        Vector3f c = v.cross(rhs); // TODO check if v.cross(c) == rhs
+        Vector3f c = v.cross(rhs);
         return rhs.add(c.mul(2 * w)).add(v.cross(c).mul(2));
     }
 
@@ -99,7 +101,7 @@ public class Quaternion {
         return new Quaternion(w, -v.getX(), -v.getY(), -v.getZ());
     }
 
-    // Euler YXZ
+    // Euler YXZ, applied in order: roll (Z), pitch (X), yaw (Y).
     public Vector3f toEuler() {
         float x = v.getX();
         float y = v.getY();
@@ -112,7 +114,7 @@ public class Quaternion {
         sp = Mathf.clamp(sp, -1, 1);
         float pitch = Mathf.asin(sp);
 
-        // yaw:
+        // Yaw:
         float syCp = 2 * (w * y + z * x);
         float cyCp = 1 - 2 * (yy + y * y);
         float yaw = Mathf.atan2(syCp, cyCp);

@@ -1,33 +1,23 @@
 package com.rayferric.comet.scenegraph.node;
 
 import com.rayferric.comet.engine.LayerIndex;
+import com.rayferric.comet.input.InputEvent;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.scenegraph.node.model.Graph;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.video.VideoEngine;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Node {
     public Node() {
         name.set("Node");
         setTransform(new Transform());
-    }
-
-    public Node(Node other) {
-        name.set(other.getName() + "~");
-
-        setParent(other.getParent());
-
-        setTransform(other.getTransform());
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Node{translation=%s, rotation=%s, scale=%s}", getTransform().getTranslation(), getTransform().getRotation(), getTransform().getScale());
     }
 
     /**
@@ -167,9 +157,26 @@ public class Node {
      * @param delta delta time of the update frame
      */
     public void updateAll(double delta) {
-        update(delta);
+        if(updateEnabled) update(delta);
         for(Node child : getChildren())
             child.updateAll(delta);
+    }
+
+    /**
+     * Calls {@link #input(InputEvent)} method of this node and all its descendants.<br>
+     * • Is internally used by the engine.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread.
+     *
+     * @param events input events to be processed
+     */
+    public void inputAll(List<InputEvent> events) {
+        if(inputEnabled) {
+            for(InputEvent event : events)
+                input(event);
+        }
+        for(Node child : getChildren())
+            child.inputAll(events);
     }
 
     /**
@@ -188,11 +195,29 @@ public class Node {
 
     // </editor-fold>
 
-    // <editor-fold desc="Methods for The User to Override"
+    // <editor-fold desc="Methods for The User to Override and Their Toggles"
 
     protected void init() {}
 
     protected void update(double delta) {}
+
+    protected void input(InputEvent event) {}
+
+    /**
+     * Enables update processing on this node.<br>
+     * • Must only be called from the constructor.
+     */
+    protected void enableUpdate() {
+        updateEnabled = true;
+    }
+
+    /**
+     * Enables input processing on this node.<br>
+     * • Must only be called from the constructor.
+     */
+    protected void enableInput() {
+        inputEnabled = true;
+    }
 
     // </editor-fold>
 
@@ -209,6 +234,8 @@ public class Node {
     private Transform globalTransformCache;
     private boolean globalTransformValid;
     private final Object globalTransformValidLock = new Object();
+
+    private boolean updateEnabled = false, inputEnabled = false;
 
     private void updateGlobalTransform() {
         Node parent = getParent();

@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Graph extends Model {
     public Graph() {
         setName("Graph");
+        enableUpdate();
 
         addMesh(new Mesh(null, new GraphMaterial()));
     }

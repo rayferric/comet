@@ -12,7 +12,6 @@ vec3 hsvToRgb(vec3 hsv) {
 
 void main() {
 	float value = (1.0 - v_TexCoord.y);
-	value *= value;
 	float hue = value * 0.333;
 
 	out_Color.xyz = hsvToRgb(vec3(hue, 1.0, 1.0));

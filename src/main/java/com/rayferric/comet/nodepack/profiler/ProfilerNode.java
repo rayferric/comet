@@ -1,6 +1,7 @@
 package com.rayferric.comet.nodepack.profiler;
 
 import com.rayferric.comet.engine.Engine;
+import com.rayferric.comet.math.Mathf;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.profiling.Profiler;
@@ -16,6 +17,7 @@ import java.util.*;
 public class ProfilerNode extends Node {
     public ProfilerNode() {
         setName("Profiler");
+        enableUpdate();
     }
 
     @Override
@@ -87,19 +89,19 @@ public class ProfilerNode extends Node {
             shaderVersionLabel.setText(videoInfo.getShaderVersion());
 
             System.arraycopy(cpuGraphValues, 1, cpuGraphValues, 0, cpuGraphValues.length - 1);
-            cpuGraphValues[cpuGraphValues.length - 1] = (float)cpuTimer.getAvg() / CPU_GRAPH_RANGE;
+            cpuGraphValues[cpuGraphValues.length - 1] = Mathf.clamp((float)cpuTimer.getAvg() / CPU_GRAPH_RANGE, 0.01F, 1);
             cpuGraph.setValues(cpuGraphValues);
 
             System.arraycopy(gpuGraphValues, 1, gpuGraphValues, 0, gpuGraphValues.length - 1);
-            gpuGraphValues[gpuGraphValues.length - 1] = (float)gpuTimer.getAvg() / GPU_GRAPH_RANGE;
+            gpuGraphValues[gpuGraphValues.length - 1] = Mathf.clamp((float)gpuTimer.getAvg() / GPU_GRAPH_RANGE, 0.01F, 1);
             gpuGraph.setValues(gpuGraphValues);
         }
     }
 
     private static final int PIXEL_SCALE = 60;
     private static final double UPDATE_DELAY = 0.1;
-    private static final float CPU_GRAPH_RANGE = 0.016667F * 8;
-    private static final float GPU_GRAPH_RANGE = 0.016667F * 2;
+    private static final float CPU_GRAPH_RANGE = 0.016667F * 4;
+    private static final float GPU_GRAPH_RANGE = 0.016667F * 4;
 
     private Label fpsLabel, frameTimeLabel, cpuTimeLabel, gpuTimeLabel, cheapMemoryLabel, videoMemoryLabel,
             videoApiVersionLabel, shaderVersionLabel;

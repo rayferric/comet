@@ -1,5 +1,6 @@
 package com.rayferric.comet.engine;
 
+import com.rayferric.comet.input.InputManager;
 import com.rayferric.comet.profiling.Profiler;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.util.Timer;
@@ -74,6 +75,7 @@ public class Engine {
         resourceManager.set(new ResourceManager());
         layerManager.set(new LayerManager(info.getLayerCount()));
         profiler.set(new Profiler());
+        inputManager.set(new InputManager());
 
         // Start the servers:
         getVideoServer().start();
@@ -132,7 +134,9 @@ public class Engine {
      * • Must only be called from the main thread.
      */
     public void process() {
+        getVideoServer().getWindow().process();
         glfwPollEvents();
+
     }
 
     /**
@@ -144,20 +148,32 @@ public class Engine {
      * @param iteration lambda to be called every iteration, set to null for no iteration
      */
     public void run(Consumer<Double> iteration) {
-        getVideoServer().getWindow().setVisible(true);
-        getVideoServer().getWindow().focus();
+        VideoServer videoServer = getVideoServer();
+        LayerManager layerManager = getLayerManager();
+        InputManager inputManager = getInputManager();
+
+        videoServer.getWindow().setVisible(true);
+        videoServer.getWindow().focus();
 
         Timer timer = new Timer();
         timer.start();
 
         shouldExit.set(false);
         while(!shouldExit.get()) {
+            inputManager.resetState();
             process();
+            inputManager.processEvents();
+
+            Layer[] layers = layerManager.getLayers();
+
+            for(Layer layer : layers) {
+                layer.getRoot().inputAll(inputManager.getEvents());
+            }
 
             double delta = timer.getElapsed();
             timer.reset();
 
-            for(Layer layer : getLayerManager().getLayers()) {
+            for(Layer layer : layers) {
                 layer.getRoot().updateAll(delta);
                 layer.genIndex();
             }
@@ -165,7 +181,7 @@ public class Engine {
             if(iteration != null) iteration.accept(delta);
         }
 
-        getVideoServer().getWindow().setVisible(false);
+        videoServer.getWindow().setVisible(false);
     }
 
     // </editor-fold>
@@ -240,6 +256,16 @@ public class Engine {
         return profiler.get();
     }
 
+    /**
+     * Returns the input manager.<br>
+     * • May be called from any thread.
+     *
+     * @return input manager
+     */
+    public InputManager getInputManager() {
+        return inputManager.get();
+    }
+
     // </editor-fold>
 
     private static final Engine INSTANCE = new Engine();
@@ -258,4 +284,5 @@ public class Engine {
     private final AtomicReference<ResourceManager> resourceManager = new AtomicReference<>(null);
     private final AtomicReference<LayerManager> layerManager = new AtomicReference<>(null);
     private final AtomicReference<Profiler> profiler = new AtomicReference<>(null);
+    private final AtomicReference<InputManager> inputManager = new AtomicReference<>(null);
 }

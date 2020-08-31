@@ -5,29 +5,18 @@ import com.rayferric.comet.engine.EngineInfo;
 import com.rayferric.comet.engine.Layer;
 import com.rayferric.comet.math.*;
 import com.rayferric.comet.nodepack.profiler.ProfilerPack;
-import com.rayferric.comet.scenegraph.component.Mesh;
-import com.rayferric.comet.scenegraph.component.material.BasicMaterial;
 import com.rayferric.comet.scenegraph.node.*;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.camera.PerspectiveCamera;
-import com.rayferric.comet.scenegraph.node.model.Graph;
-import com.rayferric.comet.scenegraph.node.model.Label;
-import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
-import com.rayferric.comet.scenegraph.resource.font.Font;
 import com.rayferric.comet.scenegraph.resource.scene.GLTFScene;
 import com.rayferric.comet.scenegraph.resource.scene.Scene;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
-import com.rayferric.comet.scenegraph.resource.video.geometry.GraphGeometry;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
-import com.rayferric.comet.text.HorizontalAlignment;
-import com.rayferric.comet.text.VerticalAlignment;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.util.texture.TextureFilter;
 import com.rayferric.spatialwalker.node.Rotor;
-
-import java.util.List;
+import com.rayferric.spatialwalker.node.SpectatorCamera;
 
 public class Main {
     public static void main(String[] args) {
@@ -35,7 +24,7 @@ public class Main {
 
         EngineInfo info = new EngineInfo();
         info.setWindowTitle("Spatial Walker");
-        info.setWindowSize(new Vector2i(640, 360));
+        info.setWindowSize(new Vector2i(1280, 720));
 
         info.setVideoApi(VideoAPI.OPENGL);
         info.setVSync(true);
@@ -54,10 +43,11 @@ public class Main {
             Layer overlayLayer = engine.getLayerManager().getLayers()[1];
 
             {
-                Camera camera = new PerspectiveCamera(0.1F, 1000, 70);
+                Camera camera = new SpectatorCamera(0.1F, 1000, 70);
                 Transform t = new Transform();
                 t.setTranslation(0, 0, 4);
                 camera.setTransform(t);
+                mainLayer.getRoot().addChild(camera);
                 mainLayer.setCamera(camera);
             }
             {

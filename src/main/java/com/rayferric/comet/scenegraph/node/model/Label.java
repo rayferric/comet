@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Label extends Model {
     public Label() {
         setName("Label");
+        enableUpdate();
 
         addMesh(new Mesh(null, new FontMaterial()));
     }
