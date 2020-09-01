@@ -5,6 +5,13 @@ import java.util.Objects;
 public class Vector3f {
     public static final int BYTES = 12;
 
+    public static final Vector3f LEFT = new Vector3f(-1, 0, 0);
+    public static final Vector3f RIGHT = new Vector3f(1, 0, 0);
+    public static final Vector3f DOWN = new Vector3f(0, -1, 0);
+    public static final Vector3f UP = new Vector3f(0, 1, 0);
+    public static final Vector3f FORWARD = new Vector3f(0, 0, -1);
+    public static final Vector3f BACKWARD = new Vector3f(0, 0, 1);
+
     public Vector3f() {
         x = y = z = 0;
     }
@@ -86,6 +93,14 @@ public class Vector3f {
                 (y * rhs.z) - (rhs.y * z),
                 (z * rhs.x) - (rhs.z * x),
                 (x * rhs.y) - (rhs.x * y)
+        );
+    }
+
+    public Vector3f lerp(Vector3f rhs, float weight) {
+        return new Vector3f(
+                Mathf.lerp(x, rhs.x, weight),
+                Mathf.lerp(y, rhs.y, weight),
+                Mathf.lerp(z, rhs.z, weight)
         );
     }
 

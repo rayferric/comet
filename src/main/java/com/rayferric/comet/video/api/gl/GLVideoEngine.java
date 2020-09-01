@@ -226,6 +226,8 @@ public class GLVideoEngine extends VideoEngine {
         List<Model> translucentModels = new ArrayList<>(models.size());
 
         for(Model model : models) {
+            if(!model.isVisible()) continue;
+
             Matrix4f modelMatrix = model.getGlobalTransform().getMatrix();
             updateModelUBO(modelMatrix);
 

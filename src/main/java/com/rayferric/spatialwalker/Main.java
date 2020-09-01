@@ -9,6 +9,7 @@ import com.rayferric.comet.scenegraph.node.*;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.camera.PerspectiveCamera;
+import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.resource.scene.GLTFScene;
 import com.rayferric.comet.scenegraph.resource.scene.Scene;
@@ -55,7 +56,7 @@ public class Main {
                 overlayLayer.setCamera(camera);
             }
 
-            Rotor rotor = new Rotor();
+            /*Rotor rotor = new Rotor();
             mainLayer.getRoot().addChild(rotor);
 
             Sprite sprite = new Sprite();
@@ -65,7 +66,7 @@ public class Main {
                 t.setTranslation(0, 0, -1);
                 sprite.setTransform(t);
             }
-            rotor.addChild(sprite);
+            rotor.addChild(sprite);*/
 
             mainLayer.getRoot().initAll();
 
@@ -85,7 +86,10 @@ public class Main {
 
                 if(scene.isLoaded() && !ref.sceneInstantiated) {
                     ref.sceneInstantiated = true;
-                    rotor.addChild(scene.instantiate());
+                    Node modelRoot = scene.instantiate();
+                    if(modelRoot instanceof Model)
+                        ((Model)modelRoot).getMesh(0).getMaterial().setCulling(false);
+                    mainLayer.getRoot().addChild(modelRoot);
                     scene.unload();
                 }
 

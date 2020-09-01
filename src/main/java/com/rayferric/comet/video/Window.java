@@ -465,7 +465,7 @@ public abstract class Window {
         final boolean maximized = isGlfwMaximized();
         final boolean minimized = isGlfwMinimized();
         if(fullscreen || maximized || minimized) return;
-        windowedSize = new Vector2i(width, height);
+        windowedSize = new Vector2i(Math.max(width, 1), Math.max(height, 1));
     }
 
     private void windowIconifyCallback(long window, boolean iconified) {
@@ -478,8 +478,8 @@ public abstract class Window {
 
     private void framebufferSizeCallback(long window, int width, int height) {
         synchronized(framebufferSizeCache) {
-            framebufferSizeCache.setX(width);
-            framebufferSizeCache.setY(height);
+            framebufferSizeCache.setX(Math.max(width, 1));
+            framebufferSizeCache.setY(Math.max(height, 1));
         }
     }
 

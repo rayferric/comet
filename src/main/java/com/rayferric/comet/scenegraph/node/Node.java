@@ -98,8 +98,6 @@ public class Node {
             child.setParent(null);
     }
 
-    // <editor-fold desc="Translation, Rotation and Scale">
-
     /**
      * Retrieves current transform of the node.<br>
      * • Returns the a reference to the original object.<br>
@@ -125,13 +123,20 @@ public class Node {
         invalidateGlobalTransform();
     }
 
-    // </editor-fold>
-
     public Transform getGlobalTransform() {
         synchronized(globalTransformValidLock) {
             if(!globalTransformValid) updateGlobalTransform();
             return globalTransformCache;
         }
+    }
+
+    public boolean isVisible() {
+        Node parent = getParent();
+        return visible.get() && (parent == null || parent.isVisible());
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible.set(visible);
     }
 
     // <editor-fold desc="Internal API">
@@ -234,6 +239,8 @@ public class Node {
     private Transform globalTransformCache;
     private boolean globalTransformValid;
     private final Object globalTransformValidLock = new Object();
+
+    private final AtomicBoolean visible = new AtomicBoolean(true);
 
     private boolean updateEnabled = false, inputEnabled = false;
 

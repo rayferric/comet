@@ -103,11 +103,11 @@ public class Transform {
     }
 
     public void setRotation(float pitch, float yaw, float roll) {
-        setRotation(Quaternion.fromEuler(pitch, yaw, roll));
+        setRotation(Quaternion.eulerAngle(pitch, yaw, roll));
     }
 
     public void setRotation(Vector3f euler) {
-        setRotation(Quaternion.fromEuler(euler));
+        setRotation(Quaternion.eulerAngle(euler));
     }
 
     public void rotate(Quaternion rotation) {
@@ -115,11 +115,11 @@ public class Transform {
     }
 
     public void rotate(float pitch, float yaw, float roll) {
-        rotate(Quaternion.fromEuler(pitch, yaw, roll));
+        rotate(Quaternion.eulerAngle(pitch, yaw, roll));
     }
 
     public void rotate(Vector3f euler) {
-        rotate(Quaternion.fromEuler(euler));
+        rotate(Quaternion.eulerAngle(euler));
     }
 
     public Vector3f getScale() {

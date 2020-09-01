@@ -18,13 +18,6 @@ public class Quaternion {
         this.v = new Vector3f(x, y, z);
     }
 
-    public Quaternion(Vector3f axis, float angle) {
-        float halfAngle = angle * 0.5F;
-
-        w = Mathf.cos(halfAngle);
-        v = axis.normalize().mul(Mathf.sin(halfAngle));
-    }
-
     @Override
     public boolean equals(Object o) {
         if(this == o) return true;
@@ -43,8 +36,25 @@ public class Quaternion {
         return String.format("Quaternion{w=%s, v=%s}", w, v);
     }
 
-    // Euler YXZ, applied in order: roll (Z), pitch (X), yaw (Y).
-    public static Quaternion fromEuler(float pitch, float yaw, float roll) {
+    public static Quaternion axisAngle(Vector3f axis, float angle) {
+        float halfAngle = angle * 0.5F;
+
+        return new Quaternion(
+                Mathf.cos(halfAngle),
+                axis.normalize().mul(Mathf.sin(halfAngle))
+        );
+    }
+
+    /**
+     * Euler YXZ, applied in order: roll (Z), pitch (X), yaw (Y).
+     *
+     * @param pitch X axis (2)
+     * @param yaw   Y axis (3)
+     * @param roll  Z axis (1)
+     *
+     * @return equivalent quaternion rotation
+     */
+    public static Quaternion eulerAngle(float pitch, float yaw, float roll) {
         float cp = Mathf.cos(pitch * 0.5F);
         float sp = Mathf.sin(pitch * 0.5F);
         float cy = Mathf.cos(yaw * 0.5F);
@@ -60,8 +70,8 @@ public class Quaternion {
         );
     }
 
-    public static Quaternion fromEuler(Vector3f euler) {
-        return fromEuler(euler.getX(), euler.getY(), euler.getZ());
+    public static Quaternion eulerAngle(Vector3f euler) {
+        return eulerAngle(euler.getX(), euler.getY(), euler.getZ());
     }
 
     public Quaternion mul(float rhs) {
@@ -102,6 +112,12 @@ public class Quaternion {
     }
 
     // Euler YXZ, applied in order: roll (Z), pitch (X), yaw (Y).
+
+    /**
+     * Euler YXZ, applied in order: roll (Z), pitch (X), yaw (Y).
+     *
+     * @return equivalent YXZ euler rotation
+     */
     public Vector3f toEuler() {
         float x = v.getX();
         float y = v.getY();
@@ -109,17 +125,14 @@ public class Quaternion {
 
         float yy = x * x;
 
-        // Pitch:
         float sp = 2 * (w * x - y * z);
         sp = Mathf.clamp(sp, -1, 1);
         float pitch = Mathf.asin(sp);
 
-        // Yaw:
         float syCp = 2 * (w * y + z * x);
         float cyCp = 1 - 2 * (yy + y * y);
         float yaw = Mathf.atan2(syCp, cyCp);
 
-        // Roll:
         float srCp = 2 * (w * z + x * y);
         float crCp = 1 - 2 * (z * z + yy);
         float roll = Mathf.atan2(srCp, crCp);

@@ -1,6 +1,9 @@
 package com.rayferric.comet.nodepack.profiler;
 
 import com.rayferric.comet.engine.Engine;
+import com.rayferric.comet.input.InputEvent;
+import com.rayferric.comet.input.InputKey;
+import com.rayferric.comet.input.InputManager;
 import com.rayferric.comet.math.Mathf;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector2i;
@@ -18,6 +21,7 @@ public class ProfilerNode extends Node {
     public ProfilerNode() {
         setName("Profiler");
         enableUpdate();
+        enableInput();
     }
 
     @Override
@@ -96,6 +100,16 @@ public class ProfilerNode extends Node {
             gpuGraphValues[gpuGraphValues.length - 1] = Mathf.clamp((float)gpuTimer.getAvg() / GPU_GRAPH_RANGE, 0.01F, 1);
             gpuGraph.setValues(gpuGraphValues);
         }
+    }
+
+    @Override
+    protected void input(InputEvent event) {
+        super.input(event);
+
+        if(event.getType() != InputEvent.Type.RELEASE)return;
+
+        if(event.getKey() == InputKey.KEYBOARD_F1)
+            setVisible(!isVisible());
     }
 
     private static final int PIXEL_SCALE = 60;

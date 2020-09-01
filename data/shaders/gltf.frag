@@ -36,6 +36,6 @@ void main() {
 
 	vec3 emissive = texture(tex_Emissive, v_TexCoord).xyz * u_Material.emissive;
 
-	out_Color.xyz = albedo * max(dot(N, normalize(vec3(1, -1, 1))), 0.1) * occlusion + emissive;
+	out_Color.xyz = albedo * max(dot(N, normalize(vec3(1))), 0.1) * occlusion + emissive;
 	out_Color.w = opacity;
 }
