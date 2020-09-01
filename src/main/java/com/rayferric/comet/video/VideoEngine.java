@@ -42,6 +42,8 @@ public abstract class VideoEngine {
         if(!size.equals(this.size)) {
             this.size = size;
             onResize();
+            // Ensures V-Sync is updated when going fullscreen:
+            onVSyncUpdate();
         }
         if(this.vSync != vSync) {
             this.vSync = vSync;

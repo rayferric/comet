@@ -1,6 +1,7 @@
 package com.rayferric.comet.scenegraph.component.material;
 
 import com.rayferric.comet.math.Vector4f;
+import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
@@ -11,7 +12,7 @@ public class GraphMaterial extends Material {
 
         synchronized(GRAPH_SHADER_LOCK) {
             if(graphShader == null)
-                graphShader = new SourceShader(false, "data/shaders/graph.vert", "data/shaders/graph.frag");
+                graphShader = new BinaryShader(true, "shaders/graph.vert.spv", "shaders/graph.frag.spv");
         }
         graphShader.load();
 

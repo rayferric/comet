@@ -4,7 +4,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public class GLSourceShader extends GLShader {
     public GLSourceShader(String vertSrc, String fragSrc) {
@@ -14,6 +14,8 @@ public class GLSourceShader extends GLShader {
     }
 
     private int createShader(int type, String source) {
+        if(source == null) return 0;
+
         int shader = glCreateShader(type);
         glShaderSource(shader, source);
 

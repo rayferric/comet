@@ -161,6 +161,11 @@ public class Matrix4f {
         );
     }
 
+    public Vector3f mul(Vector3f rhs, float w) {
+        Vector4f result = mul(new Vector4f(rhs.getX(), rhs.getY(), rhs.getZ(), w));
+        return new Vector3f(result.getX(), result.getY(), result.getZ());
+    }
+
     public Matrix4f inverse() {
         float s0 = x.getX() * y.getY() - x.getY() * y.getX();
         float s1 = x.getX() * z.getY() - x.getY() * z.getX();

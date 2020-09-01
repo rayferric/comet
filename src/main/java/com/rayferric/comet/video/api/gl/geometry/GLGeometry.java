@@ -1,6 +1,7 @@
 package com.rayferric.comet.video.api.gl.geometry;
 
 import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.math.AABB;
 import com.rayferric.comet.server.ServerResource;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
@@ -8,17 +9,21 @@ import org.lwjgl.system.MemoryUtil;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public class GLGeometry implements ServerResource {
     public GLGeometry(GeometryData data) {
         float[] vertices = data.getVertices();
         int[] indices = data.getIndices();
 
+        vertexCount = vertices.length;
+        indexCount = indices.length;
+
+        aabb = data.getAabb();
+
         vertexArray = glGenVertexArrays();
         glGenBuffers(vertexBuffers);
         glBindVertexArray(vertexArray);
-        indexCount = indices.length;
 
         glEnableVertexAttribArray(0);
         glEnableVertexAttribArray(1);
@@ -50,11 +55,20 @@ public class GLGeometry implements ServerResource {
         glBindVertexArray(vertexArray);
     }
 
+    public int getVertexCount() {
+        return vertexCount;
+    }
+
     public int getIndexCount() {
         return indexCount;
     }
 
+    public AABB getAabb() {
+        return aabb;
+    }
+
     private final int vertexArray;
     private final int[] vertexBuffers = new int[2];
-    private final int indexCount;
+    private final int vertexCount, indexCount;
+    private final AABB aabb;
 }

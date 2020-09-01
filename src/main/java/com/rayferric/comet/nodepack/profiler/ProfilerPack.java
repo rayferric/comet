@@ -21,7 +21,7 @@ public class ProfilerPack implements NodePack {
     public Node instantiate() {
         Node root = new ProfilerNode();
 
-        Font font = new Font(false, "data/fonts/share-tech-mono-bold.fnt");
+        Font font = new Font(true, "fonts/share-tech-mono-bold.fnt");
 
         {
             Label fpsLabel = new Label();

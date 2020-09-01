@@ -1,6 +1,7 @@
 package com.rayferric.comet.scenegraph.component.material;
 
 import com.rayferric.comet.math.Vector4f;
+import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
@@ -11,7 +12,7 @@ public class FontMaterial extends Material {
 
         synchronized(FONT_SHADER_LOCK) {
             if(fontShader == null)
-                fontShader = new SourceShader(false, "data/shaders/font.vert", "data/shaders/font.frag");
+                fontShader = new BinaryShader(true, "shaders/font.vert.spv", "shaders/font.frag.spv");
         }
         fontShader.load();
 

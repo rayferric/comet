@@ -6,7 +6,7 @@ import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.ARBGLSPIRV.*;
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public class GLBinaryShader extends GLShader {
     public GLBinaryShader(ByteBuffer vertBin, ByteBuffer fragBin) {
@@ -16,6 +16,8 @@ public class GLBinaryShader extends GLShader {
     }
 
     private int createShader(int type, ByteBuffer binary) {
+        if(binary == null) return 0;
+
         int shader = glCreateShader(type);
         glShaderBinary(new int[] { shader }, GL_SHADER_BINARY_FORMAT_SPIR_V_ARB, binary);
 

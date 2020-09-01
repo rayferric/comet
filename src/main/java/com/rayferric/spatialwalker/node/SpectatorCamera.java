@@ -126,7 +126,7 @@ public class SpectatorCamera extends PerspectiveCamera {
     private static final float MAX_SPEED = 4;
     private static final float ACCELERATION = 16;
     private static final float MOUSE_ACCELERATION = 2;
-    private static final float MOUSE_DECELERATION = 32;
+    private static final float MOUSE_DECELERATION = 16;
 
     private boolean focused = false;
     private Vector3f velocity = new Vector3f(0);

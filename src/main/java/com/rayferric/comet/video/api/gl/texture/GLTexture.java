@@ -2,7 +2,7 @@ package com.rayferric.comet.video.api.gl.texture;
 
 import com.rayferric.comet.server.ServerResource;
 
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public abstract class GLTexture implements ServerResource {
     public GLTexture() {

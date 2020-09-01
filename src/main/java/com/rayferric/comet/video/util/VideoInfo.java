@@ -52,10 +52,28 @@ public class VideoInfo {
         this.freeVRam.set(freeVRam);
     }
 
+    public int getVertexCount() {
+        return vertexCount.get();
+    }
+
+    public void setVertexCount(int vertexCount) {
+        this.vertexCount.set(vertexCount);
+    }
+
+    public int getTriangleCount() {
+        return triangleCount.get();
+    }
+
+    public void setTriangleCount(int triangleCount) {
+        this.triangleCount.set(triangleCount);
+    }
+
     private final AtomicReference<String>  deviceVendor = new AtomicReference<>("NO GPU VENDOR");
     private final AtomicReference<String> deviceModel = new AtomicReference<>("NO GPU MODEL");
     private final AtomicReference<String> apiVersion = new AtomicReference<>("NO VIDEO API");
     private final AtomicReference<String> shaderVersion = new AtomicReference<>("NO SHADERS");
-    private final AtomicInteger totalVRam = new AtomicInteger(0);
-    private final AtomicInteger freeVRam = new AtomicInteger(0);
+    private final AtomicInteger totalVRam = new AtomicInteger(-1);
+    private final AtomicInteger freeVRam = new AtomicInteger(-1);
+    private final AtomicInteger vertexCount = new AtomicInteger(-1);
+    private final AtomicInteger triangleCount = new AtomicInteger(-1);
 }

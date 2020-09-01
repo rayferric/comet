@@ -6,7 +6,7 @@ import org.lwjgl.system.MemoryStack;
 import java.nio.IntBuffer;
 import java.nio.LongBuffer;
 
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public class GLTimerQuery implements ServerResource {
     public GLTimerQuery() {
@@ -51,5 +51,5 @@ public class GLTimerQuery implements ServerResource {
     private static final double INVERSE_FREQUENCY = 1e-9;
 
     private final int handle;
-    private boolean recording;
+    private boolean recording = false;
 }

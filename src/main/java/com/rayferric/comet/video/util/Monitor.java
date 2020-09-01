@@ -1,6 +1,7 @@
 package com.rayferric.comet.video.util;
 
 import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.math.Vector3i;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.glfw.GLFWVidMode;
 
@@ -50,21 +51,29 @@ public class Monitor {
         return monitors;
     }
 
+    public Vector2i getResolution() {
+        return new Vector2i(mode.width(), mode.height());
+    }
+
+    public Vector3i getColorDepth() {
+        return new Vector3i(mode.redBits(), mode.greenBits(), mode.blueBits());
+    }
+
+    public int getRefreshRate() {
+        return mode.refreshRate();
+    }
+
     public long getHandle() {
         return handle;
     }
 
-    public Vector2i getResolution() {
-        GLFWVidMode mode = glfwGetVideoMode(handle);
-        if(mode == null)
-            throw new NullPointerException();
-
-        return new Vector2i(mode.width(), mode.height());
-    }
-
     private Monitor(long handle) {
         this.handle = handle;
+        this.mode = glfwGetVideoMode(handle);
+        if(mode == null)
+            throw new RuntimeException("Failed to acquire video mode of a monitor.");
     }
 
     private final long handle;
+    private final GLFWVidMode mode;
 }

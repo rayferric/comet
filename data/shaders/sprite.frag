@@ -1,5 +1,7 @@
 #version 450
 
+layout(early_fragment_tests) in;
+
 layout(location = 0) out vec4 out_Color;
 
 layout(location = 0) in vec2 v_TexCoord;
@@ -25,7 +27,7 @@ void main() {
 	vec3 albedo = color.xyz;
 	float opacity = color.w;
 
-	vec3 normalMap = vec3(0.5, 0.5, 1);
+	vec3 normalMap = vec3(0.5, 0.5, 1.0);
 	if(u_Material.hasNormalMap) normalMap = texture(tex_Normal, v_TexCoord).xyz;
 	vec3 N = normalize((normalMap * 2.0 - 1.0) * v_TBN);
 

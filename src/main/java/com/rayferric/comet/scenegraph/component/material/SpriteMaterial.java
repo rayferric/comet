@@ -3,6 +3,7 @@ package com.rayferric.comet.scenegraph.component.material;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.math.Vector4i;
+import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
@@ -13,7 +14,7 @@ public class SpriteMaterial extends Material {
 
         synchronized(SPRITE_SHADER_LOCK) {
             if(spriteShader == null)
-                spriteShader = new SourceShader(false, "data/shaders/sprite.vert", "data/shaders/sprite.frag");
+                spriteShader = new BinaryShader(true, "shaders/sprite.vert.spv", "shaders/sprite.frag.spv");
         }
         spriteShader.load();
 

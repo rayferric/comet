@@ -2,6 +2,7 @@ package com.rayferric.comet.scenegraph.component.material;
 
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.math.Vector4f;
+import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
@@ -12,7 +13,7 @@ public class GLTFMaterial extends Material {
 
         synchronized(GLTF_SHADER_LOCK) {
             if(gltfShader == null)
-                gltfShader = new SourceShader(false, "data/shaders/gltf.vert", "data/shaders/gltf.frag");
+                gltfShader = new BinaryShader(true, "shaders/gltf.vert.spv", "shaders/gltf.frag.spv");
         }
         gltfShader.load();
 
@@ -22,6 +23,7 @@ public class GLTFMaterial extends Material {
         setMetallic(1);
         setRoughness(1);
         setEmissive(new Vector3f(0));
+        setUnlit(false);
 
         setColorMap(null);
         setNormalMap(null);
@@ -31,6 +33,14 @@ public class GLTFMaterial extends Material {
     }
 
     // <editor-fold desc="Uniforms">
+
+    public boolean isUnlit() {
+        return readUniformInt(ADDRESS_UNLIT) != 0;
+    }
+
+    public void setUnlit(boolean unlit) {
+        writeUniformData(ADDRESS_UNLIT, new int[] { unlit ? 1 : 0 });
+    }
 
     public Vector4f getColor() {
         return readUniformVector4f(ADDRESS_COLOR);
@@ -112,7 +122,8 @@ public class GLTFMaterial extends Material {
     // </editor-fold>
 
     private static final int ADDRESS_HAS_NORMAL_MAP = 0;
-    private static final int ADDRESS_COLOR = nextStd140(ADDRESS_HAS_NORMAL_MAP, Integer.BYTES, Vector4f.BYTES);
+    private static final int ADDRESS_UNLIT = nextStd140(ADDRESS_HAS_NORMAL_MAP, Integer.BYTES, Integer.BYTES);
+    private static final int ADDRESS_COLOR = nextStd140(ADDRESS_UNLIT, Integer.BYTES, Vector4f.BYTES);
     private static final int ADDRESS_METALLIC = nextStd140(ADDRESS_COLOR, Vector4f.BYTES, Float.BYTES);
     private static final int ADDRESS_ROUGHNESS = nextStd140(ADDRESS_METALLIC, Float.BYTES, Float.BYTES);
     private static final int ADDRESS_EMISSIVE = nextStd140(ADDRESS_ROUGHNESS, Float.BYTES, Vector3f.BYTES);

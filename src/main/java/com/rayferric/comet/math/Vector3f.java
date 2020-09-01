@@ -108,6 +108,10 @@ public class Vector3f {
         return Mathf.sqrt(dot(this));
     }
 
+    public float distance(Vector3f rhs) {
+        return sub(rhs).length();
+    }
+
     public Vector3f normalize() {
         float length = length();
         return length == 0 ? new Vector3f(0) : this.div(length);

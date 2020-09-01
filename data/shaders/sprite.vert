@@ -32,5 +32,5 @@ void main() {
 			T.z, B.z, N.z
 	);
 	
-	gl_Position = u_Frame.projection * u_Frame.view * u_Model.transform * vec4(in_Position, 1);
+	gl_Position = u_Frame.projection * u_Frame.view * u_Model.transform * vec4(in_Position, 1.0);
 }

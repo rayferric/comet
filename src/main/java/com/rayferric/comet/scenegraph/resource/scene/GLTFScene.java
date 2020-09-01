@@ -31,14 +31,16 @@ public class GLTFScene extends AssimpScene {
             IntBuffer max = stack.mallocInt(1).put(1).flip();
             aiGetMaterialIntegerArray(aiMaterial, AI_MATKEY_TWOSIDED, aiTextureType_NONE, 0, buf, max);
             if(buf.get(0) != 0) material.setCulling(false);
+            aiGetMaterialIntegerArray(aiMaterial, aiAI_MATKEY_GLTF_UNLIT, aiTextureType_NONE, 0, buf, max);
+            if(buf.get(0) != 0) material.setUnlit(true);
         }
 
         try(MemoryStack stack = MemoryStack.stackPush()) {
-            IntBuffer buf = stack.mallocInt(1);
+            FloatBuffer buf = stack.mallocFloat(1);
             IntBuffer max = stack.mallocInt(1).put(1).flip();
-            aiGetMaterialIntegerArray(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, aiTextureType_NONE, 0, buf, max);
+            aiGetMaterialFloatArray(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_METALLIC_FACTOR, aiTextureType_NONE, 0, buf, max);
             material.setMetallic(buf.get(0));
-            aiGetMaterialIntegerArray(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, aiTextureType_NONE, 0, buf, max);
+            aiGetMaterialFloatArray(aiMaterial, aiAI_MATKEY_GLTF_PBRMETALLICROUGHNESS_ROUGHNESS_FACTOR, aiTextureType_NONE, 0, buf, max);
             material.setRoughness(buf.get(0));
         }
 

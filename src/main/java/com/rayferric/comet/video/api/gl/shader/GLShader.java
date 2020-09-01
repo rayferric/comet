@@ -5,7 +5,7 @@ import org.lwjgl.system.MemoryStack;
 
 import java.nio.IntBuffer;
 
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public abstract class GLShader implements ServerResource {
     @Override
@@ -24,14 +24,16 @@ public abstract class GLShader implements ServerResource {
     protected void link(int vertShader, int fragShader) {
         handle = glCreateProgram();
 
-        glAttachShader(handle, vertShader);
-        glAttachShader(handle, fragShader);
-        glLinkProgram(handle);
-        glDetachShader(handle, vertShader);
-        glDetachShader(handle, fragShader);
+        if(vertShader != 0) glAttachShader(handle, vertShader);
+        if(fragShader != 0) glAttachShader(handle, fragShader);
 
-        glDeleteShader(vertShader);
-        glDeleteShader(fragShader);
+        glLinkProgram(handle);
+
+        if(vertShader != 0) glDetachShader(handle, vertShader);
+        if(fragShader != 0) glDetachShader(handle, fragShader);
+
+        if(vertShader != 0) glDeleteShader(vertShader);
+        if(fragShader != 0) glDeleteShader(fragShader);
 
         try(MemoryStack stack = MemoryStack.stackPush()) {
             IntBuffer status = stack.mallocInt(1);

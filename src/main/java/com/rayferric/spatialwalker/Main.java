@@ -44,7 +44,7 @@ public class Main {
             Layer overlayLayer = engine.getLayerManager().getLayers()[1];
 
             {
-                Camera camera = new SpectatorCamera(0.1F, 1000, 70);
+                Camera camera = new SpectatorCamera(0.1F, 1000, 40);
                 Transform t = new Transform();
                 t.setTranslation(0, 0, 4);
                 camera.setTransform(t);
@@ -75,7 +75,7 @@ public class Main {
                 overlayLayer.getRoot().addChild(profiler);
             }
 
-            Scene scene = new GLTFScene("data/local/damaged-helmet/DamagedHelmet.gltf");
+            Scene scene = new GLTFScene("data/local/cube.gltf");
             var ref = new Object() {
                 public boolean sceneInstantiated = false;
             };

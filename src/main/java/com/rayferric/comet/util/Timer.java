@@ -33,6 +33,5 @@ public class Timer {
     private static final double INVERSE_FREQUENCY = 1e-9;
 
     private boolean running;
-    private long startTime;
-    private long endTime;
+    private long startTime, endTime;
 }

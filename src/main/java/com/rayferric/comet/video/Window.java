@@ -138,8 +138,8 @@ public abstract class Window {
             maximized = minimized = false;
             applyWindowMode();
 
-            final Vector2i res = monitor.getResolution();
-            glfwSetWindowMonitor(handle, monitor.getHandle(), 0, 0, res.getX(), res.getY(), GLFW_DONT_CARE);
+            Vector2i size = monitor.getResolution();
+            glfwSetWindowMonitor(handle, monitor.getHandle(), 0, 0, size.getX(), size.getY(), GLFW_DONT_CARE);
         } else {
             glfwSetWindowMonitor(handle, NULL, windowedPos.getX(), windowedPos.getY(), windowedSize.getX(),
                     windowedSize.getY(), GLFW_DONT_CARE);

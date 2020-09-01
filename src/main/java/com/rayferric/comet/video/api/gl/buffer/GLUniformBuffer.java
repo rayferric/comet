@@ -4,7 +4,7 @@ import com.rayferric.comet.server.ServerResource;
 
 import java.nio.FloatBuffer;
 
-import static org.lwjgl.opengl.GL43.*;
+import static org.lwjgl.opengl.GL45.*;
 
 public class GLUniformBuffer implements ServerResource {
     public GLUniformBuffer(int size) {

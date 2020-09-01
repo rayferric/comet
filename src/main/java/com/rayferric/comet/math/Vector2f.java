@@ -87,6 +87,10 @@ public class Vector2f {
         return Mathf.sqrt(dot(this));
     }
 
+    public float distance(Vector2f rhs) {
+        return sub(rhs).length();
+    }
+
     public Vector2f normalize() {
         float length = length();
         return length == 0 ? new Vector2f(0) : this.div(length);
