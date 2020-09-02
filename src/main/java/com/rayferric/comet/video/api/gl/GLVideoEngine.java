@@ -176,22 +176,19 @@ public class GLVideoEngine extends VideoEngine {
                     GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
                     if(glGeometry == null) continue;
 
-                    AABB aabb = glGeometry.getAabb();
-                    Vector3f min = modelMatrix.mul(aabb.getMin(), 1);
-                    Vector3f max = modelMatrix.mul(aabb.getMax(), 1);
-                    Vector3f origin = min.add(max).mul(0.5F);
-                    float radius = min.distance(max) * 0.5F;
-                    // aabb.getOrigin(modelMatrix), aabb.getBoundingRadius(modelMatrix)
-                    if(!frustum.containsSphere(new Vector3f(-1), 2)) {
-                        System.out.println("Rejecting: " + model.getName() + " " + frustum.distanceToPoint(new Vector3f(-1)));
-                        continue;
+                    { // Frustum Culling
+                        AABB aabb = glGeometry.getAabb().transform(modelMatrix);
+                        if(!frustum.containsSphere(aabb.getOrigin(), aabb.getBoundingRadius()))
+                            continue;
                     }
 
+                    // Mark if this model is visible, this will be used in the lighting pass.
                     if(!isAnyMeshVisible) {
                         visibleModels.add(model);
                         isAnyMeshVisible = true;
                     }
 
+                    // We only want opaque geometry in the depth buffer.
                     if(material.isTranslucent()) continue;
 
                     if(material.hasCulling())
@@ -233,7 +230,7 @@ public class GLVideoEngine extends VideoEngine {
                     // meshes of a mostly visible model is pointless and wasteful
 
                     if(material.isTranslucent()) {
-                        Vector3f meshOriginViewSpace = glGeometry.getAabb().getOrigin(viewMatrix.mul(modelMatrix));
+                        Vector3f meshOriginViewSpace = glGeometry.getAabb().transform(modelMatrix).getOrigin();
                         float cameraDist = meshOriginViewSpace.length();
                         TranslucentMesh translucentMesh = new TranslucentMesh(mesh, modelMatrix, cameraDist);
                         translucentMeshes.add(translucentMesh);

@@ -11,12 +11,16 @@ public class AABB {
         this.max = max;
     }
 
-    public Vector3f getOrigin(Matrix4f transform) {
-        return transform.mul(min, 1).add(transform.mul(max, 1)).mul(0.5F);
+    public Vector3f getOrigin() {
+        return min.add(max).mul(0.5F);
     }
 
-    public float getBoundingRadius(Matrix4f transform) {
-        return transform.mul(min, 1).distance(transform.mul(max, 1)) * 0.5F;
+    public float getBoundingRadius() {
+        return min.distance(max) * 0.5F;
+    }
+
+    public AABB transform(Matrix4f transform) {
+        return new AABB(transform.mul(min, 1), transform.mul(max, 1));
     }
 
     public Vector3f getMin() {

@@ -55,7 +55,7 @@ public class Frustum {
 
         for(int i = 0; i < 6; i++) {
             Plane plane = planes[i];
-            float lengthInv = plane.normal.length();
+            float lengthInv = 1.0F / plane.normal.length();
             plane.normal = plane.normal.mul(lengthInv);
             plane.distance = plane.distance * lengthInv;
         }
@@ -75,13 +75,29 @@ public class Frustum {
         return true;
     }
 
-    public float distanceToPoint(Vector3f point) {
-        float dist = 100000;
-        for(int i = 0; i < 6; i++) {
-            float d = planes[i].test(point);
-            if(d < dist)dist = d;
-        }
-        return dist;
+    public boolean containsAabb(AABB aabb) {
+        Vector3f min = aabb.getMin();
+        Vector3f max = aabb.getMax();
+
+        // Min X:
+
+        // Min Y
+        if(containsPoint(min)) return true; // Min Z
+        if(containsPoint(new Vector3f(min.getX(), min.getY(), max.getZ()))) return true; // Max Z
+
+        // Max Y
+        if(containsPoint(new Vector3f(min.getX(), max.getY(), min.getZ()))) return true; // Min Z
+        if(containsPoint(new Vector3f(min.getX(), max.getY(), max.getZ()))) return true; // Max Z
+
+        // Max X:
+
+        // Min Y
+        if(containsPoint(new Vector3f(max.getX(), min.getY(), min.getZ()))) return true; // Min Z
+        if(containsPoint(new Vector3f(max.getX(), min.getY(), max.getZ()))) return true; // Max Z
+
+        // Max Y
+        if(containsPoint(new Vector3f(max.getX(), max.getY(), min.getZ()))) return true; // Min Z
+        return containsPoint(new Vector3f(max.getX(), max.getY(), max.getZ())); // Max Z
     }
 
     private static class Plane {
