@@ -43,7 +43,7 @@ public class SpectatorCamera extends PerspectiveCamera {
 
         InputManager inputManager = Engine.getInstance().getInputManager();
 
-        Transform transform = new Transform(getTransform());
+        Transform t = getTransform();
 
         float inputLookYaw = inputManager.getTrackValue("Look Yaw");
         float inputLookPitch = inputManager.getTrackValue("Look Pitch");
@@ -58,10 +58,10 @@ public class SpectatorCamera extends PerspectiveCamera {
             pitchMomentum += inputLookPitch * MOUSE_ACCELERATION;
             yawMomentum += inputLookYaw * MOUSE_ACCELERATION;
 
-            Vector3f euler = transform.getRotation().toEuler();
+            Vector3f euler = t.getRotation().toEuler();
             float pitch = Mathf.clamp(euler.getX() + pitchMomentum * (float)delta, -89, 89);
             float yaw = euler.getY() + yawMomentum * (float)delta;
-            transform.setRotation(pitch, yaw, 0);
+            t.setRotation(pitch, yaw, 0);
 
             float maxSpeed = MAX_SPEED, acceleration = ACCELERATION;
             if(inputManager.getActionState("Sprint")) {
@@ -76,25 +76,23 @@ public class SpectatorCamera extends PerspectiveCamera {
             velocity = velocity.add(moveDir.mul((float)delta * acceleration));
             velocity = velocity.normalize().mul(Math.min(velocity.length(), maxSpeed));
 
-            transform.translate(velocity.mul((float)delta));
+            t.translate(velocity.mul((float)delta));
         } else {
             float pitchDelta = inputLookPitch * 0.075F;
             float yawDelta = inputLookYaw * 0.075F;
 
-            Vector3f euler = transform.getRotation().toEuler();
+            Vector3f euler = t.getRotation().toEuler();
             float pitch = Mathf.clamp(euler.getX() + pitchDelta, -89, 89);
             float yaw = euler.getY() + yawDelta;
-            transform.setRotation(pitch, yaw, 0);
+            t.setRotation(pitch, yaw, 0);
 
             float speed = MAX_SPEED;
             if(inputManager.getActionState("Sprint"))speed *= 4;
 
             Vector3f moveDir = new Vector3f(inputMoveX, inputMoveY, inputMoveZ).normalize().mul(speed);
             moveDir = Quaternion.eulerAngle(pitch, yaw, 0).mul(moveDir);
-            transform.translate(moveDir.mul((float)delta));
+            t.translate(moveDir.mul((float)delta));
         }
-
-        setTransform(transform);
     }
 
     @Override

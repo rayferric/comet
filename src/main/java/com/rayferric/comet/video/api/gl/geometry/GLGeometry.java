@@ -16,7 +16,7 @@ public class GLGeometry implements ServerResource {
         float[] vertices = data.getVertices();
         int[] indices = data.getIndices();
 
-        vertexCount = vertices.length;
+        vertexCount = vertices.length / 11;
         indexCount = indices.length;
 
         aabb = data.getAabb();

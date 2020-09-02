@@ -10,7 +10,6 @@ import com.rayferric.comet.scenegraph.component.material.Material;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.component.Mesh;
 import com.rayferric.comet.scenegraph.node.model.Model;
-import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.ResourceLoader;
 import com.rayferric.comet.util.Timer;
@@ -141,21 +140,25 @@ public class GLVideoEngine extends VideoEngine {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
+        int totalVerticesDrawn = 0, totalIndicesDrawn = 0;
+
         Vector2i size = getSize();
         float ratio = (float)size.getX() / size.getY();
         for(Layer layer : Engine.getInstance().getLayerManager().getLayers()) {
             Camera camera = layer.getCamera();
-            Matrix4f projectionMatrix = (camera == null ? Matrix4f.IDENTITY : camera.getProjection(ratio));
-            Matrix4f viewMatrix = (camera == null ? Matrix4f.IDENTITY : camera.getGlobalTransform().getMatrix().inverse());
+            if(camera == null) continue;
+            Matrix4f projectionMatrix = camera.getProjection(ratio);
+            Matrix4f viewMatrix = camera.getGlobalTransform().inverse();
             updateFrameUBO(projectionMatrix, viewMatrix);
 
             Frustum frustum = new Frustum(projectionMatrix.mul(viewMatrix));
 
             LayerIndex index = layer.getIndex();
             List<Model> allModels = index.getModels();
-            List<Model> visibleModels = new ArrayList<>(allModels.size());
+            opaqueModels.clear();
+            translucentMeshes.clear();
 
-            // <editor-fold desc="Early Z-Pass">
+            // <editor-fold desc="Early Z-Pass + Translucency Sorting + Vertex Counting">
 
             glColorMask(false, false, false, false);
             glDepthMask(true);
@@ -165,31 +168,41 @@ public class GLVideoEngine extends VideoEngine {
             for(Model model : allModels) {
                 if(!model.isVisible()) continue;
 
-                Matrix4f modelMatrix = model.getGlobalTransform().getMatrix();
+                Matrix4f modelMatrix = model.getGlobalTransform();
                 updateModelUBO(modelMatrix);
 
-                boolean isAnyMeshVisible = false;
-                for(Mesh mesh : model.snapMeshes()) {
+                OpaqueModel opaqueModel = null;
+
+                List<Mesh> meshes = model.snapMeshes();
+                for(Mesh mesh : meshes) {
                     Material material = mesh.getMaterial();
                     if(material == null) continue;
 
                     GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
                     if(glGeometry == null) continue;
 
-                    { // Frustum Culling
-                        AABB aabb = glGeometry.getAabb().transform(modelMatrix);
-                        if(!frustum.containsSphere(aabb.getOrigin(), aabb.getBoundingRadius()))
-                            continue;
-                    }
+                    AABB aabb = glGeometry.getAabb().transform(modelMatrix);
+                    Vector3f meshOriginWorldSpace = aabb.getOrigin();
 
-                    // Mark if this model is visible, this will be used in the lighting pass.
-                    if(!isAnyMeshVisible) {
-                        visibleModels.add(model);
-                        isAnyMeshVisible = true;
-                    }
+                    // World Space Frustum Culling
+                    if(!frustum.containsSphere(meshOriginWorldSpace, aabb.getBoundingRadius()))
+                        continue;
 
                     // We only want opaque geometry in the depth buffer.
-                    if(material.isTranslucent()) continue;
+                    // We also want to calculate distance to the camera to sort the translucency list later on.
+                    if(material.isTranslucent()) {
+                        TranslucentMesh translucentMesh = new TranslucentMesh();
+                        translucentMesh.mesh = mesh;
+                        translucentMesh.modelMatrix = modelMatrix;
+                        translucentMesh.cameraDistance = viewMatrix.mul(meshOriginWorldSpace, 1).length();
+                        translucentMeshes.add(translucentMesh);
+                        continue;
+                    }
+
+                    // Identify opaque geometry just like we did with translucent meshes.
+                    if(opaqueModel == null)
+                        opaqueModels.add(opaqueModel = new OpaqueModel(meshes.size(), modelMatrix));
+                    opaqueModel.meshes.add(mesh);
 
                     if(material.hasCulling())
                         glEnable(GL_CULL_FACE);
@@ -203,6 +216,9 @@ public class GLVideoEngine extends VideoEngine {
                 }
             }
 
+            // Translucency must be drawn back-to-front.
+            translucentMeshes.sort(Collections.reverseOrder());
+
             // </editor-fold>
 
             // <editor-fold desc="Lighting Pass">
@@ -211,105 +227,55 @@ public class GLVideoEngine extends VideoEngine {
             glDepthMask(false);
             glDepthFunc(GL_LEQUAL);
 
-            List<TranslucentMesh> translucentMeshes = new ArrayList<>();
-
-            for(Model model : visibleModels) {
-                if(!model.isVisible()) continue;
-
-                Matrix4f modelMatrix = model.getGlobalTransform().getMatrix();
-                updateModelUBO(modelMatrix);
-
-                for(Mesh mesh : model.snapMeshes()) {
+            for(OpaqueModel opaqueModel : opaqueModels) {
+                updateModelUBO(opaqueModel.modelMatrix);
+                for(Mesh mesh : opaqueModel.meshes) {
                     Material material = mesh.getMaterial();
-                    if(material == null) continue;
+                    if(material == null) continue; // The material could've been changed on another thread.
+
+                    // We already have the translucentMeshes list that holds all the translucent
+                    // meshes in the right order, therefore we can simply skip processing them here.
+                    if(material.isTranslucent()) continue;
 
                     GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
-                    if(glGeometry == null) continue;
+                    if(glGeometry == null) continue; // The geometry could've been changed on another thread too.
 
-                    // Here the geometry would be frustum tested, but culling individual
-                    // meshes of a mostly visible model is pointless and wasteful
+                    // Here, the geometry could be frustum tested, but hiding individual
+                    // meshes of a mostly visible model is a waste of CPU time.
 
-                    if(material.isTranslucent()) {
-                        Vector3f meshOriginViewSpace = glGeometry.getAabb().transform(modelMatrix).getOrigin();
-                        float cameraDist = meshOriginViewSpace.length();
-                        TranslucentMesh translucentMesh = new TranslucentMesh(mesh, modelMatrix, cameraDist);
-                        translucentMeshes.add(translucentMesh);
-                        continue;
-                    }
-
-                    if(material.hasCulling())
-                        glEnable(GL_CULL_FACE);
-                    else
-                        glDisable(GL_CULL_FACE);
-
-                    GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
-                    if(glShader == null) continue;
-                    glShader.bind();
-
-                    GLUniformBuffer glUniformBuffer =
-                            (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
-                    if(glUniformBuffer == null) continue;
-                    if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
-                        try(MemoryStack stack = MemoryStack.stackPush()) {
-                            glUniformBuffer.update(material.snapUniformData(stack));
-                        }
-                    }
-                    glUniformBuffer.bind(2);
-
-                    material.getTextures().forEach((binding, texture) -> {
-                        glActiveTexture(GL_TEXTURE0 + binding);
-                        ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
-                    });
+                    if(!useMaterial(material)) continue;
 
                     glGeometry.bind();
+                    totalVerticesDrawn += glGeometry.getVertexCount();
+                    totalIndicesDrawn += glGeometry.getIndexCount();
 
                     glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
                 }
             }
 
-            // Translucency must be drawn back-to-front.
-            translucentMeshes.sort(Collections.reverseOrder());
-
             for(TranslucentMesh translucentMesh : translucentMeshes) {
-                Matrix4f modelMatrix = translucentMesh.getModelMatrix();
-                updateModelUBO(modelMatrix);
+                updateModelUBO(translucentMesh.modelMatrix);
 
-                Mesh mesh = translucentMesh.getMesh();
-                Material material = mesh.getMaterial();
+                Material material = translucentMesh.mesh.getMaterial();
+                if(material == null) continue;
 
-                if(material.hasCulling())
-                    glEnable(GL_CULL_FACE);
-                else
-                    glDisable(GL_CULL_FACE);
+                if(!useMaterial(material)) continue;
 
-                GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
-                if(glShader == null) continue;
-                glShader.bind();
-
-                GLUniformBuffer glUniformBuffer =
-                        (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
-                if(glUniformBuffer == null) continue;
-                if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
-                    try(MemoryStack stack = MemoryStack.stackPush()) {
-                        glUniformBuffer.update(material.snapUniformData(stack));
-                    }
-                }
-                glUniformBuffer.bind(2);
-
-                material.getTextures().forEach((binding, texture) -> {
-                    glActiveTexture(GL_TEXTURE0 + binding);
-                    ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
-                });
-
-                GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
+                GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(translucentMesh.mesh.getGeometry());
                 if(glGeometry == null) continue;
                 glGeometry.bind();
+                totalVerticesDrawn += glGeometry.getVertexCount();
+                totalIndicesDrawn += glGeometry.getIndexCount();
 
                 glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
             }
 
             // </editor-fold>
         }
+
+        VideoInfo videoInfo = Engine.getInstance().getVideoServer().getVideoInfo();
+        videoInfo.setVertexCount(totalVerticesDrawn);
+        videoInfo.setTriangleCount(totalIndicesDrawn / 3);
 
         // End of drawing code.
 
@@ -324,7 +290,7 @@ public class GLVideoEngine extends VideoEngine {
         Engine.getInstance().getProfiler().getCpuAccumulator().accumulate(cpuDelta);
 
         int error = glGetError();
-        if(error != 0)
+        if(error != GL_NO_ERROR)
             throw new RuntimeException("Encountered OpenGL error: " + error);
     }
 
@@ -356,29 +322,25 @@ public class GLVideoEngine extends VideoEngine {
         return texture;
     }
 
-    private static class TranslucentMesh implements Comparable<TranslucentMesh> {
-        public TranslucentMesh(Mesh mesh, Matrix4f modelMatrix, float cameraDistance) {
-            this.mesh = mesh;
+    private static class OpaqueModel {
+        public OpaqueModel(int numMeshes, Matrix4f modelMatrix) {
+            meshes = new ArrayList<>(numMeshes);
             this.modelMatrix = modelMatrix;
-            this.cameraDistance = cameraDistance;
         }
+
+        public List<Mesh> meshes;
+        public Matrix4f modelMatrix;
+    }
+
+    private static class TranslucentMesh implements Comparable<TranslucentMesh> {
+        public Mesh mesh;
+        public Matrix4f modelMatrix;
+        public float cameraDistance;
 
         @Override
         public int compareTo(TranslucentMesh other) {
             return cameraDistance > other.cameraDistance ? 1 : -1;
         }
-
-        public Mesh getMesh() {
-            return mesh;
-        }
-
-        public Matrix4f getModelMatrix() {
-            return modelMatrix;
-        }
-
-        private final Mesh mesh;
-        private final Matrix4f modelMatrix;
-        private final float cameraDistance;
     }
 
     private static final int FRAME_UBO_BYTES = 2 * Matrix4f.BYTES;
@@ -390,6 +352,8 @@ public class GLVideoEngine extends VideoEngine {
     private GLUniformBuffer modelUBO;
     private GLGeometry drawQuad;
     private GLShader depthShader;
+    List<OpaqueModel> opaqueModels = new ArrayList<>();
+    List<TranslucentMesh> translucentMeshes = new ArrayList<>();
 
     private void updateFrameUBO(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         try(MemoryStack stack = MemoryStack.stackPush()) {
@@ -408,69 +372,33 @@ public class GLVideoEngine extends VideoEngine {
         }
     }
 
-    private List<Model> drawModels(List<Model> models, boolean opaqueOnly) {
-        int totalVertices = 0;
-        int totalIndices = 0;
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
+    private boolean useMaterial(Material material) {
+        if(material.hasCulling())
+            glEnable(GL_CULL_FACE);
+        else
+            glDisable(GL_CULL_FACE);
 
-        List<Model> translucentModels = new ArrayList<>(models.size());
+        GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
+        if(glShader == null) return false;
+        glShader.bind();
 
-        for(Model model : models) {
-            if(!model.isVisible()) continue;
-
-            Matrix4f modelMatrix = model.getGlobalTransform().getMatrix();
-            updateModelUBO(modelMatrix);
-
-            boolean registeredTranslucent = false;
-            for(Mesh mesh : model.snapMeshes()) {
-                Material material = mesh.getMaterial();
-                if(material == null) continue;
-
-                if(opaqueOnly && material.isTranslucent() && !registeredTranslucent) {
-                    translucentModels.add(model);
-                    registeredTranslucent = true;
-                    continue;
-                }
-
-                if(material.hasCulling())
-                    glEnable(GL_CULL_FACE);
-                else
-                    glDisable(GL_CULL_FACE);
-
-                GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
-                if(glShader == null) continue;
-                glShader.bind();
-
-                GLUniformBuffer glUniformBuffer =
-                        (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
-                if(glUniformBuffer == null) continue;
-                if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
-                    try(MemoryStack stack = MemoryStack.stackPush()) {
-                        glUniformBuffer.update(material.snapUniformData(stack));
-                    }
-                }
-                glUniformBuffer.bind(2);
-
-                material.getTextures().forEach((binding, texture) -> {
-                    glActiveTexture(GL_TEXTURE0 + binding);
-                    ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
-                });
-
-                GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
-                if(glGeometry == null) continue;
-                glGeometry.bind();
-
-                int indexCount = glGeometry.getIndexCount();
-                glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_INT, 0);
-                totalVertices += glGeometry.getVertexCount();
-                totalIndices += indexCount;
+        GLUniformBuffer glUniformBuffer =
+                (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
+        if(glUniformBuffer == null) return false;
+        if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
+            try(MemoryStack stack = MemoryStack.stackPush()) {
+                glUniformBuffer.update(material.snapUniformData(stack));
             }
         }
+        glUniformBuffer.bind(2);
 
-        VideoInfo videoInfo = Engine.getInstance().getVideoServer().getVideoInfo();
-        videoInfo.setVertexCount(totalVertices);
-        videoInfo.setTriangleCount(totalIndices / 3);
+        material.getTextures().forEach((binding, texture) -> {
+            glActiveTexture(GL_TEXTURE0 + binding);
+            ((GLTexture)getServerTexture2DOrDefault(texture)).bind();
+        });
 
-        return translucentModels;
+        return true;
     }
 
     private int queryTotalVRam(String deviceVendor) {

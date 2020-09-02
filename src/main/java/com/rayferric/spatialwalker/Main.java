@@ -28,7 +28,7 @@ public class Main {
         info.setWindowSize(new Vector2i(1280, 720));
 
         info.setVideoApi(VideoAPI.OPENGL);
-        info.setVSync(true);
+        info.setVSync(false);
         info.setTextureFilter(TextureFilter.TRILINEAR);
         info.setTextureAnisotropy(8);
 
@@ -45,9 +45,7 @@ public class Main {
 
             {
                 Camera camera = new SpectatorCamera(0.1F, 1000, 80);
-                Transform t = new Transform();
-                t.setTranslation(0, 0, 4);
-                camera.setTransform(t);
+                camera.getTransform().setTranslation(0, 0, 4);
                 mainLayer.getRoot().addChild(camera);
                 mainLayer.setCamera(camera);
             }
@@ -56,17 +54,13 @@ public class Main {
                 overlayLayer.setCamera(camera);
             }
 
-            /*Rotor rotor = new Rotor();
+            Rotor rotor = new Rotor();
             mainLayer.getRoot().addChild(rotor);
 
             Sprite sprite = new Sprite();
             sprite.setTexture(new ImageTexture(false, "data/textures/texture.png", true));
-            {
-                Transform t = new Transform();
-                t.setTranslation(0, 0, -1);
-                sprite.setTransform(t);
-            }
-            rotor.addChild(sprite);*/
+            sprite.getTransform().setTranslation(0, 0, -1);
+            rotor.addChild(sprite);
 
             mainLayer.getRoot().initAll();
 
@@ -75,7 +69,7 @@ public class Main {
                 overlayLayer.getRoot().addChild(profiler);
             }
 
-            Scene scene = new GLTFScene("C:\\Users\\User\\Documents\\Source\\comet\\data\\local\\sponza-gltf-pbr/sponza.glb");
+            Scene scene = new GLTFScene("data/local/cave_in_ww1_base_maununneva_helsinki_finland/scene.gltf");
             var ref = new Object() {
                 public boolean sceneInstantiated = false;
             };

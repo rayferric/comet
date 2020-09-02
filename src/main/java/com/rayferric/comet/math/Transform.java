@@ -1,52 +1,33 @@
 package com.rayferric.comet.math;
 
-import java.util.Objects;
+import com.rayferric.comet.scenegraph.node.Node;
 
 public class Transform {
-    public Transform() {
+    public Transform(Node owner) {
+        this.owner = owner;
         this.matrix = new Matrix4f(1);
     }
 
-    public Transform(Matrix4f matrix) {
-        this.matrix = new Matrix4f(matrix);
-    }
-
-    public Transform(Transform other) {
-        this.matrix = new Matrix4f(other.matrix);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if(this == o) return true;
-        if(o == null || getClass() != o.getClass()) return false;
-        Transform other = (Transform)o;
-        return Objects.equals(matrix, other.matrix);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(matrix);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("Transform{matrix=%s}", matrix);
-    }
-
     public Vector3f getTranslation() {
-        Vector4f w = matrix.getW();
-        return new Vector3f(w.getX(), w.getY(), w.getZ());
+        synchronized(matrixLock) {
+            Vector4f w = matrix.getW();
+            return new Vector3f(w.getX(), w.getY(), w.getZ());
+        }
     }
 
     public void setTranslation(float x, float y, float z) {
-        matrix.setW(new Vector4f(x, y, z, 1));
+        synchronized(matrixLock) {
+            matrix.setW(new Vector4f(x, y, z, 1));
+        }
+
+        owner.invalidateGlobalTransform();
     }
 
     public void setTranslation(Vector3f translation) {
         setTranslation(translation.getX(), translation.getY(), translation.getZ());
     }
 
-    public void  translate(Vector3f translation) {
+    public void translate(Vector3f translation) {
         setTranslation(getTranslation().add(translation));
     }
 
@@ -55,9 +36,12 @@ public class Transform {
     }
 
     public Quaternion getRotation() {
-        Vector4f x = matrix.getX().normalize();
-        Vector4f y = matrix.getY().normalize();
-        Vector4f z = matrix.getZ().normalize();
+        Vector4f x, y, z;
+        synchronized(matrixLock) {
+            x = matrix.getX().normalize();
+            y = matrix.getY().normalize();
+            z = matrix.getZ().normalize();
+        }
 
         float xx = x.getX();
         float yy = y.getY();
@@ -69,23 +53,19 @@ public class Transform {
         if(zz < 0) {
             if(xx > yy) {
                 t = 1 + xx - yy - zz;
-                // q = quat( t, m01+m10, m20+m02, m12-m21 );
                 q = new Quaternion(y.getZ() - z.getY(), t, x.getY() + y.getX(), z.getX() + x.getZ());
             }
             else {
                 t = 1 - xx + yy - zz;
-                // q = quat( m01+m10, t, m12+m21, m20-m02 );
                 q = new Quaternion(z.getX() - x.getZ(), x.getY() + y.getX(), t, y.getZ() + z.getY());
             }
         } else {
             if(xx < -yy) {
                 t = 1 - xx - yy + zz;
-                // q = quat( m20+m02, m12+m21, t, m01-m10 );
                 q = new Quaternion(x.getY() - y.getX(), z.getX() + x.getZ(), y.getZ() + z.getY(), t);
             }
             else {
                 t = 1 + xx + yy + zz;
-                // q = quat( m12-m21, m20-m02, m01-m10, t );
                 q = new Quaternion(t, y.getZ() - z.getY(), z.getX() - x.getZ(), x.getY() - y.getX());
             }
         }
@@ -97,9 +77,13 @@ public class Transform {
         Vector3f scale = getScale();
         Matrix4f m = rotation.toMatrix();
 
-        matrix.setX(m.getX().mul(scale.getX()));
-        matrix.setY(m.getY().mul(scale.getY()));
-        matrix.setZ(m.getZ().mul(scale.getZ()));
+        synchronized(matrixLock) {
+            matrix.setX(m.getX().mul(scale.getX()));
+            matrix.setY(m.getY().mul(scale.getY()));
+            matrix.setZ(m.getZ().mul(scale.getZ()));
+        }
+
+        owner.invalidateGlobalTransform();
     }
 
     public void setRotation(float pitch, float yaw, float roll) {
@@ -123,13 +107,19 @@ public class Transform {
     }
 
     public Vector3f getScale() {
-        return new Vector3f(matrix.getX().length(), matrix.getY().length(), matrix.getZ().length());
+        synchronized(matrixLock) {
+            return new Vector3f(matrix.getX().length(), matrix.getY().length(), matrix.getZ().length());
+        }
     }
 
     public void setScale(float x, float y, float z) {
-        matrix.setX(matrix.getX().normalize().mul(x));
-        matrix.setY(matrix.getY().normalize().mul(y));
-        matrix.setZ(matrix.getZ().normalize().mul(z));
+        synchronized(matrixLock) {
+            matrix.setX(matrix.getX().normalize().mul(x));
+            matrix.setY(matrix.getY().normalize().mul(y));
+            matrix.setZ(matrix.getZ().normalize().mul(z));
+        }
+
+        owner.invalidateGlobalTransform();
     }
 
     public void setScale(Vector3f scale) {
@@ -152,21 +142,20 @@ public class Transform {
         scale(scale, scale, scale);
     }
 
-    public Transform add(Transform rhs) {
-        return new Transform(matrix.mul(rhs.matrix));
-    }
-
-    public Transform sub(Transform rhs) {
-        return new Transform(matrix.mul(rhs.matrix.inverse()));
-    }
-
     public Matrix4f getMatrix() {
-        return matrix;
+        synchronized(matrixLock) {
+            return new Matrix4f(matrix);
+        }
     }
 
     public void setMatrix(Matrix4f matrix) {
-        this.matrix = matrix;
+        synchronized(matrixLock) {
+            this.matrix = new Matrix4f(matrix);
+        }
+        owner.invalidateGlobalTransform();
     }
 
+    private final Node owner;
     private Matrix4f matrix;
+    private final Object matrixLock = new Object();
 }

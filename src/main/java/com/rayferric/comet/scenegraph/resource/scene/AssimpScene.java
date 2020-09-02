@@ -135,14 +135,13 @@ public abstract class AssimpScene extends Scene {
 
         node.setName(aiNode.mName().dataString());
 
-        AIMatrix4x4 matrix = aiNode.mTransformation();
-        Transform transform = new Transform(new Matrix4f(
-                matrix.a1(), matrix.b1(), matrix.c1(), matrix.d1(),
-                matrix.a2(), matrix.b2(), matrix.c2(), matrix.d2(),
-                matrix.a3(), matrix.b3(), matrix.c3(), matrix.d3(),
-                matrix.a4(), matrix.b4(), matrix.c4(), matrix.d4()
+        AIMatrix4x4 m = aiNode.mTransformation();
+        node.getTransform().setMatrix(new Matrix4f(
+                m.a1(), m.b1(), m.c1(), m.d1(),
+                m.a2(), m.b2(), m.c2(), m.d2(),
+                m.a3(), m.b3(), m.c3(), m.d3(),
+                m.a4(), m.b4(), m.c4(), m.d4()
         ));
-        node.setTransform(transform);
 
         return node;
     }

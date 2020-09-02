@@ -17,7 +17,6 @@ import java.util.concurrent.atomic.AtomicReference;
 public class Node {
     public Node() {
         name.set("Node");
-        setTransform(new Transform());
     }
 
     /**
@@ -100,33 +99,34 @@ public class Node {
 
     /**
      * Retrieves current transform of the node.<br>
-     * • Returns the a reference to the original object.<br>
-     * • The return value must not be ever modified, but may be read from.<br>
-     * • May be called from any thread.
+     * • Returns the reference to the underlying {@link Transform}.<br>
+     * • Access to all {@link Transform} methods is synchronized.
      *
      * @return read-only transform
      */
     public Transform getTransform() {
-        return transform.get();
+        return transform;
     }
 
-    /**
-     * Sets the current transform of the node.<br>
-     * • Does not copy the parameter.<br>
-     * • The passed value must not be modified from now on, but may be read from.<br>
-     * • May be called from any thread.
-     *
-     * @param transform read-only transform
-     */
-    public void setTransform(Transform transform) {
-        this.transform.set(transform);
-        invalidateGlobalTransform();
-    }
-
-    public Transform getGlobalTransform() {
+    public Matrix4f getGlobalTransform() {
         synchronized(globalTransformValidLock) {
-            if(!globalTransformValid) updateGlobalTransform();
+            if(!globalTransformValid) {
+                Node parent = getParent();
+                if(parent != null) globalTransformCache = parent.getGlobalTransform().mul(transform.getMatrix());
+                else globalTransformCache = transform.getMatrix();
+                globalTransformValid = true;
+            }
             return globalTransformCache;
+        }
+    }
+
+    public void invalidateGlobalTransform() {
+        synchronized(globalTransformValidLock) {
+            globalTransformValid = false;
+        }
+        synchronized(childrenLock) {
+            for(Node child : children)
+                child.invalidateGlobalTransform();
         }
     }
 
@@ -234,30 +234,13 @@ public class Node {
     private final List<Node> children = new ArrayList<>();
     private final Object childrenLock = new Object();
 
-    private final AtomicReference<Transform> transform = new AtomicReference<>();
+    private final Transform transform = new Transform(this);
 
-    private Transform globalTransformCache;
-    private boolean globalTransformValid;
+    private Matrix4f globalTransformCache;
+    private boolean globalTransformValid = false;
     private final Object globalTransformValidLock = new Object();
 
     private final AtomicBoolean visible = new AtomicBoolean(true);
 
     private boolean updateEnabled = false, inputEnabled = false;
-
-    private void updateGlobalTransform() {
-        Node parent = getParent();
-        if(parent != null) globalTransformCache = parent.getGlobalTransform().add(getTransform());
-        else globalTransformCache = getTransform();
-        globalTransformValid = true;
-    }
-
-    private void invalidateGlobalTransform() {
-        synchronized(globalTransformValidLock) {
-            globalTransformValid = false;
-        }
-        synchronized(childrenLock) {
-            for(Node child : children)
-                child.invalidateGlobalTransform();
-        }
-    }
 }

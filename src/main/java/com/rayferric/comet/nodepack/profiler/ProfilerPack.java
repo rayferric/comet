@@ -23,184 +23,173 @@ public class ProfilerPack implements NodePack {
 
         Font font = new Font(true, "fonts/share-tech-mono-bold.fnt");
 
-        {
-            Label fpsLabel = new Label();
-            fpsLabel.setName("FPS Label");
-            fpsLabel.setFont(font);
-            fpsLabel.setHAlign(HorizontalAlignment.RIGHT);
-            fpsLabel.getMaterial().setColor(new Vector4f(1));
-            root.addChild(fpsLabel);
+        { // FPS Label
+            Label label = new Label();
+            label.setName("FPS Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            root.addChild(label);
         }
-        {
-            Label fpsLabel = new Label();
-            fpsLabel.setName("Frame Time Label");
-            fpsLabel.setFont(font);
-            fpsLabel.setHAlign(HorizontalAlignment.RIGHT);
-            fpsLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -1, 0);
-            fpsLabel.setTransform(t);
-            root.addChild(fpsLabel);
+        { // Frame Time Label
+            Label label = new Label();
+            label.setName("Frame Time Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -1, 0);
+            root.addChild(label);
         }
-        {
-            Label videoTimeHeaderLabel = new Label();
-            videoTimeHeaderLabel.setText("(ms) min avg max");
-            videoTimeHeaderLabel.setFont(font);
-            videoTimeHeaderLabel.setHAlign(HorizontalAlignment.RIGHT);
-            videoTimeHeaderLabel.getMaterial().setColor(new Vector4f(1));
-            videoTimeHeaderLabel.getMaterial().setSoftness(0.2F);
-            Transform t = new Transform();
-            t.setTranslation(0, -3, 0);
-            videoTimeHeaderLabel.setTransform(t);
-            root.addChild(videoTimeHeaderLabel);
+        { // CPU + GPU Times Head Label
+            Label label = new Label();
+            label.setText("(ms) min avg max");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -3, 0);
+            root.addChild(label);
         }
-        {
-            Label cpuTimeLabel = new Label();
-            cpuTimeLabel.setName("CPU Time Label");
-            cpuTimeLabel.setFont(font);
-            cpuTimeLabel.setHAlign(HorizontalAlignment.RIGHT);
-            cpuTimeLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -4, 0);
-            cpuTimeLabel.setTransform(t);
-            root.addChild(cpuTimeLabel);
+        { // CPU Time Label
+            Label label = new Label();
+            label.setName("CPU Time Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -4, 0);
+            root.addChild(label);
         }
-        {
-            Label cpuTimeLabel = new Label();
-            cpuTimeLabel.setName("GPU Time Label");
-            cpuTimeLabel.setFont(font);
-            cpuTimeLabel.setHAlign(HorizontalAlignment.RIGHT);
-            cpuTimeLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -5, 0);
-            cpuTimeLabel.setTransform(t);
-            root.addChild(cpuTimeLabel);
+        { // GPU Time Label
+            Label label = new Label();
+            label.setName("GPU Time Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -5, 0);
+            root.addChild(label);
         }
-        {
-            Label cheapMemoryLabel = new Label();
-            cheapMemoryLabel.setName("Cheap Memory Label");
-            cheapMemoryLabel.setFont(font);
-            cheapMemoryLabel.setHAlign(HorizontalAlignment.RIGHT);
-            cheapMemoryLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -7, 0);
-            cheapMemoryLabel.setTransform(t);
-            root.addChild(cheapMemoryLabel);
+        { // Cheap Memory Label
+            Label label = new Label();
+            label.setName("Cheap Memory Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -7, 0);
+            root.addChild(label);
         }
-        {
-            Label videoMemoryLabel = new Label();
-            videoMemoryLabel.setName("Video Memory Label");
-            videoMemoryLabel.setFont(font);
-            videoMemoryLabel.setHAlign(HorizontalAlignment.RIGHT);
-            videoMemoryLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -8, 0);
-            videoMemoryLabel.setTransform(t);
-            root.addChild(videoMemoryLabel);
+        { // Video Memory Label
+            Label label = new Label();
+            label.setName("Video Memory Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -8, 0);
+            root.addChild(label);
         }
-        {
-            Label javaVersionLabel = new Label();
-            javaVersionLabel.setFont(font);
-            javaVersionLabel.setText("Java " + Runtime.version());
-            javaVersionLabel.setHAlign(HorizontalAlignment.RIGHT);
-            javaVersionLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -10, 0);
-            javaVersionLabel.setTransform(t);
-            root.addChild(javaVersionLabel);
+        { // Vertices Label
+            Label label = new Label();
+            label.setName("Vertices Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -10, 0);
+            root.addChild(label);
         }
-        {
-            Label gpuModelLabel = new Label();
-            gpuModelLabel.setText(Engine.getInstance().getVideoServer().getVideoInfo().getDeviceModel());
-            gpuModelLabel.setFont(font);
-            gpuModelLabel.setHAlign(HorizontalAlignment.RIGHT);
-            gpuModelLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -11, 0);
-            gpuModelLabel.setTransform(t);
-            root.addChild(gpuModelLabel);
+        { // Triangles Label
+            Label label = new Label();
+            label.setName("Triangles Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -11, 0);
+            root.addChild(label);
         }
-        {
-            Label videoApiVersionLabel = new Label();
-            videoApiVersionLabel.setName("Video API Version Label");
-            videoApiVersionLabel.setFont(font);
-            videoApiVersionLabel.setHAlign(HorizontalAlignment.RIGHT);
-            videoApiVersionLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -12, 0);
-            videoApiVersionLabel.setTransform(t);
-            root.addChild(videoApiVersionLabel);
+        { // Java Version Label
+            Label label = new Label();
+            label.setFont(font);
+            label.setText("Java " + Runtime.version());
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -13, 0);
+            root.addChild(label);
         }
-        {
-            Label shaderVersionLabel = new Label();
-            shaderVersionLabel.setName("Shader Version Label");
-            shaderVersionLabel.setFont(font);
-            shaderVersionLabel.setHAlign(HorizontalAlignment.RIGHT);
-            shaderVersionLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(0, -13, 0);
-            shaderVersionLabel.setTransform(t);
-            root.addChild(shaderVersionLabel);
+        { // Device Model Label
+            Label label = new Label();
+            label.setText(Engine.getInstance().getVideoServer().getVideoInfo().getDeviceModel());
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -14, 0);
+            root.addChild(label);
         }
-        {
-            Label cpuGraphLabel = new Label();
-            cpuGraphLabel.setText("CPU: ");
-            cpuGraphLabel.setFont(font);
-            cpuGraphLabel.setHAlign(HorizontalAlignment.RIGHT);
-            cpuGraphLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(-8, -16, 0);
-            cpuGraphLabel.setTransform(t);
-            root.addChild(cpuGraphLabel);
+        { // Video API Version Label
+            Label label = new Label();
+            label.setName("Video API Version Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -15, 0);
+            root.addChild(label);
         }
-        {
-            Sprite cpuGraphBg = new Sprite();
-            cpuGraphBg.getMaterial().setColor(new Vector4f(0, 0, 0, 0.5F));
-            cpuGraphBg.getMaterial().setTranslucent(true);
-            Transform t = new Transform();
-            t.setTranslation(-4, -16, -1);
-            t.setScale(8, 2, 1);
-            cpuGraphBg.setTransform(t);
-            root.addChild(cpuGraphBg);
+        { // Shader Version Label
+            Label label = new Label();
+            label.setName("Shader Version Label");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(0, -16, 0);
+            root.addChild(label);
         }
-        {
-            Graph cpuGraph = new Graph();
-            cpuGraph.setName("CPU Graph");
-            Transform t = new Transform();
-            t.setTranslation(-8, -17, 0);
-            t.setScale(8, 2, 1);
-            cpuGraph.setTransform(t);
-            root.addChild(cpuGraph);
+        { // CPU Graph Label
+            Label label = new Label();
+            label.setText("CPU: ");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(-8, -19, 0);
+            root.addChild(label);
         }
-        {
-            Label gpuGraphLabel = new Label();
-            gpuGraphLabel.setText("GPU: ");
-            gpuGraphLabel.setFont(font);
-            gpuGraphLabel.setHAlign(HorizontalAlignment.RIGHT);
-            gpuGraphLabel.getMaterial().setColor(new Vector4f(1));
-            Transform t = new Transform();
-            t.setTranslation(-8, -19, 0);
-            gpuGraphLabel.setTransform(t);
-            root.addChild(gpuGraphLabel);
-        }
-        {
-            Sprite gpuGraphBg = new Sprite();
-            gpuGraphBg.getMaterial().setColor(new Vector4f(0, 0, 0, 0.5F));
-            gpuGraphBg.getMaterial().setTranslucent(true);
-            Transform t = new Transform();
+        { // CPU Graph Background
+            Sprite sprite = new Sprite();
+            sprite.getMaterial().setColor(new Vector4f(0, 0, 0, 0.5F));
+            sprite.getMaterial().setTranslucent(true);
+            Transform t = sprite.getTransform();
             t.setTranslation(-4, -19, -1);
             t.setScale(8, 2, 1);
-            gpuGraphBg.setTransform(t);
-            root.addChild(gpuGraphBg);
+            root.addChild(sprite);
         }
-        {
-            Graph gpuGraph = new Graph();
-            gpuGraph.setName("GPU Graph");
-            Transform t = new Transform();
+        { // CPU Graph
+            Graph graph = new Graph();
+            graph.setName("CPU Graph");
+            Transform t = graph.getTransform();
             t.setTranslation(-8, -20, 0);
             t.setScale(8, 2, 1);
-            gpuGraph.setTransform(t);
-            root.addChild(gpuGraph);
+            root.addChild(graph);
+        }
+        { // GPU Graph Label
+            Label label = new Label();
+            label.setText("GPU: ");
+            label.setFont(font);
+            label.setHAlign(HorizontalAlignment.RIGHT);
+            label.getMaterial().setSoftness(0.2F);
+            label.getTransform().setTranslation(-8, -22, 0);
+            root.addChild(label);
+        }
+        { // GPU Graph Background
+            Sprite sprite = new Sprite();
+            sprite.getMaterial().setColor(new Vector4f(0, 0, 0, 0.5F));
+            sprite.getMaterial().setTranslucent(true);
+            Transform t = sprite.getTransform();
+            t.setTranslation(-4, -22, -1);
+            t.setScale(8, 2, 1);
+            root.addChild(sprite);
+        }
+        { // GPU Graph
+            Graph graph = new Graph();
+            graph.setName("GPU Graph");
+            Transform t = graph.getTransform();
+            t.setTranslation(-8, -23, 0);
+            t.setScale(8, 2, 1);
+            root.addChild(graph);
         }
 
         root.initAll();

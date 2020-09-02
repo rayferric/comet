@@ -26,10 +26,7 @@ public class Rotor extends Node {
     protected void update(double delta) {
         super.update(delta);
 
-        Transform transform = new Transform(getTransform());
-        float rotation = (float)(45 * delta);
-        transform.rotate(0, rotation, 0);
-        setTransform(transform);
+        getTransform().rotate(0, (float)(45 * delta), 0);
     }
 
     @Override
