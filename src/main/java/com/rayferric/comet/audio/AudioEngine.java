@@ -17,8 +17,6 @@ public abstract class AudioEngine {
         onProcess();
     }
 
-    // </editor-fold>
-
     // <editor-fold desc="Internal API">
 
     public abstract ServerResource createAudioStream(ShortBuffer data, int channels, int sampleRate);

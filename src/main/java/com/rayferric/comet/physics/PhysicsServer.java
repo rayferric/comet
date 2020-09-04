@@ -1,12 +1,12 @@
-package com.rayferric.comet.audio;
+package com.rayferric.comet.physics;
 
-import com.rayferric.comet.audio.al.ALAudioEngine;
-import com.rayferric.comet.audio.recipe.AudioRecipe;
+import com.rayferric.comet.physics.bt.BTPhysicsEngine;
+import com.rayferric.comet.physics.recipe.PhysicsRecipe;
 import com.rayferric.comet.server.Server;
 import com.rayferric.comet.server.ServerRecipe;
 import com.rayferric.comet.server.ServerResource;
 
-public class AudioServer extends Server {
+public class PhysicsServer extends Server {
     @Override
     public void destroy() {}
 
@@ -35,7 +35,7 @@ public class AudioServer extends Server {
 
     @Override
     protected void onStart() {
-        audioEngine = new ALAudioEngine();
+        physicsEngine = new BTPhysicsEngine();
     }
 
     @Override
@@ -44,19 +44,19 @@ public class AudioServer extends Server {
             initializedNotifier.notifyAll();
         }
 
-        audioEngine.process();
+        physicsEngine.step();
     }
 
     @Override
     protected void onStop() {
-        audioEngine.destroy();
+        physicsEngine.destroy();
     }
 
     @Override
     protected ServerResource resourceFromRecipe(ServerRecipe recipe) {
-        return ((AudioRecipe)recipe).resolve(audioEngine);
+        return ((PhysicsRecipe)recipe).resolve(physicsEngine);
     }
 
-    private AudioEngine audioEngine;
+    private PhysicsEngine physicsEngine;
     private final Object initializedNotifier = new Object();
 }

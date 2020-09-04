@@ -7,11 +7,14 @@ import com.rayferric.comet.input.InputKey;
 import com.rayferric.comet.math.*;
 import com.rayferric.comet.nodepack.profiler.ProfilerPack;
 import com.rayferric.comet.scenegraph.node.*;
+import com.rayferric.comet.scenegraph.node.body.RigidBody;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.resource.audio.AudioStream;
+import com.rayferric.comet.scenegraph.resource.physics.shape.CollisionShape;
+import com.rayferric.comet.scenegraph.resource.physics.shape.SphereCollisionShape;
 import com.rayferric.comet.scenegraph.resource.scene.GLTFScene;
 import com.rayferric.comet.scenegraph.resource.scene.Scene;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
@@ -56,13 +59,27 @@ public class Main {
             }
 
             Rotor rotor = new Rotor();
-            mainLayer.getRoot().addChild(rotor);
+            {
+                mainLayer.getRoot().addChild(rotor);
+            }
+
+            RigidBody rigidBody = new RigidBody();
+            {
+                Collider collider = new Collider();
+                collider.setShape(new SphereCollisionShape(1));
+                rigidBody.addChild(collider);
+                rigidBody.setMass(1);
+                mainLayer.getRoot().addChild(rigidBody);
+            }
 
             {
                 Sprite sprite = new Sprite();
                 sprite.setTexture(new ImageTexture(false, "data/textures/texture.png", true));
+                sprite.getMaterial().setColor(new Vector4f(1, 1, 1, 0.75F));
+                sprite.getMaterial().setTranslucent(true);
+                sprite.getMaterial().setCulling(false);
                 sprite.getTransform().setTranslation(0, 0, -1);
-                rotor.addChild(sprite);
+                rigidBody.addChild(sprite);
             }
 
             mainLayer.getRoot().initAll();
@@ -72,16 +89,19 @@ public class Main {
                 overlayLayer.getRoot().addChild(profiler);
             }
 
-            AudioStream audioStream = new AudioStream(false, "data/audio/crystal-cave.ogg");
+            AudioStream audioStream = new AudioStream(false, "data/audio/engine.ogg");
+            AudioStream audioStream2 = new AudioStream(false, "data/audio/explosion.ogg");
             AudioPlayer audioPlayer = new AudioPlayer();
-            audioPlayer.setStream(audioStream);
-            audioPlayer.setLooping(true);
-            audioPlayer.setGain(1);
-            audioPlayer.setAttenuationScale(0.1F);
-            audioPlayer.play();
-            mainLayer.getRoot().addChild(audioPlayer);
+            {
+                audioPlayer.setStream(audioStream);
+                audioPlayer.setLooping(true);
+                audioPlayer.setGain(1);
+                audioPlayer.setAttenuationScale(1);
+                audioPlayer.setMinDistance(0);
+                mainLayer.getRoot().addChild(audioPlayer);
+            }
 
-            Scene scene1 = new GLTFScene("data/local/sponza-gltf-pbr/sponza.glb");
+            Scene scene1 = new GLTFScene("data/local/VC/VC.gltf");
             Scene scene2 = new GLTFScene("data/local/flight-helmet/FlightHelmet.gltf");
             var ref = new Object() {
                 public boolean scene1Instantiated = false;
@@ -100,8 +120,19 @@ public class Main {
                     mainLayer.getRoot().addChild(modelRoot);
                     scene1.unload();
                 }
-                // System.out.println(audioPlayer.isPlaying());
-                if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_L)) audioPlayer.setPaused(!audioPlayer.isPaused());
+                if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_L)) {
+                    if(audioPlayer.getStream() == audioStream)
+                        audioPlayer.setStream(audioStream2);
+                    else
+                        audioPlayer.setStream(audioStream);
+                }
+                if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_U)) {
+                    audioPlayer.setLooping(!audioPlayer.isLooping());
+                }
+                if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_P)) {
+                    if(!audioPlayer.isPlaying())audioPlayer.play();
+                    else audioPlayer.reset();
+                }
 
                 if(scene2.isLoaded() && !ref.scene2Instantiated) {
                     ref.scene2Instantiated = true;
@@ -114,6 +145,7 @@ public class Main {
                     Thread.sleep(1);
                 } catch(InterruptedException e) {
                     e.printStackTrace();
+                    System.exit(1);
                 }
             });
 

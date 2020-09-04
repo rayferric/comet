@@ -1,6 +1,7 @@
 package com.rayferric.comet.engine;
 
 import com.rayferric.comet.scenegraph.node.AudioPlayer;
+import com.rayferric.comet.scenegraph.node.body.RigidBody;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
@@ -46,6 +47,10 @@ public class LayerIndex {
 
     public List<AudioPlayer> getAudioSources() {
         return audioPlayers;
+    }
+
+    public List<RigidBody> getRigidBodies() {
+        return rigidBodies;
     }
 
     /**
@@ -120,10 +125,23 @@ public class LayerIndex {
         audioPlayers.add(player);
     }
 
+    /**
+     * Adds a {@link RigidBody} to the index.<br>
+     * • Is implicitly called by the constructor when traversing the node tree.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread.
+     *
+     * @param body the {@link RigidBody} to be indexed
+     */
+    public void add(RigidBody body) {
+        rigidBodies.add(body);
+    }
+
     private final List<Model> models = new ArrayList<>();
     private final List<Camera> cameras = new ArrayList<>();
     private final List<DirectionalLight> directionalLights = new ArrayList<>();
     private final List<PointLight> pointLights = new ArrayList<>();
     private final List<SpotLight> spotLights = new ArrayList<>();
     private final List<AudioPlayer> audioPlayers = new ArrayList<>();
+    private final List<RigidBody> rigidBodies = new ArrayList<>();
 }

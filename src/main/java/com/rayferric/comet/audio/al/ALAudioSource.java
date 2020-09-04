@@ -1,5 +1,6 @@
 package com.rayferric.comet.audio.al;
 
+import com.rayferric.comet.math.Mathf;
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.scenegraph.resource.audio.AudioStream;
 import com.rayferric.comet.server.ServerResource;
@@ -27,7 +28,7 @@ public class ALAudioSource implements ServerResource {
             prevPos = new Vector3f(posBuf.get(0), posBuf.get(1), posBuf.get(2));
         }
         Vector3f deltaPos = pos.sub(prevPos);
-        velocity = velocity.lerp(deltaPos.div((float)delta), (float)delta);
+        velocity = velocity.lerp(deltaPos.div((float)delta), (float)Math.sqrt(delta));
         alSource3f(handle, AL_VELOCITY, velocity.getX(), velocity.getY(), velocity.getZ());
 
         alSource3f(handle, AL_POSITION, pos.getX(), pos.getY(), pos.getZ());
@@ -78,7 +79,7 @@ public class ALAudioSource implements ServerResource {
     }
 
     public void setMinDistance(float distance) {
-        alSourcef(handle, AL_REFERENCE_DISTANCE, distance);
+        alSourcef(handle, AL_REFERENCE_DISTANCE, Mathf.max(distance, 1));
     }
 
     public boolean isPlaying() {

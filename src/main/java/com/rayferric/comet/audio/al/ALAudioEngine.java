@@ -19,6 +19,7 @@ import org.lwjgl.openal.ALC;
 
 import static org.lwjgl.openal.ALC10.*;
 import static org.lwjgl.openal.AL10.*;
+import static org.lwjgl.openal.AL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class ALAudioEngine extends AudioEngine {
@@ -79,7 +80,7 @@ public class ALAudioEngine extends AudioEngine {
                 Vector3f pos = viewMatrix.mul(player.getGlobalTransform()).mul(new Vector3f(0, 0, -1), 1);
                 alSource.updatePos(pos, deltaTime);
 
-                if(alSource.getStream() != alStream) alSource.setStream(alStream);
+                if(!alSource.isPlaying() && alSource.getStream() != alStream) alSource.setStream(alStream);
 
                 // Playback Control
 
@@ -109,6 +110,7 @@ public class ALAudioEngine extends AudioEngine {
             Thread.sleep(1);
         } catch(InterruptedException e) {
             e.printStackTrace();
+            System.exit(1);
         }
     }
 

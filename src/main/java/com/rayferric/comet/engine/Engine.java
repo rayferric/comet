@@ -2,6 +2,7 @@ package com.rayferric.comet.engine;
 
 import com.rayferric.comet.audio.AudioServer;
 import com.rayferric.comet.input.InputManager;
+import com.rayferric.comet.physics.PhysicsServer;
 import com.rayferric.comet.profiling.Profiler;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.util.Timer;
@@ -49,6 +50,7 @@ public class Engine {
         // Create servers:
         videoServer.set(new VideoServer(info));
         audioServer.set(new AudioServer());
+        physicsServer.set(new PhysicsServer());
 
         // Create thread pools:
         loaderPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(info.getLoaderThreads()));
@@ -65,10 +67,12 @@ public class Engine {
         // Start the servers:
         getVideoServer().start();
         getAudioServer().start();
+        getPhysicsServer().start();
 
         // Wait for them to initialize:
         getVideoServer().awaitInitialization();
         getAudioServer().awaitInitialization();
+        getPhysicsServer().awaitInitialization();
     }
 
     /**
@@ -92,6 +96,7 @@ public class Engine {
         // Wait for server creation queues when loader pool is shut down:
         getVideoServer().waitForCreationQueue();
         getAudioServer().waitForCreationQueue();
+        getPhysicsServer().waitForCreationQueue();
 
         // Unload resources:
         for(Resource resource : getResourceManager().snapLoadedResources())
@@ -100,14 +105,17 @@ public class Engine {
         // Wait for server destruction queues:
         getVideoServer().waitForDestructionQueue();
         getVideoServer().waitForDestructionQueue();
+        getPhysicsServer().waitForDestructionQueue();
 
         // Stop the servers:
         getVideoServer().stop();
         getAudioServer().stop();
+        getPhysicsServer().stop();
 
         // Destroy the servers:
         getVideoServer().destroy();
         getAudioServer().destroy();
+        getPhysicsServer().destroy();
 
         // Unload libraries:
         glfwTerminate();
@@ -203,6 +211,16 @@ public class Engine {
     }
 
     /**
+     * Returns the physics server.<br>
+     * • May be called from any thread.
+     *
+     * @return server
+     */
+    public PhysicsServer getPhysicsServer() {
+        return physicsServer.get();
+    }
+
+    /**
      * Returns the resource loading thread pool.<br>
      * • May be called from any thread.
      *
@@ -271,6 +289,7 @@ public class Engine {
     // Servers
     private final AtomicReference<VideoServer> videoServer = new AtomicReference<>(null);
     private final AtomicReference<AudioServer> audioServer = new AtomicReference<>(null);
+    private final AtomicReference<PhysicsServer> physicsServer = new AtomicReference<>(null);
 
     // Thread Pools
     private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);

@@ -18,10 +18,9 @@ import static org.lwjgl.stb.STBImage.*;
 
 public class ImageTexture extends Texture {
     public ImageTexture(boolean fromJar, String path, boolean filter) {
-        properties = new Properties();
-        properties.fromJar = fromJar;
-        properties.path = path;
-        properties.filter = filter;
+        this.fromJar = fromJar;
+        this.path = path;
+        this.filter = filter;
 
         load();
     }
@@ -38,8 +37,7 @@ public class ImageTexture extends Texture {
                     IntBuffer channelsBuf = stack.mallocInt(1);
                     stbi_set_flip_vertically_on_load(true);
 
-                    ByteBuffer srcData =
-                            ResourceLoader.readBinaryFileToNativeBuffer(properties.fromJar, properties.path);
+                    ByteBuffer srcData = ResourceLoader.readBinaryFileToNativeBuffer(fromJar, path);
                     boolean hdr = stbi_is_hdr_from_memory(srcData);
                     Buffer data;
                     if(hdr) {
@@ -50,7 +48,7 @@ public class ImageTexture extends Texture {
                     MemoryUtil.memFree(srcData);
 
                     if(data == null)
-                        throw new RuntimeException("Failed to read image file.\n" + properties.path);
+                        throw new RuntimeException("Failed to read image file.\n" + path);
 
                     Vector2i size = new Vector2i(widthBuf.get(0), heightBuf.get(0));
                     int channels = channelsBuf.get(0);
@@ -67,7 +65,7 @@ public class ImageTexture extends Texture {
                             stbi_image_free((FloatBuffer)data);
                         else
                             stbi_image_free((ByteBuffer)data);
-                    }, data, size, format, properties.filter);
+                    }, data, size, format, filter);
 
                     serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
 
@@ -81,12 +79,7 @@ public class ImageTexture extends Texture {
 
         return true;
     }
-
-    private static class Properties {
-        public boolean fromJar;
-        public String path;
-        public boolean filter;
-    }
-
-    private final Properties properties;
+    private final boolean fromJar;
+    private final String path;
+    private final boolean filter;
 }
