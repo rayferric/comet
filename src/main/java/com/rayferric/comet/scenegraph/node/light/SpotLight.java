@@ -7,6 +7,7 @@ import com.rayferric.comet.util.AtomicFloat;
 public class SpotLight extends PointLight {
     public SpotLight(Vector3f energy, float fov) {
         super(energy);
+        setName("Spot Light");
         this.fov.set(fov);
     }
 

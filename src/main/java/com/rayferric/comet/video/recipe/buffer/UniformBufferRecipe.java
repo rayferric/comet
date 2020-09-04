@@ -5,8 +5,8 @@ import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.recipe.VideoRecipe;
 
 public class UniformBufferRecipe extends VideoRecipe {
-    public UniformBufferRecipe(Runnable cleanUpCallback, int size) {
-        super(cleanUpCallback);
+    public UniformBufferRecipe(int size) {
+        super(null);
 
         this.size = size;
     }

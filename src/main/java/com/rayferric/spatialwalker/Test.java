@@ -12,11 +12,9 @@ import static org.lwjgl.openal.AL10.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 import static org.lwjgl.openal.ALC10.*;
 import org.lwjgl.openal.ALC;
-import org.lwjgl.stb.STBVorbisInfo;
 import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
-import static org.lwjgl.util.opus.Opus.*;
 import static org.lwjgl.stb.STBVorbis.*;
 
 public class Test {
@@ -58,9 +56,7 @@ public class Test {
         for(int i = 0; i < 10; i++) {
             alSourcei(sources[i], AL_BUFFER, buffer);
             alSourcePlay(sources[i]);
-            alSourcei(sources[i], AL_DISTANCE_MODEL, AL_DIST)
         }
-        al
 
         int state;
         do {

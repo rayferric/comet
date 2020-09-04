@@ -258,7 +258,6 @@ public class GLVideoEngine extends VideoEngine {
 
                 Material material = translucentMesh.mesh.getMaterial();
                 if(material == null) continue;
-
                 if(!useMaterial(material)) continue;
 
                 GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(translucentMesh.mesh.getGeometry());

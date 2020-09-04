@@ -16,7 +16,7 @@ public class UniformBuffer extends VideoResource {
     public boolean load() {
         if(!super.load()) return false;
 
-        UniformBufferRecipe recipe = new UniformBufferRecipe(null, properties.size);
+        UniformBufferRecipe recipe = new UniformBufferRecipe(properties.size);
         serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
         finishLoading();
 

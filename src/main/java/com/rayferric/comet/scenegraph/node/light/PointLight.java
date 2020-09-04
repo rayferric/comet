@@ -6,6 +6,7 @@ import com.rayferric.comet.math.Vector3f;
 public class PointLight extends Light {
     public PointLight(Vector3f energy) {
         super(energy);
+        setName("Point Light");
     }
 
     @Override

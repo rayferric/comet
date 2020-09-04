@@ -8,12 +8,10 @@ import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
-import com.rayferric.comet.video.util.VideoInfo;
 import com.rayferric.comet.video.util.texture.TextureFormat;
 
 import java.nio.Buffer;
 import java.nio.ByteBuffer;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A cross-API video interface.<br>
@@ -21,11 +19,6 @@ import java.util.concurrent.atomic.AtomicReference;
  * • Is not thread safe.
  */
 public abstract class VideoEngine {
-    @Override
-    public String toString() {
-        return String.format("VideoEngine{size=%s}", size);
-    }
-
     // <editor-fold desc="Internal Server API">
 
     public void destroy() {

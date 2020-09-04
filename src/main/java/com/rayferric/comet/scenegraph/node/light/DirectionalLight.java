@@ -6,6 +6,7 @@ import com.rayferric.comet.math.Vector3f;
 public class DirectionalLight extends Light {
     public DirectionalLight(Vector3f energy) {
         super(energy);
+        setName("Directional Light");
     }
 
     @Override

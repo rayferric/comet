@@ -38,7 +38,7 @@ public abstract class Resource {
      *
      * @return false if the resource was already (being) loaded
      */
-    public boolean load() {
+    public synchronized boolean load() {
         return !loaded.get() && loading.compareAndSet(false, true);
     }
 
@@ -50,7 +50,7 @@ public abstract class Resource {
      *
      * @return false if the resource was already unloaded
      */
-    public boolean unload() {
+    public synchronized boolean unload() {
         if(!loaded.compareAndSet(true, false))
             return false;
         Engine.getInstance().getResourceManager().unregisterUnloadedResource(this);
@@ -62,7 +62,7 @@ public abstract class Resource {
      * • This is a non-blocking routine.<br>
      * • May be called from any thread.
      */
-    public void reload() {
+    public synchronized void reload() {
         if(loaded.get()) unload();
         load();
     }
@@ -76,11 +76,12 @@ public abstract class Resource {
      *
      * @throws IllegalStateException if multiple threads managed to be loading the same resource simultaneously (this should not happen and is a bug)
      */
-    protected void finishLoading() {
+    protected synchronized void finishLoading() {
         // This is a theoretically unreachable block, there's an internal programming error if it throws:
         if(!loaded.compareAndSet(false, true) || !loading.compareAndSet(true, false))
             throw new IllegalStateException(
                     "A single resource was being loaded using multiple threads simultaneously.");
+
         Engine.getInstance().getResourceManager().registerLoadedResource(this);
     }
 }

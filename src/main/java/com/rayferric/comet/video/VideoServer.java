@@ -9,6 +9,8 @@ import com.rayferric.comet.server.Server;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.server.ServerRecipe;
 import com.rayferric.comet.util.AtomicFloat;
+import com.rayferric.comet.video.VideoEngine;
+import com.rayferric.comet.video.Window;
 import com.rayferric.comet.video.recipe.VideoRecipe;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.api.gl.GLVideoEngine;
@@ -157,7 +159,8 @@ public class VideoServer extends Server {
     @Override
     protected void onStart() {
         Window.makeCurrent(getWindow());
-        videoEngine = new GLVideoEngine(getWindow().getFramebufferSize(), vSync.get());
+        if(getApi() == VideoAPI.OPENGL)
+            videoEngine = new GLVideoEngine(getWindow().getFramebufferSize(), vSync.get());
     }
 
     @Override

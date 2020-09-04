@@ -1,5 +1,6 @@
 package com.rayferric.comet.engine;
 
+import com.rayferric.comet.audio.AudioServer;
 import com.rayferric.comet.input.InputManager;
 import com.rayferric.comet.profiling.Profiler;
 import com.rayferric.comet.scenegraph.resource.Resource;
@@ -18,18 +19,6 @@ import static org.lwjgl.glfw.GLFW.*;
 
 public class Engine {
     /**
-     * Returns text representation of the current state of the engine.<br>
-     * • May be called from any thread.
-     *
-     * @return current state in text format
-     */
-    @Override
-    public String toString() {
-        return String.format("Engine{running=%s, videoServer=%s, loaderPool=%s, threadPool=%s, resourceManager=%s}",
-                running.get(), getVideoServer(), getLoaderPool(), getJobPool(), getResourceManager());
-    }
-
-    /**
      * Returns engine singleton instance.<br>
      * • May be called from any thread.
      *
@@ -43,20 +32,15 @@ public class Engine {
 
     /**
      * Loads libraries, creates engine resources, and starts all core threads.<br>
-     * • May be used to reinitialize after {@link #stop()}.<br>
      * • The engine is running from now on and must either enter the {@link #run main loop} or be {@link #stop() stopped}.<br>
-     * • Must be called before creating any {@link Resource resources}.<br>
+     * • Must be called before using the API.<br>
      * • Must only be called from the main thread.
      *
      * @param info engine configuration, must not be null
      *
-     * @throws IllegalStateException if the server is already running
-     * @throws RuntimeException      if libraries could not be loaded
+     * @throws RuntimeException if libraries could not be loaded
      */
     public void start(EngineInfo info) {
-        if(!running.compareAndSet(false, true))
-            throw new IllegalStateException("Attempted to start an already started engine.");
-
         // Load libraries:
         GLFWErrorCallback.createPrint(System.err).set();
         if(!glfwInit())
@@ -64,6 +48,7 @@ public class Engine {
 
         // Create servers:
         videoServer.set(new VideoServer(info));
+        audioServer.set(new AudioServer());
 
         // Create thread pools:
         loaderPool.set((ThreadPoolExecutor)Executors.newFixedThreadPool(info.getLoaderThreads()));
@@ -79,23 +64,20 @@ public class Engine {
 
         // Start the servers:
         getVideoServer().start();
+        getAudioServer().start();
 
         // Wait for them to initialize:
         getVideoServer().awaitInitialization();
+        getAudioServer().awaitInitialization();
     }
 
     /**
-     * Halts all core threads and stops the engine, finally unloads libraries.
-     * Makes the engine unusable until next call to {@link #start}.<br>
+     * Halts all core threads and stops the engine, finally unloads libraries.<br>
+     * • Makes the engine unusable from now on.<br>
      * • Automatically unloads all {@link Resource resources} created while the engine was running.<br>
      * • Must only be called from the main thread.
-     *
-     * @throws IllegalStateException if the server is already stopped
      */
     public void stop() {
-        if(!running.compareAndSet(true, false))
-            throw new IllegalStateException("Attempted to stop an already stopped engine.");
-
         // Shut down thread pools:
         getJobPool().shutdown();
         getLoaderPool().shutdown();
@@ -109,6 +91,7 @@ public class Engine {
 
         // Wait for server creation queues when loader pool is shut down:
         getVideoServer().waitForCreationQueue();
+        getAudioServer().waitForCreationQueue();
 
         // Unload resources:
         for(Resource resource : getResourceManager().snapLoadedResources())
@@ -116,12 +99,15 @@ public class Engine {
 
         // Wait for server destruction queues:
         getVideoServer().waitForDestructionQueue();
+        getVideoServer().waitForDestructionQueue();
 
         // Stop the servers:
         getVideoServer().stop();
+        getAudioServer().stop();
 
         // Destroy the servers:
         getVideoServer().destroy();
+        getAudioServer().destroy();
 
         // Unload libraries:
         glfwTerminate();
@@ -207,6 +193,16 @@ public class Engine {
     }
 
     /**
+     * Returns the audio server.<br>
+     * • May be called from any thread.
+     *
+     * @return server
+     */
+    public AudioServer getAudioServer() {
+        return audioServer.get();
+    }
+
+    /**
      * Returns the resource loading thread pool.<br>
      * • May be called from any thread.
      *
@@ -270,11 +266,11 @@ public class Engine {
 
     private static final Engine INSTANCE = new Engine();
 
-    private final AtomicBoolean running = new AtomicBoolean(false);
     private final AtomicBoolean shouldExit = new AtomicBoolean();
 
     // Servers
     private final AtomicReference<VideoServer> videoServer = new AtomicReference<>(null);
+    private final AtomicReference<AudioServer> audioServer = new AtomicReference<>(null);
 
     // Thread Pools
     private final AtomicReference<ThreadPoolExecutor> loaderPool = new AtomicReference<>(null);
