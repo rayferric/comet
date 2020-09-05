@@ -5,6 +5,16 @@ import java.util.Objects;
 public class Vector4f {
     public static final int BYTES = 16;
 
+    public static final Vector4f ZERO = new Vector4f(0);
+    public static final Vector4f LEFT = new Vector4f(-1, 0, 0, 0);
+    public static final Vector4f RIGHT = new Vector4f(1, 0, 0, 0);
+    public static final Vector4f DOWN = new Vector4f(0, -1, 0, 0);
+    public static final Vector4f UP = new Vector4f(0, 1, 0, 0);
+    public static final Vector4f FORWARD = new Vector4f(0, 0, -1, 0);
+    public static final Vector4f BACKWARD = new Vector4f(0, 0, 1, 0);
+    public static final Vector4f PAST = new Vector4f(0, 0, 0, -1);
+    public static final Vector4f FUTURE = new Vector4f(0, 0, 0, 1);
+
     public Vector4f() {
         x = y = z = w = 0;
     }

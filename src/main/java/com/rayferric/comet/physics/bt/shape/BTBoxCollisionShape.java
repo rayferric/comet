@@ -4,7 +4,7 @@ import com.bulletphysics.collision.shapes.BoxShape;
 import com.rayferric.comet.math.Vector3f;
 
 public class BTBoxCollisionShape extends BTCollisionShape {
-    public BTBoxCollisionShape(Vector3f extents) {
-        super(new BoxShape(new javax.vecmath.Vector3f(extents.getX(), extents.getY(), extents.getZ())));
+    public BTBoxCollisionShape(Vector3f size) {
+        super(new BoxShape(new javax.vecmath.Vector3f(size.getX() * 0.5F, size.getY() * 0.5F, size.getZ() * 0.5F)));
     }
 }

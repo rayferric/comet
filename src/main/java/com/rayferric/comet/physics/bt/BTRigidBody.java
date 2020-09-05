@@ -1,38 +1,33 @@
 package com.rayferric.comet.physics.bt;
 
+import com.bulletphysics.collision.dispatch.CollisionObject;
 import com.bulletphysics.collision.shapes.*;
 import com.bulletphysics.dynamics.*;
 import com.bulletphysics.linearmath.*;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.server.ServerResource;
 
-import javax.vecmath.Vector3f;
-import java.util.ArrayList;
-import java.util.List;
-
 public class BTRigidBody implements ServerResource {
-    public BTRigidBody(DiscreteDynamicsWorld world) {
-        mass = 1;
-
+    public BTRigidBody() {
         Transform bodyTransform = new Transform();
         bodyTransform.setIdentity();
         DefaultMotionState motionState = new DefaultMotionState(bodyTransform);
 
-        CollisionShape boxShape = new BoxShape(new Vector3f(1, 1, 1));
-        Transform boxTransform = new Transform();
-        boxTransform.setIdentity();
-        collisionShape.addChildShape(boxTransform, boxShape);
-        collisionShape.calculateLocalInertia(mass, inertia);
+        //CollisionShape boxShape = new BoxShape(new javax.vecmath.Vector3f(1, 1, 1));
+        //Transform boxTransform = new Transform();
+        //boxTransform.setIdentity();
+        // collisionCompound.addChildShape(boxTransform, boxShape);
+        javax.vecmath.Vector3f inertia = new javax.vecmath.Vector3f();
+        collisionCompound.calculateLocalInertia(mass, inertia);
 
         RigidBodyConstructionInfo info = new RigidBodyConstructionInfo(
                 mass,
                 motionState,
-                collisionShape,
+                collisionCompound,
                 inertia
         );
         rigidBody = new RigidBody(info);
-
-        (this.world = world).addRigidBody(rigidBody);
+        rigidBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
     }
 
     @Override
@@ -40,27 +35,65 @@ public class BTRigidBody implements ServerResource {
         rigidBody.destroy();
     }
 
+    public DiscreteDynamicsWorld getWorld() {
+        return world;
+    }
+
+    public void setWorld(DiscreteDynamicsWorld world) {
+        if(world != null) world.removeRigidBody(rigidBody);
+        (this.world = world).addRigidBody(rigidBody);
+    }
+
     public Matrix4f getTransform() {
         Transform btTransform = new Transform();
         btTransform.setIdentity();
-        rigidBody.getMotionState().getWorldTransform(btTransform);
-        float[] glMatrix = new float[16];
-        btTransform.getOpenGLMatrix(glMatrix);
-        return new Matrix4f(
-                glMatrix[0], glMatrix[1], glMatrix[2], glMatrix[3],
-                glMatrix[4], glMatrix[5], glMatrix[6], glMatrix[7],
-                glMatrix[8], glMatrix[9], glMatrix[10], glMatrix[11],
-                glMatrix[12], glMatrix[13], glMatrix[14], glMatrix[15]
-        );
+        rigidBody.getWorldTransform(btTransform);
+        float[] array = new float[16];
+        btTransform.getOpenGLMatrix(array);
+        return new Matrix4f(array);
+    }
+
+    public void setTransform(Matrix4f transform) {
+        Transform btTransform = new Transform();
+        btTransform.setFromOpenGLMatrix(transform.toArray());
+        rigidBody.setWorldTransform(btTransform);
+        rigidBody.getMotionState().setWorldTransform(btTransform);
+    }
+
+    public void setCollisionCompound(CompoundShape compound) {
+        rigidBody.setCollisionShape(collisionCompound = compound);
+        setMass(mass);
+    }
+
+    public float getMass() {
+        return mass;
+    }
+
+    public void setMass(float mass) {
+        this.mass = mass;
+        javax.vecmath.Vector3f inertia = new javax.vecmath.Vector3f();
+        collisionCompound.calculateLocalInertia(mass, inertia);
+        world.removeRigidBody(rigidBody);
+        rigidBody.setMassProps(mass, inertia);
+        world.addRigidBody(rigidBody);
+    }
+
+    public float getBounce() {
+        return bounce;
+    }
+
+    public void setBounce(float bounce) {
+        world.removeRigidBody(rigidBody);
+        rigidBody.setRestitution(this.bounce = bounce);
+        world.addRigidBody(rigidBody);
     }
 
     public RigidBody getRigidBody() {
         return rigidBody;
     }
 
-    private final DiscreteDynamicsWorld world;
     private final RigidBody rigidBody;
-    private final CompoundShape collisionShape = new CompoundShape();
-    private float mass;
-    private final Vector3f inertia = new Vector3f();
+    private DiscreteDynamicsWorld world = null;
+    private CompoundShape collisionCompound = new CompoundShape();
+    private float mass = 1, bounce = 0;
 }

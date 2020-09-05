@@ -7,13 +7,13 @@ public abstract class BTCollisionShape implements ServerResource {
     @Override
     public void destroy() {}
 
-    public CollisionShape getCollisionShape() {
-        return collisionShape;
+    public CollisionShape getShape() {
+        return shape;
     }
 
-    protected BTCollisionShape(CollisionShape collisionShape) {
-        this.collisionShape = collisionShape;
+    protected BTCollisionShape(CollisionShape shape) {
+        this.shape = shape;
     }
 
-    private final CollisionShape collisionShape;
+    private final CollisionShape shape;
 }

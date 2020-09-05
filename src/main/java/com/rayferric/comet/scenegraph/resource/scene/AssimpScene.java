@@ -3,9 +3,8 @@ package com.rayferric.comet.scenegraph.resource.scene;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.geometry.GeometryData;
 import com.rayferric.comet.math.Matrix4f;
-import com.rayferric.comet.math.Transform;
-import com.rayferric.comet.scenegraph.component.material.Material;
-import com.rayferric.comet.scenegraph.component.Mesh;
+import com.rayferric.comet.scenegraph.common.material.Material;
+import com.rayferric.comet.scenegraph.common.Mesh;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.video.geometry.ArrayGeometry;
@@ -14,8 +13,6 @@ import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 
 import java.nio.IntBuffer;
-import java.util.Collections;
-import java.util.List;
 
 import static org.lwjgl.assimp.Assimp.*;
 

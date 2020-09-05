@@ -37,6 +37,13 @@ public class Matrix4f {
         w = new Vector4f(wx, wy, wz, ww);
     }
 
+    public Matrix4f(float[] array) {
+        x = new Vector4f(array[0], array[1], array[2], array[3]);
+        y = new Vector4f(array[4], array[5], array[6], array[7]);
+        z = new Vector4f(array[8], array[9], array[10], array[11]);
+        w = new Vector4f(array[12], array[13], array[14], array[15]);
+    }
+
     public Matrix4f(Matrix4f other) {
         x = other.x;
         y = other.y;

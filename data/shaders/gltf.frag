@@ -39,7 +39,7 @@ void main() {
 
 	vec3 emissive = texture(tex_Emissive, v_TexCoord).xyz * u_Material.emissive;
 
-	vec3 light = vec3(max(dot(N, normalize(vec3(1.0))), 0.1));
+	vec3 light = vec3(max(dot(N, normalize(vec3(1.0, 0.75, 0.5))), 0.1));
 	if(u_Material.unlit) light = vec3(1.0);
 
 	out_Color.xyz = albedo * light * occlusion + emissive;

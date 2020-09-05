@@ -1,8 +1,8 @@
 package com.rayferric.comet.scenegraph.node.model;
 
 import com.rayferric.comet.math.Vector4f;
-import com.rayferric.comet.scenegraph.component.Mesh;
-import com.rayferric.comet.scenegraph.component.material.FontMaterial;
+import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.material.FontMaterial;
 import com.rayferric.comet.scenegraph.resource.font.Font;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.TextGeometry;

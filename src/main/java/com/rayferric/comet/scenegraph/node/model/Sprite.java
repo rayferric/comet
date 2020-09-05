@@ -1,12 +1,9 @@
 package com.rayferric.comet.scenegraph.node.model;
 
-import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.component.Mesh;
-import com.rayferric.comet.scenegraph.component.material.Material;
-import com.rayferric.comet.scenegraph.component.material.SpriteMaterial;
-import com.rayferric.comet.scenegraph.node.Node;
+import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.material.SpriteMaterial;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.PlaneGeometry;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;

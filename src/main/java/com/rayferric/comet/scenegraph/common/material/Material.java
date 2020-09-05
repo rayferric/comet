@@ -1,23 +1,19 @@
-package com.rayferric.comet.scenegraph.component.material;
+package com.rayferric.comet.scenegraph.common.material;
 
 import com.rayferric.comet.math.*;
-import com.rayferric.comet.scenegraph.component.Component;
 import com.rayferric.comet.scenegraph.resource.video.buffer.UniformBuffer;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import org.lwjgl.system.MemoryStack;
-import org.lwjgl.system.MemoryUtil;
 
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Material implements Component {
+public class Material {
     public Shader getShader() {
         return shader.get();
     }

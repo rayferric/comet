@@ -5,8 +5,8 @@ import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.physics.recipe.shape.BoxCollisionShapeRecipe;
 
 public class BoxCollisionShape extends CollisionShape {
-    public BoxCollisionShape(Vector3f extents) {
-        this.extents = extents;
+    public BoxCollisionShape(Vector3f size) {
+        this.size = size;
 
         load();
     }
@@ -15,11 +15,11 @@ public class BoxCollisionShape extends CollisionShape {
     public boolean load() {
         if(!super.load()) return false;
 
-        serverHandle.set(Engine.getInstance().getPhysicsServer().scheduleResourceCreation(new BoxCollisionShapeRecipe(extents)));
+        serverHandle.set(Engine.getInstance().getPhysicsServer().scheduleResourceCreation(new BoxCollisionShapeRecipe(size)));
         finishLoading();
 
         return true;
     }
 
-    private final Vector3f extents;
+    private final Vector3f size;
 }

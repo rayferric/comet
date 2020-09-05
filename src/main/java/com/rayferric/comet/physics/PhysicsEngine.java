@@ -2,7 +2,7 @@ package com.rayferric.comet.physics;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Vector3f;
-import com.rayferric.comet.scenegraph.resource.physics.RigidBodyResource;
+import com.rayferric.comet.scenegraph.resource.physics.PhysicsResource;
 import com.rayferric.comet.server.ServerResource;
 
 public abstract class PhysicsEngine {
@@ -15,6 +15,8 @@ public abstract class PhysicsEngine {
     }
 
     // <editor-fold desc="Internal API">
+
+    public abstract ServerResource createPhysicsWorld();
 
     public abstract ServerResource createBoxCollisionShape(Vector3f extents);
 
@@ -40,9 +42,9 @@ public abstract class PhysicsEngine {
 
     // <editor-fold desc="Creating and Querying Default Resources"
 
-    protected ServerResource getRigidBodyOrNull(RigidBodyResource rigidBodyResource) {
-        if(rigidBodyResource == null || !rigidBodyResource.isLoaded()) return null;
-        long handle = rigidBodyResource.getServerHandle();
+    protected ServerResource getServerResourceOrNull(PhysicsResource resource) {
+        if(resource == null || !resource.isLoaded()) return null;
+        long handle = resource.getServerHandle();
         return Engine.getInstance().getPhysicsServer().getServerResource(handle);
     }
 

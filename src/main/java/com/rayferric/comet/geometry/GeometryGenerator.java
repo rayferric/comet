@@ -120,6 +120,52 @@ public class GeometryGenerator {
         return index(triangulate(faces.toArray(new Face[0])), true);
     }
 
+    public static GeometryData genBox(Vector3f size, boolean shadeSmooth) {
+        Vector3f s = size.mul(0.5F);
+
+        Face[] faces = new Face[] {
+                new Face(new Vertex[] {
+                        new Vertex(-s.getX(), -s.getY(), s.getZ(), 0, 0),
+                        new Vertex(s.getX(), -s.getY(), s.getZ(), 1, 0),
+                        new Vertex(s.getX(), s.getY(), s.getZ(), 1, 1),
+                        new Vertex(-s.getX(), s.getY(), s.getZ(), 0, 1)
+                }),
+                new Face(new Vertex[] {
+                        new Vertex(s.getX(), -s.getY(), -s.getZ(), 1, 0),
+                        new Vertex(-s.getX(), -s.getY(), -s.getZ(), 0, 0),
+
+                        new Vertex(-s.getX(), s.getY(), -s.getZ(), 0, 1),
+                        new Vertex(s.getX(), s.getY(), -s.getZ(), 1, 1)
+                }),
+                new Face(new Vertex[] {
+                        new Vertex(s.getX(), -s.getY(), s.getZ(), 0, 0),
+                        new Vertex(s.getX(), -s.getY(), -s.getZ(), 1, 0),
+                        new Vertex(s.getX(), s.getY(), -s.getZ(), 1, 1),
+                        new Vertex(s.getX(), s.getY(), s.getZ(), 0, 1)
+                }),
+                new Face(new Vertex[] {
+                        new Vertex(-s.getX(), -s.getY(), -s.getZ(), 1, 0),
+                        new Vertex(-s.getX(), -s.getY(), s.getZ(), 0, 0),
+                        new Vertex(-s.getX(), s.getY(), s.getZ(), 0, 1),
+                        new Vertex(-s.getX(), s.getY(), -s.getZ(), 1, 1)
+                }),
+                new Face(new Vertex[] {
+                        new Vertex(-s.getX(), s.getY(), s.getZ(), 0, 0),
+                        new Vertex(s.getX(), s.getY(), s.getZ(), 1, 0),
+                        new Vertex(s.getX(), s.getY(), -s.getZ(), 1, 1),
+                        new Vertex(-s.getX(), s.getY(), -s.getZ(), 0, 1)
+                }),
+                new Face(new Vertex[] {
+                        new Vertex(s.getX(), -s.getY(), s.getZ(), 1, 0),
+                        new Vertex(-s.getX(), -s.getY(), s.getZ(), 0, 0),
+                        new Vertex(-s.getX(), -s.getY(), -s.getZ(), 0, 1),
+                        new Vertex(s.getX(), -s.getY(), -s.getZ(), 1, 1)
+                })
+        };
+
+        return index(triangulate(faces), shadeSmooth);
+    }
+
     public static GeometryData genPlane(Vector2f size) {
         Face face = buildRect(size.mul(-0.5F), size.mul(0.5F), new Vector2f(0), new Vector2f(1));
         return index(triangulate(new Face[] { face }), true);

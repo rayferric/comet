@@ -1,10 +1,7 @@
-package com.rayferric.comet.scenegraph.component.material;
+package com.rayferric.comet.scenegraph.common.material;
 
-import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.scenegraph.resource.video.shader.BinaryShader;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
-import com.rayferric.comet.scenegraph.resource.video.shader.SourceShader;
-import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 public class GraphMaterial extends Material {
     public GraphMaterial() {

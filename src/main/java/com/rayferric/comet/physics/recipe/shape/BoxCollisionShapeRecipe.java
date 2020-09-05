@@ -6,15 +6,15 @@ import com.rayferric.comet.physics.recipe.PhysicsRecipe;
 import com.rayferric.comet.server.ServerResource;
 
 public class BoxCollisionShapeRecipe extends PhysicsRecipe {
-    public BoxCollisionShapeRecipe(Vector3f extents) {
+    public BoxCollisionShapeRecipe(Vector3f size) {
         super(null);
-        this.extents = extents;
+        this.size = size;
     }
 
     @Override
     public ServerResource resolve(PhysicsEngine physicsEngine) {
-        return physicsEngine.createBoxCollisionShape(extents);
+        return physicsEngine.createBoxCollisionShape(size);
     }
 
-    private final Vector3f extents;
+    private final Vector3f size;
 }

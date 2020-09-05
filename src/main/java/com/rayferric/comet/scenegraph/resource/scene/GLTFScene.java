@@ -2,8 +2,8 @@ package com.rayferric.comet.scenegraph.resource.scene;
 
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.math.Vector4f;
-import com.rayferric.comet.scenegraph.component.material.GLTFMaterial;
-import com.rayferric.comet.scenegraph.component.material.Material;
+import com.rayferric.comet.scenegraph.common.material.GLTFMaterial;
+import com.rayferric.comet.scenegraph.common.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.util.ResourceLoader;

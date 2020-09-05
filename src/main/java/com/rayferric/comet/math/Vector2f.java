@@ -5,6 +5,7 @@ import java.util.Objects;
 public class Vector2f {
     public static final int BYTES = 8;
 
+    public static final Vector2f ZERO = new Vector2f(0);
     public static final Vector2f LEFT = new Vector2f(-1, 0);
     public static final Vector2f RIGHT = new Vector2f(1, 0);
     public static final Vector2f DOWN = new Vector2f(0, -1);

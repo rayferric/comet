@@ -23,7 +23,7 @@ public class AudioPlayer extends Node {
     // <editor-fold desc="Internal API">
 
     /**
-     * Internal method used by the audio engine
+     * Internal method used by the audio engine.
      *
      * @return the audio source of this player
      */

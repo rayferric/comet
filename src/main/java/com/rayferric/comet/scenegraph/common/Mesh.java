@@ -1,11 +1,11 @@
-package com.rayferric.comet.scenegraph.component;
+package com.rayferric.comet.scenegraph.common;
 
-import com.rayferric.comet.scenegraph.component.material.Material;
+import com.rayferric.comet.scenegraph.common.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Mesh implements Component {
+public class Mesh {
     public Mesh(Geometry geometry, Material material) {
         this.geometry.set(geometry);
         this.material.set(material);

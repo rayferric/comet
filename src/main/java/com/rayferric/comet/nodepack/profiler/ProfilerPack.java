@@ -4,7 +4,6 @@ import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector4f;
 import com.rayferric.comet.nodepack.NodePack;
-import com.rayferric.comet.scenegraph.component.material.BasicMaterial;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.node.model.Graph;
 import com.rayferric.comet.scenegraph.node.model.Label;

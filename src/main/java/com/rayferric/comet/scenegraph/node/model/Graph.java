@@ -1,8 +1,8 @@
 package com.rayferric.comet.scenegraph.node.model;
 
-import com.rayferric.comet.scenegraph.component.Mesh;
-import com.rayferric.comet.scenegraph.component.material.GraphMaterial;
-import com.rayferric.comet.scenegraph.component.material.Material;
+import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.material.GraphMaterial;
+import com.rayferric.comet.scenegraph.common.material.Material;
 import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
 import com.rayferric.comet.scenegraph.resource.video.geometry.GraphGeometry;
 

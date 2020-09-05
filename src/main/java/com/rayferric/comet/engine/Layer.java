@@ -2,6 +2,7 @@ package com.rayferric.comet.engine;
 
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.Node;
+import com.rayferric.comet.scenegraph.resource.physics.PhysicsWorld;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -11,21 +12,17 @@ public class Layer {
         genIndex();
     }
 
-    public Camera getCamera() {
-        return camera.get();
-    }
-
-    public void setCamera(Camera camera) {
-        this.camera.set(camera);
-    }
-
     public Node getRoot() {
-        return root.get();
+        return root;
+    }
+
+    public PhysicsWorld getPhysicsWorld() {
+        return physicsWorld;
     }
 
     /**
      * Returns current state of this layer's index.<br>
-     * • May be called from any thread, the returned index is read-only.
+     * • May be called from any thread, the returned index must not be modified.
      *
      * @return read-only layer index
      */
@@ -42,7 +39,16 @@ public class Layer {
         this.index.set(index);
     }
 
-    private final AtomicReference<Camera> camera = new AtomicReference<>(null);
-    private final AtomicReference<Node> root = new AtomicReference<>(new Node());
+    public Camera getCamera() {
+        return camera.get();
+    }
+
+    public void setCamera(Camera camera) {
+        this.camera.set(camera);
+    }
+
+    private final Node root = new Node();
+    private final PhysicsWorld physicsWorld = new PhysicsWorld();
     private final AtomicReference<LayerIndex> index = new AtomicReference<>();
+    private final AtomicReference<Camera> camera = new AtomicReference<>(null);
 }
