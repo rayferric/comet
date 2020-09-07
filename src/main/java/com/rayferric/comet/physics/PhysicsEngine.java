@@ -22,7 +22,7 @@ public abstract class PhysicsEngine {
 
     public abstract ServerResource createSphereCollisionShape(float radius);
 
-    public abstract ServerResource createRigidBody();
+    public abstract ServerResource createPhysicsBody();
 
     // </editor-fold>
 

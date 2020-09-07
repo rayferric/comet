@@ -8,19 +8,37 @@ import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSo
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.server.ServerResource;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class BTPhysicsWorld implements ServerResource {
     public BTPhysicsWorld() {
-        collisionCfg = new DefaultCollisionConfiguration();
-        dispatcher = new CollisionDispatcher(collisionCfg);
-        broadPhase = new DbvtBroadphase();
-        solver = new SequentialImpulseConstraintSolver();
+        DefaultCollisionConfiguration collisionCfg = new DefaultCollisionConfiguration();
+        CollisionDispatcher dispatcher = new CollisionDispatcher(collisionCfg);
+        DbvtBroadphase broadPhase = new DbvtBroadphase();
+        SequentialImpulseConstraintSolver solver = new SequentialImpulseConstraintSolver();
+
         world = new DiscreteDynamicsWorld(dispatcher, broadPhase, solver, collisionCfg);
         world.setGravity(new javax.vecmath.Vector3f(0, 0, 0));
     }
 
     @Override
     public void destroy() {
+        for(BTPhysicsBody body : bodies)
+            body.setWorld(null);
         world.destroy();
+    }
+
+    // Only to be used by BTPhysicsBody.setWorld(...).
+    public void addBody(BTPhysicsBody body, short layer, short mask) {
+        bodies.add(body);
+        world.addRigidBody(body.getBtBody(), layer, mask);
+    }
+
+    // Only to be used by BTPhysicsBody.setWorld(...).
+    public void removeBody(BTPhysicsBody body) {
+        bodies.remove(body);
+        world.removeRigidBody(body.getBtBody());
     }
 
     public Vector3f getGravity() {
@@ -32,14 +50,11 @@ public class BTPhysicsWorld implements ServerResource {
         world.setGravity(new javax.vecmath.Vector3f(gravity.getX(), gravity.getY(), gravity.getZ()));
     }
 
-    public DiscreteDynamicsWorld getWorld() {
-        return world;
+    public void step(float delta, int maxSubSteps) {
+        world.stepSimulation(delta, maxSubSteps);
     }
 
-    DefaultCollisionConfiguration collisionCfg;
-    CollisionDispatcher dispatcher;
-    DbvtBroadphase broadPhase;
-    SequentialImpulseConstraintSolver solver;
-    DiscreteDynamicsWorld world;
-    Vector3f gravity = Vector3f.ZERO;
+    private final DiscreteDynamicsWorld world;
+    private final List<BTPhysicsBody> bodies = new ArrayList<>();
+    private Vector3f gravity = Vector3f.ZERO;
 }

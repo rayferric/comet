@@ -1,9 +1,6 @@
 package com.rayferric.comet.physics.bt;
 
-import com.bulletphysics.collision.shapes.CollisionShape;
 import com.bulletphysics.collision.shapes.CompoundShape;
-import com.bulletphysics.dynamics.DiscreteDynamicsWorld;
-import com.bulletphysics.dynamics.DynamicsWorld;
 import com.bulletphysics.linearmath.Transform;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
@@ -13,7 +10,7 @@ import com.rayferric.comet.physics.bt.shape.BTBoxCollisionShape;
 import com.rayferric.comet.physics.bt.shape.BTCollisionShape;
 import com.rayferric.comet.physics.bt.shape.BTSphereCollisionShape;
 import com.rayferric.comet.scenegraph.common.Collider;
-import com.rayferric.comet.scenegraph.node.body.RigidBody;
+import com.rayferric.comet.scenegraph.node.body.PhysicsBody;
 import com.rayferric.comet.scenegraph.resource.physics.PhysicsWorld;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.Timer;
@@ -39,8 +36,8 @@ public class BTPhysicsEngine extends PhysicsEngine {
     }
 
     @Override
-    public ServerResource createRigidBody() {
-        return new BTRigidBody();
+    public ServerResource createPhysicsBody() {
+        return new BTPhysicsBody();
     }
 
     @Override
@@ -70,23 +67,22 @@ public class BTPhysicsEngine extends PhysicsEngine {
                 Vector3f gravity = world.getGravity();
                 if(!btWorld.getGravity().equals(gravity)) btWorld.setGravity(gravity);
             }
-            DiscreteDynamicsWorld dynamicsWorld = btWorld.getWorld();
 
-            List<RigidBody> rigidBodies = layer.getIndex().getRigidBodies();
+            List<PhysicsBody> bodies = layer.getIndex().getPhysicsBodies();
             transformCache.clear();
 
-            for(RigidBody rigidBody : rigidBodies) {
-                BTRigidBody btRigidBody = (BTRigidBody)getServerResourceOrNull(rigidBody.getResource());
-                if(btRigidBody == null) continue;
+            for(PhysicsBody body : bodies) {
+                BTPhysicsBody btBody = (BTPhysicsBody)getServerResourceOrNull(body.getResource());
+                if(btBody == null) continue;
 
                 // Ensure the right world:
-                if(btRigidBody.getWorld() != dynamicsWorld) btRigidBody.setWorld(dynamicsWorld);
+                if(btBody.getWorld() != btWorld) btBody.setWorld(btWorld);
 
                 // Update collider if needed:
-                if(rigidBody.colliderNeedsUpdate()) {
+                if(body.colliderNeedsUpdate()) {
                     CompoundShape compound = new CompoundShape();
                     boolean aborted = false;
-                    for(Collider collider : rigidBody.snapColliders()) {
+                    for(Collider collider : body.snapColliders()) {
                         BTCollisionShape btShape = (BTCollisionShape)getServerResourceOrNull(collider.getShape());
                         if(btShape == null) {
                             aborted = true;
@@ -97,44 +93,52 @@ public class BTPhysicsEngine extends PhysicsEngine {
                         compound.addChildShape(btTransform, btShape.getShape());
                     }
                     if(!aborted) {
-                        btRigidBody.setCollisionCompound(compound);
-                        rigidBody.popColliderNeedsUpdate();
+                        btBody.setCollisionCompound(compound);
+                        body.popColliderNeedsUpdate();
                     }
                 }
 
                 // Update modified properties:
-                float mass = rigidBody.getMass();
-                if(btRigidBody.getMass() != mass) btRigidBody.setMass(mass);
-                float bounce = rigidBody.getBounce();
-                if(btRigidBody.getBounce() != bounce) btRigidBody.setBounce(bounce);
+                short colLayer = body.getLayer();
+                if(btBody.getLayer() != colLayer) btBody.setLayer(colLayer);
+                short colMask = body.getMask();
+                if(btBody.getMask() != colMask) btBody.setMask(colMask);
+                boolean kinematic = body.isKinematic();
+                if(btBody.isKinematic() != kinematic) btBody.setKinematic(kinematic);
+                float mass = body.getMass();
+                if(btBody.getMass() != mass) btBody.setMass(mass);
+                float friction = body.getFriction();
+                if(btBody.getFriction() != friction) btBody.setFriction(friction);
+                float bounce = body.getBounce();
+                if(btBody.getBounce() != bounce) btBody.setBounce(bounce);
 
                 // Cache the transform and upload to simulation:
-                Matrix4f transform = rigidBody.getGlobalTransform();
+                Matrix4f transform = body.getGlobalTransform();
                 transformCache.add(transform);
-                btRigidBody.setTransform(transform);
+                btBody.setTransform(transform);
             }
 
             // Step The Simulation
-            dynamicsWorld.stepSimulation((float)deltaTime, 8);
+            btWorld.step((float)deltaTime, 8);
 
-            for(int i = 0; i < rigidBodies.size(); i++) {
-                RigidBody rigidBody = rigidBodies.get(i);
-                BTRigidBody btRigidBody = (BTRigidBody)getServerResourceOrNull(rigidBody.getResource());
-                if(btRigidBody == null) continue;
+            for(int i = 0; i < bodies.size(); i++) {
+                PhysicsBody physicsBody = bodies.get(i);
+                BTPhysicsBody btPhysicsBody = (BTPhysicsBody)getServerResourceOrNull(physicsBody.getResource());
+                if(btPhysicsBody == null) continue;
 
                 // Compute delta transform and apply it:
 
-                Matrix4f globalDelta = btRigidBody.getTransform().mul(transformCache.get(i).inverse());
+                Matrix4f globalDelta = btPhysicsBody.getTransform().mul(transformCache.get(i).inverse());
 
-                Matrix4f local = rigidBody.getTransform().getMatrix();
-                Matrix4f global = rigidBody.getGlobalTransform();
+                Matrix4f local = physicsBody.getTransform().getMatrix();
+                Matrix4f global = physicsBody.getGlobalTransform();
                 Matrix4f parentTransform = local.inverse().mul(global);
 
                 Matrix4f newGlobal = globalDelta.mul(global);
                 Matrix4f newLocal = newGlobal.mul(parentTransform.inverse());
 
                 Matrix4f localDelta = newLocal.mul(local.inverse());
-                rigidBody.getTransform().applyMatrix(localDelta);
+                physicsBody.getTransform().applyMatrix(localDelta);
             }
         }
 
