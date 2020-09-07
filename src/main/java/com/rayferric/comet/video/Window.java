@@ -2,6 +2,9 @@ package com.rayferric.comet.video;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.input.*;
+import com.rayferric.comet.input.event.InputEvent;
+import com.rayferric.comet.input.event.KeyInputEvent;
+import com.rayferric.comet.input.event.TextInputEvent;
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.util.Monitor;
@@ -209,6 +212,7 @@ public abstract class Window {
         glfwSetFramebufferSizeCallback(handle, this::framebufferSizeCallback);
         glfwSetCursorPosCallback(handle, this::cursorPosCallback);
         glfwSetKeyCallback(handle, Window::keyCallback);
+        glfwSetCharCallback(handle, Window::charCallback);
         glfwSetMouseButtonCallback(handle, Window::mouseButtonCallback);
         glfwSetScrollCallback(handle, Window::scrollCallback);
 
@@ -399,22 +403,26 @@ public abstract class Window {
         InputKey inputKey = GLFW_KEY_MAP.get(key);
         if(inputKey == null) return;
 
-        InputEvent.Type eventType = InputEvent.Type.ECHO;
-        if(action == GLFW_PRESS) eventType = InputEvent.Type.PRESS;
-        else if(action == GLFW_RELEASE) eventType = InputEvent.Type.RELEASE;
+        KeyInputEvent.Type eventType = KeyInputEvent.Type.ECHO;
+        if(action == GLFW_PRESS) eventType = KeyInputEvent.Type.PRESS;
+        else if(action == GLFW_RELEASE) eventType = KeyInputEvent.Type.RELEASE;
 
-        Engine.getInstance().getInputManager().enqueueEvent(new InputEvent(eventType, inputKey));
+        Engine.getInstance().getInputManager().enqueueEvent(new KeyInputEvent(eventType, inputKey));
+    }
+
+    private static void charCallback(long window, int codePoint) {
+        Engine.getInstance().getInputManager().enqueueEvent(new TextInputEvent(codePoint));
     }
 
     private static void mouseButtonCallback(long window, int button, int action, int mods) {
         InputKey inputKey = GLFW_MOUSE_BUTTON_MAP.get(button);
         if(inputKey == null) return;
 
-        InputEvent.Type eventType = InputEvent.Type.ECHO;
-        if(action == GLFW_PRESS) eventType = InputEvent.Type.PRESS;
-        else if(action == GLFW_RELEASE) eventType = InputEvent.Type.RELEASE;
+        KeyInputEvent.Type eventType = KeyInputEvent.Type.ECHO;
+        if(action == GLFW_PRESS) eventType = KeyInputEvent.Type.PRESS;
+        else if(action == GLFW_RELEASE) eventType = KeyInputEvent.Type.RELEASE;
 
-        Engine.getInstance().getInputManager().enqueueEvent(new InputEvent(eventType, inputKey));
+        Engine.getInstance().getInputManager().enqueueEvent(new KeyInputEvent(eventType, inputKey));
     }
 
     private static void scrollCallback(long window, double offsetX, double offsetY) {
@@ -425,13 +433,13 @@ public abstract class Window {
 
         if(yOffset > 0) {
             for(int i = 0; i < yOffset; i++) {
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_UP));
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_UP));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_UP));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_UP));
             }
         } else {
             for(int i = 0; i < -yOffset; i++) {
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_DOWN));
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_DOWN));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_DOWN));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_DOWN));
             }
         }
 
@@ -441,13 +449,13 @@ public abstract class Window {
 
         if(xOffset > 0) {
             for(int i = 0; i < xOffset; i++) {
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_LEFT));
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_LEFT));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_LEFT));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_LEFT));
             }
         } else {
             for(int i = 0; i < -xOffset; i++) {
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_RIGHT));
-                inputManager.enqueueEvent(new InputEvent(InputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_RIGHT));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.PRESS, InputKey.MOUSE_WHEEL_RIGHT));
+                inputManager.enqueueEvent(new KeyInputEvent(KeyInputEvent.Type.RELEASE, InputKey.MOUSE_WHEEL_RIGHT));
             }
         }
     }

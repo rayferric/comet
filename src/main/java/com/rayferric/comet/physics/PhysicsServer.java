@@ -10,29 +10,6 @@ public class PhysicsServer extends Server {
     @Override
     public void destroy() {}
 
-    /**
-     * Waits for the audio engine to initialize.<br>
-     * • Returns when the audio engine starts processing.<br>
-     * • The server must be running.<br>
-     * • May be called from any thread.
-     *
-     * @throws IllegalStateException if the server is stopped
-     */
-    public void awaitInitialization() {
-        synchronized(startStopLock) {
-            if(!isRunning())
-                throw new IllegalStateException("Attempted to wait for audio engine while the server was down.");
-            synchronized(initializedNotifier) {
-                try {
-                    initializedNotifier.wait();
-                } catch(InterruptedException e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            }
-        }
-    }
-
     @Override
     protected void onStart() {
         physicsEngine = new BTPhysicsEngine();

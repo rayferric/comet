@@ -2,6 +2,8 @@ package com.rayferric.spatialwalker.node;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.input.*;
+import com.rayferric.comet.input.event.InputEvent;
+import com.rayferric.comet.input.event.KeyInputEvent;
 import com.rayferric.comet.math.Mathf;
 import com.rayferric.comet.math.Quaternion;
 import com.rayferric.comet.math.Transform;
@@ -99,10 +101,13 @@ public class SpectatorCamera extends PerspectiveCamera {
     protected void input(InputEvent event) {
         super.input(event);
 
-        if(event.getType() != InputEvent.Type.RELEASE)return;
+        KeyInputEvent keyEvent = (event instanceof KeyInputEvent) ? (KeyInputEvent) event : null;
+        if(keyEvent == null) return;
+
+        if(keyEvent.getType() != KeyInputEvent.Type.RELEASE)return;
 
         InputManager inputManager = Engine.getInstance().getInputManager();
-        if(event.getKey() == InputKey.KEYBOARD_ESCAPE) {
+        if(keyEvent.getKey() == InputKey.KEYBOARD_ESCAPE) {
             if(inputManager.isMouseCentered()) {
                 inputManager.setMouseCentered(false);
                 inputManager.setMouseHidden(false);
@@ -113,9 +118,9 @@ public class SpectatorCamera extends PerspectiveCamera {
                 focused = true;
             }
         }
-        if(event.getKey() == InputKey.KEYBOARD_C)
+        if(keyEvent.getKey() == InputKey.KEYBOARD_C)
             smoothing = !smoothing;
-        if(event.getKey() == InputKey.KEYBOARD_F) {
+        if(keyEvent.getKey() == InputKey.KEYBOARD_F) {
             Window wnd = Engine.getInstance().getVideoServer().getWindow();
             wnd.setFullscreen(!wnd.isFullscreen());
         }

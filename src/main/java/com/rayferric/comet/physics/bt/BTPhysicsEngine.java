@@ -115,7 +115,7 @@ public class BTPhysicsEngine extends PhysicsEngine {
             }
 
             // Step The Simulation
-            dynamicsWorld.stepSimulation((float)deltaTime);
+            dynamicsWorld.stepSimulation((float)deltaTime, 8);
 
             for(int i = 0; i < rigidBodies.size(); i++) {
                 RigidBody rigidBody = rigidBodies.get(i);
@@ -147,5 +147,5 @@ public class BTPhysicsEngine extends PhysicsEngine {
     }
 
     private Timer deltaTimer;
-    private List<Matrix4f> transformCache = new ArrayList<>();
+    private final List<Matrix4f> transformCache = new ArrayList<>();
 }

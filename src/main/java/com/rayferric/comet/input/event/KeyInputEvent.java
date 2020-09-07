@@ -1,11 +1,13 @@
-package com.rayferric.comet.input;
+package com.rayferric.comet.input.event;
 
-public class InputEvent {
+import com.rayferric.comet.input.InputKey;
+
+public class KeyInputEvent implements InputEvent {
     public enum Type {
         PRESS, ECHO, RELEASE
     }
 
-    public InputEvent(Type type, InputKey key) {
+    public KeyInputEvent(Type type, InputKey key) {
         this.type = type;
         this.key = key;
     }

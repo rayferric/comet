@@ -400,30 +400,30 @@ public class GLVideoEngine extends VideoEngine {
         return true;
     }
 
-    private int queryTotalVRam(String deviceVendor) {
+    private long queryTotalVRam(String deviceVendor) {
         deviceVendor = deviceVendor.toUpperCase();
 
         if(deviceVendor.contains("NVIDIA"))
-            return glGetInteger(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX) * 1024;
+            return glGetInteger(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX) * 1024L;
         else if(deviceVendor.contains("AMD") || deviceVendor.contains("ATI")) {
             try(MemoryStack stack = MemoryStack.stackPush()) {
                 IntBuffer ids = stack.mallocInt(1);
                 IntBuffer mem = stack.mallocInt(1);
                 wglGetGPUIDsAMD(ids);
                 wglGetGPUInfoAMD(ids.get(0), WGL_GPU_RAM_AMD, GL_UNSIGNED_INT, mem);
-                return mem.get(0) * 1024;
+                return mem.get(0) * 1024L;
             }
         } else
             return -1;
     }
 
-    private int queryFreeVRam(String deviceVendor) {
+    private long queryFreeVRam(String deviceVendor) {
         deviceVendor = deviceVendor.toUpperCase();
 
         if(deviceVendor.contains("NVIDIA"))
-            return glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX) * 1024;
+            return glGetInteger(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX) * 1024L;
         else if(deviceVendor.contains("AMD") || deviceVendor.contains("ATI"))
-            return glGetInteger(GL_TEXTURE_FREE_MEMORY_ATI) * 1024;
+            return glGetInteger(GL_TEXTURE_FREE_MEMORY_ATI) * 1024L;
         else
             return -1;
     }

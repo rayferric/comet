@@ -1,8 +1,10 @@
 package com.rayferric.comet.input;
 
+import com.rayferric.comet.input.event.InputEvent;
+import com.rayferric.comet.input.event.KeyInputEvent;
+
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class InputManager {
     // <editor-fold desc="State Queries">
@@ -83,15 +85,18 @@ public class InputManager {
      */
     public void processEvents() {
         for(InputEvent event : events) {
-            InputEvent.Type type = event.getType();
-            InputKey key = event.getKey();
+            KeyInputEvent keyEvent = (event instanceof KeyInputEvent) ? (KeyInputEvent) event : null;
+            if(keyEvent == null) continue;
 
-            if(type == InputEvent.Type.PRESS) {
+            KeyInputEvent.Type type = keyEvent.getType();
+            InputKey key = keyEvent.getKey();
+
+            if(type == KeyInputEvent.Type.PRESS) {
                 keyStates.put(key, true);
-                justPressedKeys.add(event.getKey());
-            } else if(type == InputEvent.Type.RELEASE) {
+                justPressedKeys.add(keyEvent.getKey());
+            } else if(type == KeyInputEvent.Type.RELEASE) {
                 keyStates.put(key, false);
-                justReleasedKeys.add(event.getKey());
+                justReleasedKeys.add(keyEvent.getKey());
             }
         }
     }

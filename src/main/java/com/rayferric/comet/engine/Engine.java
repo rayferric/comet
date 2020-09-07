@@ -93,21 +93,11 @@ public class Engine {
             System.exit(1);
         }
 
-        // Wait for server creation queues when loader pool is shut down:
-        getVideoServer().waitForCreationQueue();
-        getAudioServer().waitForCreationQueue();
-        getPhysicsServer().waitForCreationQueue();
-
         // Unload resources:
         for(Resource resource : getResourceManager().snapLoadedResources())
             resource.unload();
 
-        // Wait for server destruction queues:
-        getVideoServer().waitForDestructionQueue();
-        getVideoServer().waitForDestructionQueue();
-        getPhysicsServer().waitForDestructionQueue();
-
-        // Stop the servers:
+        // Request servers to shut down as soon as all resources are freed:
         getVideoServer().stop();
         getAudioServer().stop();
         getPhysicsServer().stop();

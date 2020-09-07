@@ -1,6 +1,7 @@
 package com.rayferric.comet.video.util;
 
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class VideoInfo {
@@ -36,19 +37,19 @@ public class VideoInfo {
         this.shaderVersion.set(shaderVersion);
     }
 
-    public int getTotalVRam() {
+    public long getTotalVRam() {
         return totalVRam.get();
     }
 
-    public void setTotalVRam(int totalVRam) {
+    public void setTotalVRam(long totalVRam) {
         this.totalVRam.set(totalVRam);
     }
 
-    public int getFreeVRam() {
+    public long getFreeVRam() {
         return freeVRam.get();
     }
 
-    public void setFreeVRam(int freeVRam) {
+    public void setFreeVRam(long freeVRam) {
         this.freeVRam.set(freeVRam);
     }
 
@@ -72,8 +73,8 @@ public class VideoInfo {
     private final AtomicReference<String> deviceModel = new AtomicReference<>("NO GPU MODEL");
     private final AtomicReference<String> apiVersion = new AtomicReference<>("NO VIDEO API");
     private final AtomicReference<String> shaderVersion = new AtomicReference<>("NO SHADERS");
-    private final AtomicInteger totalVRam = new AtomicInteger(-1);
-    private final AtomicInteger freeVRam = new AtomicInteger(-1);
+    private final AtomicLong totalVRam = new AtomicLong(-1);
+    private final AtomicLong freeVRam = new AtomicLong(-1);
     private final AtomicInteger vertexCount = new AtomicInteger(-1);
     private final AtomicInteger triangleCount = new AtomicInteger(-1);
 }

@@ -32,6 +32,8 @@ public class BTRigidBody implements ServerResource {
 
     @Override
     public void destroy() {
+        // world.removeConstraint(...);
+        if(world != null) world.removeRigidBody(rigidBody);
         rigidBody.destroy();
     }
 

@@ -1,5 +1,7 @@
 package com.rayferric.comet.input;
 
+import com.rayferric.comet.engine.Engine;
+
 public enum InputKey {
     MOUSE_LEFT("LEFT MOUSE BUTTON"),
     MOUSE_RIGHT("RIGHT MOUSE BUTTON"),
@@ -157,7 +159,7 @@ public enum InputKey {
 
     private final String name;
 
-    private InputKey(String name) {
+    InputKey(String name) {
         this.name = name;
     }
 }

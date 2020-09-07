@@ -38,23 +38,27 @@ public abstract class Resource {
      *
      * @return false if the resource was already (being) loaded
      */
-    public synchronized boolean load() {
-        return !loaded.get() && loading.compareAndSet(false, true);
+    public boolean load() {
+        synchronized(loadingLock) {
+            return !loaded.get() && loading.compareAndSet(false, true);
+        }
     }
 
     /**
      * Unregisters this resource from {@link Engine#getResourceManager() resource manager}
      * and starts unloading the server resource.<br>
-     * • Executes only if the resource is loaded.<br>
+     * • Executes only if the resource is loaded, use {@link #isLoaded()} to check for that.<br>
      * • May be called from any thread.
      *
      * @return false if the resource was already unloaded
      */
-    public synchronized boolean unload() {
-        if(!loaded.compareAndSet(true, false))
-            return false;
-        Engine.getInstance().getResourceManager().unregisterUnloadedResource(this);
-        return true;
+    public boolean unload() {
+        synchronized(loadingLock) {
+            if(!loaded.compareAndSet(true, false))
+                return false;
+            Engine.getInstance().getResourceManager().unregisterUnloadedResource(this);
+            return true;
+        }
     }
 
     /**
@@ -62,13 +66,12 @@ public abstract class Resource {
      * • This is a non-blocking routine.<br>
      * • May be called from any thread.
      */
-    public synchronized void reload() {
-        if(loaded.get()) unload();
-        load();
+    public void reload() {
+        synchronized(loadingLock) {
+            if(loaded.get()) unload();
+            load();
+        }
     }
-
-    protected final AtomicBoolean loading = new AtomicBoolean(false);
-    protected final AtomicBoolean loaded = new AtomicBoolean(false);
 
     /**
      * Marks this resource as loaded and {@link ResourceManager#registerLoadedResource(Resource) submits} it to the resource manager.<br>
@@ -76,12 +79,18 @@ public abstract class Resource {
      *
      * @throws IllegalStateException if multiple threads managed to be loading the same resource simultaneously (this should not happen and is a bug)
      */
-    protected synchronized void finishLoading() {
-        // This is a theoretically unreachable block, there's an internal programming error if it throws:
-        if(!loaded.compareAndSet(false, true) || !loading.compareAndSet(true, false))
-            throw new IllegalStateException(
-                    "A single resource was being loaded using multiple threads simultaneously.");
+    protected void finishLoading() {
+        synchronized(loadingLock) {
+            // This is a theoretically unreachable block, there's an internal programming error if it throws:
+            if(!loaded.compareAndSet(false, true) || !loading.compareAndSet(true, false))
+                throw new IllegalStateException(
+                        "A single resource was being loaded using multiple threads simultaneously.");
 
-        Engine.getInstance().getResourceManager().registerLoadedResource(this);
+            Engine.getInstance().getResourceManager().registerLoadedResource(this);
+        }
     }
+
+    private final AtomicBoolean loading = new AtomicBoolean(false);
+    private final AtomicBoolean loaded = new AtomicBoolean(false);
+    private final Object loadingLock = new Object();
 }

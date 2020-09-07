@@ -1,13 +1,9 @@
 package com.rayferric.comet.scenegraph.node;
 
 import com.rayferric.comet.engine.LayerIndex;
-import com.rayferric.comet.input.InputEvent;
+import com.rayferric.comet.input.event.InputEvent;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Transform;
-import com.rayferric.comet.math.Vector3f;
-import com.rayferric.comet.scenegraph.node.model.Graph;
-import com.rayferric.comet.scenegraph.resource.Resource;
-import com.rayferric.comet.video.VideoEngine;
 
 import java.util.ArrayList;
 import java.util.List;

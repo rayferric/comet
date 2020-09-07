@@ -1,17 +1,13 @@
 package com.rayferric.spatialwalker.node;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.input.InputAxis;
-import com.rayferric.comet.input.InputEvent;
+import com.rayferric.comet.input.event.InputEvent;
 import com.rayferric.comet.input.InputKey;
-import com.rayferric.comet.math.*;
-import com.rayferric.comet.profiling.TimeAccumulator;
-import com.rayferric.comet.scenegraph.node.model.Label;
+import com.rayferric.comet.input.event.KeyInputEvent;
+import com.rayferric.comet.input.event.TextInputEvent;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
-import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.api.VideoAPI;
-import com.rayferric.comet.video.util.VideoInfo;
 
 public class Rotor extends Node {
     // Thread that instantiated the scene (or any other)
@@ -33,7 +29,10 @@ public class Rotor extends Node {
     protected void input(InputEvent event) {
         super.input(event);
 
-        InputKey key = event.getKey();
+        KeyInputEvent keyEvent = (event instanceof KeyInputEvent) ? (KeyInputEvent) event : null;
+        if(keyEvent == null) return;
+
+        InputKey key = keyEvent.getKey();
 
         if(key == InputKey.KEYBOARD_R)
             Engine.getInstance().getVideoServer().setApi(VideoAPI.OPENGL);

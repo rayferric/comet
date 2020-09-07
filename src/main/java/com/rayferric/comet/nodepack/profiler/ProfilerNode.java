@@ -1,9 +1,9 @@
 package com.rayferric.comet.nodepack.profiler;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.input.InputEvent;
+import com.rayferric.comet.input.event.InputEvent;
 import com.rayferric.comet.input.InputKey;
-import com.rayferric.comet.input.InputManager;
+import com.rayferric.comet.input.event.KeyInputEvent;
 import com.rayferric.comet.math.Mathf;
 import com.rayferric.comet.math.Transform;
 import com.rayferric.comet.math.Vector2i;
@@ -115,9 +115,12 @@ public class ProfilerNode extends Node {
     protected void input(InputEvent event) {
         super.input(event);
 
-        if(event.getType() != InputEvent.Type.RELEASE)return;
+        KeyInputEvent keyEvent = (event instanceof KeyInputEvent) ? (KeyInputEvent) event : null;
+        if(keyEvent == null) return;
 
-        if(event.getKey() == InputKey.KEYBOARD_F1)
+        if(keyEvent.getType() != KeyInputEvent.Type.RELEASE)return;
+
+        if(keyEvent.getKey() == InputKey.KEYBOARD_F1)
             setVisible(!isVisible());
     }
 

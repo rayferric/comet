@@ -5,18 +5,9 @@ public abstract class ServerRecipe {
         this.cleanUpCallback = cleanUpCallback;
     }
 
-    public Runnable getCleanUpCallback() {
-        return cleanUpCallback;
-    }
-
-    public long getHandle() {
-        return handle;
-    }
-
-    public void setHandle(long handle) {
-        this.handle = handle;
+    public void cleanUp() {
+        if(cleanUpCallback != null) cleanUpCallback.run();
     }
 
     private final Runnable cleanUpCallback;
-    private long handle = 0;
 }

@@ -82,27 +82,12 @@ public class VideoServer extends Server {
 
         stop();
 
-        List<Resource> videoResources = new ArrayList<>();
-        for(Resource resource : Engine.getInstance().getResourceManager().snapLoadedResources())
-            if(resource instanceof VideoResource)
-                videoResources.add(resource);
-
-        for(Resource resource : videoResources)
-            resource.unload();
-
-        resourceCreationPaused = true;
-        start();
-        waitForDestructionQueue();
-        stop();
-        resourceCreationPaused = false;
-
         Window oldWindow = getWindow();
         if(api == VideoAPI.OPENGL)
             window.set(new GLWindow(oldWindow));
         oldWindow.destroy();
 
-        for(Resource resource : videoResources)
-            resource.load();
+        Engine.getInstance().getResourceManager().reloadResources(VideoResource.class);
 
         start();
     }
@@ -131,29 +116,6 @@ public class VideoServer extends Server {
     public void setTextureAnisotropy(float anisotropyLevel) {
         textureAnisotropy.set(anisotropyLevel);
         Engine.getInstance().getResourceManager().reloadResources(Texture.class);
-    }
-
-    /**
-     * Waits for the video engine to initialize.<br>
-     * • Returns when the video engine starts drawing.<br>
-     * • The server must be running.<br>
-     * • May be called from any thread.
-     *
-     * @throws IllegalStateException if the server is stopped
-     */
-    public void awaitInitialization() {
-        synchronized(startStopLock) {
-            if(!isRunning())
-                throw new IllegalStateException("Attempted to wait for video engine while the server was down.");
-            synchronized(initializedNotifier) {
-                try {
-                    initializedNotifier.wait();
-                } catch(InterruptedException e) {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            }
-        }
     }
 
     @Override

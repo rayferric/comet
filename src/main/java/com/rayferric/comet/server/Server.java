@@ -1,24 +1,20 @@
 package com.rayferric.comet.server;
 
+import com.rayferric.comet.audio.recipe.AudioSourceRecipe;
+import com.rayferric.comet.audio.recipe.AudioStreamRecipe;
 import com.rayferric.comet.engine.Engine;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 // TODO Finish Javadoc
 public abstract class Server {
-    /**
-     * Returns text representation of the current state of the server.<br>
-     * • May be called from any thread.
-     *
-     * @return current state in text format
-     */
-    // TODO toString
-
     // <editor-fold desc="Internal API">
 
     /**
@@ -41,28 +37,28 @@ public abstract class Server {
             if(!running.compareAndSet(false, true))
                 throw new IllegalStateException("Attempted to start an already running server.");
 
-            shouldProcess.set(true);
+            // Must be set from this thread:
+            try {
+                initializationSemaphore.acquire(1);
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+                System.exit(1);
+            }
+            shuttingDown.set(false);
 
             thread = new Thread(() -> {
                 try {
                     onStart();
-                    while(shouldProcess.get()) {
-                        if(!resourceCreationPaused) {
-                            if(createNextPendingResource()) {
-                                synchronized(creationQueue) {
-                                    creationQueue.notifyAll();
-                                }
-                            }
-                        }
+                    initializationSemaphore.release(1);
 
-                        if(destroyNextPendingResource()) {
-                            synchronized(destructionQueue) {
-                                destructionQueue.notifyAll();
-                            }
-                        }
+                    while(!shuttingDown.get()) {
+                        createNextPendingResource();
+                        destroyNextPendingResource();
 
                         onLoop();
                     }
+                    destroyAllResources();
+
                     onStop();
                 } catch(Throwable e) {
                     e.printStackTrace();
@@ -76,7 +72,7 @@ public abstract class Server {
 
     /**
      * Requests server thread termination and waits for it to shut down.<br>
-     * • Does not alter the current state of server resources. Just stops the processing thread.<br>
+     * • The server thread will destroy all resources upon returning.<br>
      * • May be called from any thread.
      */
     public void stop() {
@@ -84,7 +80,7 @@ public abstract class Server {
             if(!running.get())
                 throw new IllegalStateException("Attempted to stop an already stopped server.");
 
-            shouldProcess.set(false);
+            shuttingDown.set(true);
             try {
                 thread.join();
             } catch(InterruptedException e) {
@@ -96,71 +92,40 @@ public abstract class Server {
         }
     }
 
-    // Used by servers and their resources:
-
-    public ServerResource getServerResource(long handle) {
-        return resources.get(handle);
+    /**
+     * Waits for the server to start.<br>
+     * • Returns when the server starts processing or immediately if it's down.<br>
+     * • May be called from any thread.
+     */
+    public void awaitInitialization() {
+        try {
+            initializationSemaphore.acquire(1);
+        } catch(InterruptedException e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
+        initializationSemaphore.release(1);
     }
-
-    // Used by Resource class descendants:
 
     public long scheduleResourceCreation(ServerRecipe recipe) {
         long handle = handleGenerator.getAndIncrement();
-        recipe.setHandle(handle);
-        creationQueue.add(recipe);
+        synchronized(creationMap) {
+            creationMap.put(handle, recipe);
+        }
         return handle;
     }
 
     public void scheduleResourceDestruction(long handle) {
-        synchronized(destructionQueue) {
-            destructionQueue.add(handle);
+        synchronized(destructionList) {
+            destructionList.add(handle);
         }
     }
 
-    /**
-     * Waits for all enqueued server resources to be created.<br>
-     * • The server must be running or the thread will hang.<br>
-     * • Is internally used by {@link Engine#stop()}.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     */
-    public void waitForCreationQueue() {
-        synchronized(creationQueue) {
-            try {
-                creationQueue.wait();
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
+    public ServerResource getServerResource(long handle) {
+        synchronized(resources) {
+            return resources.get(handle);
         }
     }
-
-    /**
-     * Waits for all enqueued server resources to be destroyed.<br>
-     * • The server must be running or the thread will hang.<br>
-     * • Is internally used by {@link Engine#stop()}.<br>
-     * • Must not be called by the user, this is an internal method.<br>
-     * • May be called from any thread.
-     */
-    public void waitForDestructionQueue() {
-        synchronized(destructionQueue) {
-            try {
-                destructionQueue.wait();
-            } catch(InterruptedException e) {
-                e.printStackTrace();
-                System.exit(1);
-            }
-        }
-    }
-
-    // </editor-fold>
-
-    public boolean isRunning() {
-        return running.get();
-    }
-
-    protected final Object startStopLock = new Object();
-    protected boolean resourceCreationPaused = false;
 
     protected abstract void onStart();
 
@@ -172,48 +137,63 @@ public abstract class Server {
 
     private Thread thread;
     private final AtomicBoolean running = new AtomicBoolean(false);
-    private final AtomicBoolean shouldProcess = new AtomicBoolean(false);
+    private final AtomicBoolean shuttingDown = new AtomicBoolean(false);
 
-    private final ConcurrentHashMap<Long, ServerResource> resources = new ConcurrentHashMap<>();
+    private final Object startStopLock = new Object();
+    private final Semaphore initializationSemaphore = new Semaphore(1);
+
+    private final HashMap<Long, ServerResource> resources = new HashMap<>();
     private final AtomicLong handleGenerator = new AtomicLong(0);
-    private final ConcurrentLinkedQueue<ServerRecipe> creationQueue = new ConcurrentLinkedQueue<>();
-    private final List<Long> destructionQueue = new ArrayList<>();
+    private final TreeMap<Long, ServerRecipe> creationMap = new TreeMap<>();
+    private final List<Long> destructionList = new ArrayList<>();
 
-    // <editor-fold desc="Helpers">
+    // <editor-fold desc="Server Thread Helpers">
 
-    // Returns whether the work is done
-    private boolean createNextPendingResource() {
-        ServerRecipe recipe = creationQueue.poll();
-        if(recipe == null) return true;
+    private void createNextPendingResource() {
+        Map.Entry<Long, ServerRecipe> entry;
+        synchronized(creationMap) {
+            entry = creationMap.pollFirstEntry();
+        }
+        if(entry == null) return;
+
+        long handle = entry.getKey();
+        ServerRecipe recipe = entry.getValue();
 
         ServerResource serverResource = resourceFromRecipe(recipe);
+        recipe.cleanUp();
 
-        Runnable cleanUpCb = recipe.getCleanUpCallback();
-        if(cleanUpCb != null) cleanUpCb.run();
-
-        resources.put(recipe.getHandle(), serverResource);
-        return false;
+        synchronized(resources) {
+            resources.put(handle, serverResource);
+        }
     }
 
     // Returns whether all resources are destroyed
-    private boolean destroyNextPendingResource() {
+    private void destroyNextPendingResource() {
+        int listSize = destructionList.size();
+        if(listSize == 0) return;
+
+        long handle = destructionList.remove(destructionList.size() - 1);
         ServerResource serverResource;
-        int i = 0;
-        synchronized(destructionQueue) {
-            do {
-                Long handle;
-                try {
-                    handle = destructionQueue.get(i++);
-                } catch(IndexOutOfBoundsException e) {
-                    return true;
-                }
-                serverResource = resources.remove(handle);
-            } while(serverResource == null);
-            destructionQueue.remove(i - 1);
+        synchronized(resources) {
+            serverResource = resources.remove(handle);
         }
 
-        serverResource.destroy();
-        return false;
+        if(serverResource != null)
+            serverResource.destroy();
+        else {
+            ServerRecipe recipe;
+            synchronized(creationMap) {
+                recipe = creationMap.remove(handle);
+            }
+            if(recipe != null) recipe.cleanUp();
+        }
+    }
+
+    private void destroyAllResources() {
+        synchronized(resources) {
+            resources.forEach((handle, resource) -> resource.destroy());
+            resources.clear();
+        }
     }
 
     // </editor-fold>
