@@ -218,6 +218,77 @@ public class Matrix4f {
         );
     }
 
+    public Vector3f getTranslation() {
+        return new Vector3f(w.getX(), w.getY(), w.getZ());
+    }
+
+    public void setTranslation(float x, float y, float z) {
+        w.setX(x);
+        w.setY(y);
+        w.setZ(z);
+    }
+
+    public void setTranslation(Vector3f translation) {
+        setTranslation(translation.getX(), translation.getY(), translation.getZ());
+    }
+
+    public Quaternion getRotation() {
+        Vector4f x = this.x.normalize();
+        Vector4f y = this.y.normalize();
+        Vector4f z = this.z.normalize();
+
+        float xx = x.getX();
+        float yy = y.getY();
+        float zz = z.getZ();
+
+        float t;
+        Quaternion q;
+
+        if(zz < 0) {
+            if(xx > yy) {
+                t = 1 + xx - yy - zz;
+                q = new Quaternion(y.getZ() - z.getY(), t, x.getY() + y.getX(), z.getX() + x.getZ());
+            }
+            else {
+                t = 1 - xx + yy - zz;
+                q = new Quaternion(z.getX() - x.getZ(), x.getY() + y.getX(), t, y.getZ() + z.getY());
+            }
+        } else {
+            if(xx < -yy) {
+                t = 1 - xx - yy + zz;
+                q = new Quaternion(x.getY() - y.getX(), z.getX() + x.getZ(), y.getZ() + z.getY(), t);
+            }
+            else {
+                t = 1 + xx + yy + zz;
+                q = new Quaternion(t, y.getZ() - z.getY(), z.getX() - x.getZ(), x.getY() - y.getX());
+            }
+        }
+
+        return q.mul(0.5F / Mathf.sqrt(t));
+    }
+
+    public void setRotation(Quaternion rotation) {
+        Vector3f scale = getScale();
+        Matrix4f m = rotation.toMatrix();
+        x = m.x.mul(scale.getX());
+        y = m.y.mul(scale.getY());
+        z = m.z.mul(scale.getZ());
+    }
+
+    public Vector3f getScale() {
+        return new Vector3f(x.length(), y.length(), z.length());
+    }
+
+    public void setScale(float x, float y, float z) {
+        this.x = this.x.normalize().mul(x);
+        this.y = this.y.normalize().mul(y);
+        this.z = this.z.normalize().mul(z);
+    }
+
+    public void setScale(Vector3f scale) {
+        setScale(scale.getX(), scale.getY(), scale.getZ());
+    }
+
     public Vector4f getX() {
         return x;
     }

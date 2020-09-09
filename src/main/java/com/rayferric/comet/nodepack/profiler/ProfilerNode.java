@@ -60,6 +60,7 @@ public class ProfilerNode extends Node {
             timer.reset();
 
             Profiler profiler = Engine.getInstance().getProfiler();
+            TimeAccumulator frameTimer = profiler.getFrameAccumulator();
             TimeAccumulator cpuTimer = profiler.getCpuAccumulator();
             TimeAccumulator gpuTimer = profiler.getGpuAccumulator();
 
@@ -71,8 +72,8 @@ public class ProfilerNode extends Node {
 
             if(!isVisible()) return;
 
-            String fpsStr = String.format(Locale.US, "%.0f FPS", 1 / cpuTimer.getAvg());
-            String frameTimeStr = String.format(Locale.US, "%.2f ms", cpuTimer.getAvg() * 1e+3);
+            String fpsStr = String.format(Locale.US, "%.0f FPS", 1 / frameTimer.getAvg());
+            String frameTimeStr = String.format(Locale.US, "%.2f ms", frameTimer.getAvg() * 1e+3);
             String cpuTimeStr =
                     String.format(Locale.US, "CPU: %3.0f %3.0f %3.0f", cpuTimer.getMin() * 1e+3,
                             cpuTimer.getAvg() * 1e+3,

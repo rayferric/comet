@@ -6,6 +6,8 @@ import com.bulletphysics.collision.shapes.*;
 import com.bulletphysics.dynamics.*;
 import com.bulletphysics.linearmath.*;
 import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.scenegraph.node.PhysicsBody;
 import com.rayferric.comet.server.ServerResource;
 
 public class BTPhysicsBody implements ServerResource {
@@ -31,8 +33,9 @@ public class BTPhysicsBody implements ServerResource {
         btBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
 
         setKinematic(kinematic);
-        setFriction(friction);
-        setBounce(bounce);
+        btBody.setFriction(0.5F);
+        btBody.setRestitution(0);
+        btBody.setDamping(0, 0);
     }
 
     @Override
@@ -45,7 +48,7 @@ public class BTPhysicsBody implements ServerResource {
     public Matrix4f getTransform() {
         Transform btTransform = new Transform();
         btTransform.setIdentity();
-        btBody.getMotionState().getWorldTransform(btTransform);
+        btBody.getWorldTransform(btTransform);
         float[] array = new float[16];
         btTransform.getOpenGLMatrix(array);
         return new Matrix4f(array);
@@ -73,10 +76,12 @@ public class BTPhysicsBody implements ServerResource {
 
     public void setLayer(short layer) {
         this.layer = layer;
+        propsChanged = true;
     }
 
     public void setLayerBit(int bit, boolean state) {
         layer ^= ((state ? -1 : 0) ^ layer) & (1 << bit);
+        propsChanged = true;
     }
 
     public short getMask() {
@@ -89,10 +94,12 @@ public class BTPhysicsBody implements ServerResource {
 
     public void setMask(short mask) {
         this.mask = mask;
+        propsChanged = true;
     }
 
     public void setMaskBit(int bit, boolean state) {
         mask ^= ((state ? -1 : 0) ^ mask) & (1 << bit);
+        propsChanged = true;
     }
 
     public BTPhysicsWorld getWorld() {
@@ -116,7 +123,7 @@ public class BTPhysicsBody implements ServerResource {
         else
             flags &= ~CollisionFlags.KINEMATIC_OBJECT;
         btBody.setCollisionFlags(flags);
-        setWorld(getWorld());
+        propsChanged = true;
     }
 
     public float getMass() {
@@ -128,25 +135,97 @@ public class BTPhysicsBody implements ServerResource {
         javax.vecmath.Vector3f inertia = new javax.vecmath.Vector3f();
         collisionCompound.calculateLocalInertia(mass, inertia);
         btBody.setMassProps(mass, inertia);
-        setWorld(getWorld());
+        propsChanged = true;
     }
 
     public float getFriction() {
-        return friction;
+        return btBody.getFriction();
     }
 
     public void setFriction(float friction) {
-        btBody.setFriction(this.friction = friction);
-        setWorld(getWorld());
+        btBody.setFriction(friction);
+        propsChanged = true;
     }
 
     public float getBounce() {
-        return bounce;
+        return btBody.getRestitution();
     }
 
     public void setBounce(float bounce) {
-        btBody.setRestitution(this.bounce = bounce);
-        setWorld(getWorld());
+        btBody.setRestitution(bounce);
+        propsChanged = true;
+    }
+
+    public void applyProps() {
+        if(propsChanged) {
+            setWorld(world);
+            propsChanged = false;
+        }
+    }
+
+    public float getLinearDrag() {
+        return btBody.getLinearDamping();
+    }
+
+    public void setLinearDrag(float drag) {
+        btBody.setDamping(drag, btBody.getAngularDamping());
+        // propsChanged = true;
+    }
+
+    public float getAngularDrag() {
+        return btBody.getAngularDamping();
+    }
+
+    public void setAngularDrag(float drag) {
+        btBody.setDamping(btBody.getLinearDamping(), drag);
+        // propsChanged = true;
+    }
+
+    public Vector3f getLinearVelocity() {
+        javax.vecmath.Vector3f velocity = new javax.vecmath.Vector3f();
+        btBody.getLinearVelocity(velocity);
+        return fromBtVector(velocity);
+    }
+
+    public void setLinearVelocity(Vector3f velocity) {
+        btBody.setLinearVelocity(toBtVector(velocity));
+    }
+
+    public Vector3f getAngularVelocity() {
+        javax.vecmath.Vector3f velocity = new javax.vecmath.Vector3f();
+        btBody.getAngularVelocity(velocity);
+        return fromBtVector(velocity);
+    }
+
+    public void setAngularVelocity(Vector3f velocity) {
+        btBody.setAngularVelocity(toBtVector(velocity));
+    }
+
+    public void applyForce(PhysicsBody.Force force) {
+        Vector3f value = force.getValue();
+        Vector3f pos = force.getPos();
+        switch(force.getType()) {
+            case FORCE -> {
+                if(pos == null) btBody.applyCentralForce(toBtVector(value));
+                else btBody.applyForce(toBtVector(value), toBtVector(pos));
+            }
+            case ACCELERATION -> {
+                if(pos == null) btBody.applyCentralForce(toBtVector(value.mul(mass)));
+                else btBody.applyForce(toBtVector(value.mul(mass)), toBtVector(pos));
+            }
+            case FORCE_IMPULSE -> {
+                if(pos == null) btBody.applyCentralImpulse(toBtVector(value));
+                else btBody.applyImpulse(toBtVector(value), toBtVector(pos));
+            }
+            case ACCELERATION_IMPULSE -> {
+                if(pos == null) btBody.applyCentralImpulse(toBtVector(value.mul(mass)));
+                else btBody.applyImpulse(toBtVector(value.mul(mass)), toBtVector(pos));
+            }
+        }
+    }
+
+    public void clearForces() {
+        btBody.clearForces();
     }
 
     public RigidBody getBtBody() {
@@ -158,5 +237,14 @@ public class BTPhysicsBody implements ServerResource {
     private short layer = 0b1, mask = 0b1;
     private BTPhysicsWorld world = null;
     private boolean kinematic = false;
-    private float mass = 1, friction = 0.5F, bounce = 0;
+    private float mass = 1;
+    private boolean propsChanged = true;
+
+    private static javax.vecmath.Vector3f toBtVector(Vector3f v) {
+        return new javax.vecmath.Vector3f(v.getX(), v.getY(), v.getZ());
+    }
+
+    private static Vector3f fromBtVector(javax.vecmath.Vector3f v) {
+        return new Vector3f(v.x, v.y, v.z);
+    }
 }

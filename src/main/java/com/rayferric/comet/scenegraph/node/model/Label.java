@@ -30,8 +30,8 @@ public class Label extends Model {
     }
 
     public void setText(String text) {
-        this.text.set(text);
-        requireUpdate();
+        if(!this.text.getAndSet(text).equals(text))
+            requireUpdate();
     }
 
     public Font getFont() {
@@ -155,7 +155,7 @@ public class Label extends Model {
         needsUpdate = false;
     }
 
-    private boolean needsUpdate = false;
+    private boolean needsUpdate = true;
     private Geometry nextGeometry = null;
     private final AtomicReference<String> text = new AtomicReference<>("");
     private final AtomicReference<Font> font = new AtomicReference<>(null);

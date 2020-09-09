@@ -5,12 +5,14 @@ import com.bulletphysics.linearmath.Transform;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
 import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.math.Quaternion;
 import com.rayferric.comet.physics.PhysicsEngine;
 import com.rayferric.comet.physics.bt.shape.BTBoxCollisionShape;
+import com.rayferric.comet.physics.bt.shape.BTCapsuleCollisionShape;
 import com.rayferric.comet.physics.bt.shape.BTCollisionShape;
 import com.rayferric.comet.physics.bt.shape.BTSphereCollisionShape;
 import com.rayferric.comet.scenegraph.common.Collider;
-import com.rayferric.comet.scenegraph.node.body.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.PhysicsBody;
 import com.rayferric.comet.scenegraph.resource.physics.PhysicsWorld;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.Timer;
@@ -33,6 +35,11 @@ public class BTPhysicsEngine extends PhysicsEngine {
     @Override
     public ServerResource createSphereCollisionShape(float radius) {
         return new BTSphereCollisionShape(radius);
+    }
+
+    @Override
+    public ServerResource createCapsuleCollisionShape(float radius, float height) {
+        return new BTCapsuleCollisionShape(radius, height);
     }
 
     @Override
@@ -112,6 +119,23 @@ public class BTPhysicsEngine extends PhysicsEngine {
                 float bounce = body.getBounce();
                 if(btBody.getBounce() != bounce) btBody.setBounce(bounce);
 
+                btBody.applyProps();
+
+                // Properties that do not require removing the body from the world:
+                float linearDrag = body.getLinearDrag();
+                if(btBody.getLinearDrag() != linearDrag) btBody.setLinearDrag(linearDrag);
+                float angularDrag = body.getAngularDrag();
+                if(btBody.getAngularDrag() != angularDrag) btBody.setAngularDrag(angularDrag);
+
+                // Velocity and Forces
+                Vector3f nextLinearVelocity = body.popNextLinearVelocity();
+                if(nextLinearVelocity != null) btBody.setLinearVelocity(nextLinearVelocity);
+                Vector3f nextAngularVelocity = body.popNextAngularVelocity();
+                if(nextAngularVelocity != null) btBody.setAngularVelocity(nextAngularVelocity);
+                PhysicsBody.Force force;
+                while((force = body.popForce()) != null) btBody.applyForce(force);
+                if(body.popClearForces()) btBody.clearForces();
+
                 // Cache the transform and upload to simulation:
                 Matrix4f transform = body.getGlobalTransform();
                 transformCache.add(transform);
@@ -122,23 +146,33 @@ public class BTPhysicsEngine extends PhysicsEngine {
             btWorld.step((float)deltaTime, 8);
 
             for(int i = 0; i < bodies.size(); i++) {
-                PhysicsBody physicsBody = bodies.get(i);
-                BTPhysicsBody btPhysicsBody = (BTPhysicsBody)getServerResourceOrNull(physicsBody.getResource());
-                if(btPhysicsBody == null) continue;
+                PhysicsBody body = bodies.get(i);
+                BTPhysicsBody btBody = (BTPhysicsBody)getServerResourceOrNull(body.getResource());
+                if(btBody == null) continue;
+
+                body.updateLinearVelocity(btBody.getLinearVelocity());
+                body.updateAngularVelocity(btBody.getAngularVelocity());
 
                 // Compute delta transform and apply it:
+                Matrix4f globalDelta = btBody.getTransform().mul(transformCache.get(i).inverse());
 
-                Matrix4f globalDelta = btPhysicsBody.getTransform().mul(transformCache.get(i).inverse());
+                // TODO Test if this quaternion-euler-quaternion routine doesn't introduce any bugs
+                globalDelta.setTranslation(globalDelta.getTranslation().mul(body.getLinearFactor()));
+                Vector3f eulerRotation = globalDelta.getRotation().toEuler();
+                eulerRotation = eulerRotation.mul(body.getAngularFactor());
+                globalDelta.setRotation(Quaternion.eulerAngle(eulerRotation));
 
-                Matrix4f local = physicsBody.getTransform().getMatrix();
-                Matrix4f global = physicsBody.getGlobalTransform();
+                body.setAngularVelocity(body.getAngularVelocity().mul(body.getAngularFactor()));
+
+                Matrix4f local = body.getTransform().getMatrix();
+                Matrix4f global = body.getGlobalTransform();
                 Matrix4f parentTransform = local.inverse().mul(global);
 
                 Matrix4f newGlobal = globalDelta.mul(global);
                 Matrix4f newLocal = newGlobal.mul(parentTransform.inverse());
 
                 Matrix4f localDelta = newLocal.mul(local.inverse());
-                physicsBody.getTransform().applyMatrix(localDelta);
+                body.getTransform().applyMatrix(localDelta);
             }
         }
 

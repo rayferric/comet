@@ -4,6 +4,8 @@ import com.bulletphysics.collision.broadphase.DbvtBroadphase;
 import com.bulletphysics.collision.dispatch.CollisionDispatcher;
 import com.bulletphysics.collision.dispatch.DefaultCollisionConfiguration;
 import com.bulletphysics.dynamics.DiscreteDynamicsWorld;
+import com.bulletphysics.dynamics.DynamicsWorld;
+import com.bulletphysics.dynamics.InternalTickCallback;
 import com.bulletphysics.dynamics.constraintsolver.SequentialImpulseConstraintSolver;
 import com.rayferric.comet.math.Vector3f;
 import com.rayferric.comet.server.ServerResource;
@@ -42,11 +44,12 @@ public class BTPhysicsWorld implements ServerResource {
     }
 
     public Vector3f getGravity() {
-        return gravity;
+        javax.vecmath.Vector3f gravity = new javax.vecmath.Vector3f();
+        world.getGravity(gravity);
+        return new Vector3f(gravity.x, gravity.y, gravity.z);
     }
 
     public void setGravity(Vector3f gravity) {
-        this.gravity = gravity;
         world.setGravity(new javax.vecmath.Vector3f(gravity.getX(), gravity.getY(), gravity.getZ()));
     }
 
@@ -56,5 +59,4 @@ public class BTPhysicsWorld implements ServerResource {
 
     private final DiscreteDynamicsWorld world;
     private final List<BTPhysicsBody> bodies = new ArrayList<>();
-    private Vector3f gravity = Vector3f.ZERO;
 }

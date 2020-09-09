@@ -6,6 +6,8 @@ public class Vector3f {
     public static final int BYTES = 12;
 
     public static final Vector3f ZERO = new Vector3f(0);
+    public static final Vector3f ONE = new Vector3f(1);
+
     public static final Vector3f LEFT = new Vector3f(-1, 0, 0);
     public static final Vector3f RIGHT = new Vector3f(1, 0, 0);
     public static final Vector3f DOWN = new Vector3f(0, -1, 0);

@@ -6,6 +6,8 @@ public class Vector4f {
     public static final int BYTES = 16;
 
     public static final Vector4f ZERO = new Vector4f(0);
+    public static final Vector4f ONE = new Vector4f(1);
+
     public static final Vector4f LEFT = new Vector4f(-1, 0, 0, 0);
     public static final Vector4f RIGHT = new Vector4f(1, 0, 0, 0);
     public static final Vector4f DOWN = new Vector4f(0, -1, 0, 0);

@@ -14,7 +14,8 @@ public class SphereCollisionShape extends CollisionShape {
     public boolean load() {
         if(!super.load()) return false;
 
-        serverHandle.set(Engine.getInstance().getPhysicsServer().scheduleResourceCreation(new SphereCollisionShapeRecipe(radius)));
+        serverHandle.set(Engine.getInstance().getPhysicsServer()
+                .scheduleResourceCreation(new SphereCollisionShapeRecipe(radius)));
         finishLoading();
 
         return true;

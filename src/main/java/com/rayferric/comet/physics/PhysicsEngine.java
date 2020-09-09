@@ -18,9 +18,11 @@ public abstract class PhysicsEngine {
 
     public abstract ServerResource createPhysicsWorld();
 
-    public abstract ServerResource createBoxCollisionShape(Vector3f extents);
+    public abstract ServerResource createBoxCollisionShape(Vector3f size);
 
     public abstract ServerResource createSphereCollisionShape(float radius);
+
+    public abstract ServerResource createCapsuleCollisionShape(float radius, float height);
 
     public abstract ServerResource createPhysicsBody();
 

@@ -15,7 +15,8 @@ public class BoxCollisionShape extends CollisionShape {
     public boolean load() {
         if(!super.load()) return false;
 
-        serverHandle.set(Engine.getInstance().getPhysicsServer().scheduleResourceCreation(new BoxCollisionShapeRecipe(size)));
+        serverHandle.set(Engine.getInstance().getPhysicsServer()
+                .scheduleResourceCreation(new BoxCollisionShapeRecipe(size)));
         finishLoading();
 
         return true;

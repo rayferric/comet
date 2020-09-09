@@ -1,7 +1,7 @@
 package com.rayferric.comet.engine;
 
 import com.rayferric.comet.scenegraph.node.AudioPlayer;
-import com.rayferric.comet.scenegraph.node.body.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.PhysicsBody;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.node.camera.Camera;

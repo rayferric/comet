@@ -101,7 +101,6 @@ public class GLVideoEngine extends VideoEngine {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        cpuTimer = new Timer();
         gpuTimer = new GLTimerQuery();
         frameUBO = new GLUniformBuffer(FRAME_UBO_BYTES);
         modelUBO = new GLUniformBuffer(MODEL_UBO_BYTES);
@@ -110,7 +109,6 @@ public class GLVideoEngine extends VideoEngine {
         depthShader = new GLBinaryShader(depthShaderBinary, null);
         MemoryUtil.memFree(depthShaderBinary);
 
-        cpuTimer.start();
         frameUBO.bind(0);
         modelUBO.bind(1);
 
@@ -284,10 +282,6 @@ public class GLVideoEngine extends VideoEngine {
         VideoInfo info = Engine.getInstance().getVideoServer().getVideoInfo();
         info.setFreeVRam(queryFreeVRam(info.getDeviceVendor()));
 
-        double cpuDelta = cpuTimer.getElapsed();
-        cpuTimer.reset();
-        Engine.getInstance().getProfiler().getCpuAccumulator().accumulate(cpuDelta);
-
         int error = glGetError();
         if(error != GL_NO_ERROR)
             throw new RuntimeException("Encountered OpenGL error: " + error);
@@ -345,7 +339,6 @@ public class GLVideoEngine extends VideoEngine {
     private static final int FRAME_UBO_BYTES = 2 * Matrix4f.BYTES;
     private static final int MODEL_UBO_BYTES = Matrix4f.BYTES;
 
-    private Timer cpuTimer;
     private GLTimerQuery gpuTimer;
     private GLUniformBuffer frameUBO;
     private GLUniformBuffer modelUBO;

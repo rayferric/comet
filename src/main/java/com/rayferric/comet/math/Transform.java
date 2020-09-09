@@ -16,8 +16,7 @@ public class Transform {
     public Vector3f getTranslation() {
         try {
             lock.readLock().lock();
-            Vector4f w = matrix.getW();
-            return new Vector3f(w.getX(), w.getY(), w.getZ());
+            return matrix.getTranslation();
         } finally {
             lock.readLock().unlock();
         }
@@ -26,11 +25,10 @@ public class Transform {
     public void setTranslation(float x, float y, float z) {
         try {
             lock.writeLock().lock();
-            matrix.setW(new Vector4f(x, y, z, 1));
+            matrix.setTranslation(x, y, z);
         } finally {
             lock.writeLock().unlock();
         }
-
         owner.invalidateGlobalTransform();
     }
 
@@ -39,7 +37,13 @@ public class Transform {
     }
 
     public void translate(Vector3f translation) {
-        setTranslation(getTranslation().add(translation));
+        try {
+            lock.writeLock().lock();
+            matrix.setTranslation(matrix.getTranslation().add(translation));
+        } finally {
+            lock.writeLock().unlock();
+        }
+        owner.invalidateGlobalTransform();
     }
 
     public void translate(float x, float y, float z) {
@@ -47,59 +51,21 @@ public class Transform {
     }
 
     public Quaternion getRotation() {
-        Vector4f x, y, z;
         try {
             lock.readLock().lock();
-            x = matrix.getX().normalize();
-            y = matrix.getY().normalize();
-            z = matrix.getZ().normalize();
+            return matrix.getRotation();
         } finally {
             lock.readLock().unlock();
         }
-
-        float xx = x.getX();
-        float yy = y.getY();
-        float zz = z.getZ();
-
-        float t;
-        Quaternion q;
-
-        if(zz < 0) {
-            if(xx > yy) {
-                t = 1 + xx - yy - zz;
-                q = new Quaternion(y.getZ() - z.getY(), t, x.getY() + y.getX(), z.getX() + x.getZ());
-            }
-            else {
-                t = 1 - xx + yy - zz;
-                q = new Quaternion(z.getX() - x.getZ(), x.getY() + y.getX(), t, y.getZ() + z.getY());
-            }
-        } else {
-            if(xx < -yy) {
-                t = 1 - xx - yy + zz;
-                q = new Quaternion(x.getY() - y.getX(), z.getX() + x.getZ(), y.getZ() + z.getY(), t);
-            }
-            else {
-                t = 1 + xx + yy + zz;
-                q = new Quaternion(t, y.getZ() - z.getY(), z.getX() - x.getZ(), x.getY() - y.getX());
-            }
-        }
-
-        return q.mul(0.5F / Mathf.sqrt(t));
     }
 
     public void setRotation(Quaternion rotation) {
-        Vector3f scale = getScale();
-        Matrix4f m = rotation.toMatrix();
-
         try {
             lock.writeLock().lock();
-            matrix.setX(m.getX().mul(scale.getX()));
-            matrix.setY(m.getY().mul(scale.getY()));
-            matrix.setZ(m.getZ().mul(scale.getZ()));
+            matrix.setRotation(rotation);
         } finally {
             lock.writeLock().unlock();
         }
-
         owner.invalidateGlobalTransform();
     }
 
@@ -112,7 +78,13 @@ public class Transform {
     }
 
     public void rotate(Quaternion rotation) {
-        setRotation(getRotation().mul(rotation));
+        try {
+            lock.writeLock().lock();
+            matrix.setRotation(rotation.mul(matrix.getRotation()));
+        } finally {
+            lock.writeLock().unlock();
+        }
+        owner.invalidateGlobalTransform();
     }
 
     public void rotate(float pitch, float yaw, float roll) {
@@ -126,7 +98,7 @@ public class Transform {
     public Vector3f getScale() {
         try {
             lock.readLock().lock();
-            return new Vector3f(matrix.getX().length(), matrix.getY().length(), matrix.getZ().length());
+            return matrix.getTranslation();
         } finally {
             lock.readLock().unlock();
         }
@@ -135,13 +107,10 @@ public class Transform {
     public void setScale(float x, float y, float z) {
         try {
             lock.writeLock().lock();
-            matrix.setX(matrix.getX().normalize().mul(x));
-            matrix.setY(matrix.getY().normalize().mul(y));
-            matrix.setZ(matrix.getZ().normalize().mul(z));
+            matrix.setScale(x, y, z);
         } finally {
             lock.writeLock().unlock();
         }
-
         owner.invalidateGlobalTransform();
     }
 
@@ -154,7 +123,13 @@ public class Transform {
     }
 
     public void scale(Vector3f scale) {
-        setScale(getScale().mul(scale));
+        try {
+            lock.writeLock().lock();
+            matrix.setScale(matrix.getScale().mul(scale));
+        } finally {
+            lock.writeLock().unlock();
+        }
+        owner.invalidateGlobalTransform();
     }
 
     public void scale(float x, float y, float z) {

@@ -54,7 +54,6 @@ dependencies {
     runtimeOnly 'org.lwjgl:lwjgl-stb::natives-windows'
 
     implementation group: 'cz.advel.jbullet', name: 'jbullet', version: '20101010-1'
-//    implementation 'com.github.stephengold:Libbulletjme:9.2.2'
 }
 
 // Tasks

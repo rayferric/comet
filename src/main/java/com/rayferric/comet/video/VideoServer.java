@@ -2,6 +2,7 @@ package com.rayferric.comet.video;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.EngineInfo;
+import com.rayferric.comet.profiling.Profiler;
 import com.rayferric.comet.scenegraph.resource.Resource;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
@@ -9,6 +10,7 @@ import com.rayferric.comet.server.Server;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.server.ServerRecipe;
 import com.rayferric.comet.util.AtomicFloat;
+import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.Window;
 import com.rayferric.comet.video.recipe.VideoRecipe;
@@ -40,6 +42,9 @@ public class VideoServer extends Server {
         vSync.set(info.hasVSync());
         textureFilter.set(info.getTextureFilter());
         textureAnisotropy.set(info.getTextureAnisotropy());
+
+        frameTimer.start();
+        cpuTimer.start();
     }
 
     @Override
@@ -123,16 +128,26 @@ public class VideoServer extends Server {
         Window.makeCurrent(getWindow());
         if(getApi() == VideoAPI.OPENGL)
             videoEngine = new GLVideoEngine(getWindow().getFramebufferSize(), vSync.get());
+
+        frameTimer.reset();
+        cpuTimer.reset();
     }
 
     @Override
     protected void onLoop() {
-        synchronized(initializedNotifier) {
-            initializedNotifier.notifyAll();
-        }
         videoEngine.update(getWindow().getFramebufferSize(), vSync.get());
 
+        Profiler profiler = Engine.getInstance().getProfiler();
+
+        double frameDelta = frameTimer.getElapsed();
+        frameTimer.reset();
+        profiler.getFrameAccumulator().accumulate(frameDelta);
+
+        double cpuDelta = cpuTimer.getElapsed();
         getWindow().swapBuffers();
+        cpuTimer.reset();
+        profiler.getCpuAccumulator().accumulate(cpuDelta);
+
         videoEngine.draw();
     }
 
@@ -147,14 +162,14 @@ public class VideoServer extends Server {
         return ((VideoRecipe)recipe).resolve(videoEngine);
     }
 
-    private final AtomicReference<Window> window = new AtomicReference<>();
+    private VideoEngine videoEngine;
 
+    private final AtomicReference<Window> window = new AtomicReference<>();
     private final VideoInfo videoInfo = new VideoInfo();
     private final AtomicReference<VideoAPI> api = new AtomicReference<>();
     private final AtomicBoolean vSync = new AtomicBoolean();
     private final AtomicReference<TextureFilter> textureFilter = new AtomicReference<>();
     private final AtomicFloat textureAnisotropy = new AtomicFloat();
 
-    private VideoEngine videoEngine;
-    private final Object initializedNotifier = new Object();
+    private final Timer frameTimer = new Timer(), cpuTimer = new Timer();
 }

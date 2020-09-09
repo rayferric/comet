@@ -10,13 +10,17 @@ import com.rayferric.comet.scenegraph.common.Collider;
 import com.rayferric.comet.scenegraph.common.Mesh;
 import com.rayferric.comet.scenegraph.common.material.GLTFMaterial;
 import com.rayferric.comet.scenegraph.node.*;
-import com.rayferric.comet.scenegraph.node.body.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.PhysicsBody;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.resource.audio.AudioStream;
 import com.rayferric.comet.scenegraph.resource.physics.shape.BoxCollisionShape;
+import com.rayferric.comet.scenegraph.resource.physics.shape.CapsuleCollisionShape;
+import com.rayferric.comet.scenegraph.resource.physics.shape.SphereCollisionShape;
+import com.rayferric.comet.scenegraph.resource.scene.GLTFScene;
+import com.rayferric.comet.scenegraph.resource.scene.Scene;
 import com.rayferric.comet.scenegraph.resource.video.geometry.BoxGeometry;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.video.api.VideoAPI;
@@ -67,23 +71,22 @@ public class Main {
             }
             PhysicsBody physicsBody = new PhysicsBody();
             {
-                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(2)), Matrix4f.IDENTITY));
-                physicsBody.setMass(10F);
-                physicsBody.setBounce(0.5F);
-                physicsBody.getTransform().setTranslation(1, 0, 0);
-                physicsBody.setKinematic(true);
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
+                physicsBody.setMass(0F);
+                // physicsBody.setKinematic(true);
                 Model model = new Model();
-                model.addMesh(new Mesh(new BoxGeometry(new Vector3f(2), false), new GLTFMaterial()));
+                model.addMesh(new Mesh(new BoxGeometry(new Vector3f(8, 1, 8), false), new GLTFMaterial()));
                 physicsBody.addChild(model);
+                physicsBody.getTransform().setTranslation(0, -0.5F, 0);
                 mainLayer.getRoot().addChild(physicsBody);
             }
             {
                 PhysicsBody physicsBody2 = new PhysicsBody();
-                physicsBody2.addCollider(new Collider(new BoxCollisionShape(new Vector3f(2)), Matrix4f.IDENTITY));
-                physicsBody2.getTransform().setTranslation(1, -4, 0);
-                physicsBody2.getTransform().setRotation(0, 0, 0);
-                physicsBody2.setMass(0);
-                physicsBody2.setBounce(0.5F);
+                physicsBody2.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
+                physicsBody2.getTransform().setTranslation(0, 4, 0);
+                physicsBody2.setMass(10F);
+                physicsBody2.setAngularFactor(new Vector3f(0, 0, 0));
+                physicsBody2.setLinearFactor(new Vector3f(0, 1, 0));
                 Model model = new Model();
                 model.addMesh(new Mesh(new BoxGeometry(new Vector3f(2), false), new GLTFMaterial()));
                 physicsBody2.addChild(model);
@@ -119,12 +122,14 @@ public class Main {
                 mainLayer.getRoot().addChild(audioPlayer);
             }
 
-            /*Scene scene1 = new GLTFScene("data/local/VC/VC.gltf");
-            Scene scene2 = new GLTFScene("data/local/flight-helmet/FlightHelmet.gltf");
+            //Scene scene1 = new GLTFScene("data/local/VC/VC.gltf");
+            //Scene scene2 = new GLTFScene("data/local/flight-helmet/FlightHelmet.gltf");
+
             var ref = new Object() {
                 public boolean scene1Instantiated = false;
                 public boolean scene2Instantiated = false;
-            };*/
+                public float timeCounter = 0;
+            };
 
             engine.run((delta) -> {
                 if(engine.getVideoServer().getWindow().shouldClose())
@@ -150,9 +155,6 @@ public class Main {
                 if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_P)) {
                     if(!audioPlayer.isPlaying())audioPlayer.play();
                     else audioPlayer.reset();
-                }
-                if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_N)) {
-                    physicsBody.getTransform().setTranslation(1, 0, 0);
                 }
 
 //                if(scene2.isLoaded() && !ref.scene2Instantiated) {
