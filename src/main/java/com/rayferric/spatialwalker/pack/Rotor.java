@@ -1,10 +1,9 @@
-package com.rayferric.spatialwalker.node;
+package com.rayferric.spatialwalker.pack;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.input.event.InputEvent;
 import com.rayferric.comet.input.InputKey;
 import com.rayferric.comet.input.event.KeyInputEvent;
-import com.rayferric.comet.input.event.TextInputEvent;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.video.api.VideoAPI;
@@ -31,6 +30,8 @@ public class Rotor extends Node {
 
         KeyInputEvent keyEvent = (event instanceof KeyInputEvent) ? (KeyInputEvent) event : null;
         if(keyEvent == null) return;
+
+        if(keyEvent.getType() != KeyInputEvent.Type.RELEASE) return;
 
         InputKey key = keyEvent.getKey();
 

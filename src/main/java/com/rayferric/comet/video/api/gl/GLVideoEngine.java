@@ -12,7 +12,6 @@ import com.rayferric.comet.scenegraph.common.Mesh;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.ResourceLoader;
-import com.rayferric.comet.util.Timer;
 import com.rayferric.comet.video.VideoEngine;
 import com.rayferric.comet.video.api.gl.buffer.GLUniformBuffer;
 import com.rayferric.comet.video.api.gl.query.GLTimerQuery;
@@ -378,7 +377,7 @@ public class GLVideoEngine extends VideoEngine {
         GLUniformBuffer glUniformBuffer =
                 (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
         if(glUniformBuffer == null) return false;
-        if(material.needsUpdate() || glUniformBuffer.isJustCreated()) {
+        if(material.popNeedsUpdate() || glUniformBuffer.popJustCreated()) {
             try(MemoryStack stack = MemoryStack.stackPush()) {
                 glUniformBuffer.update(material.snapUniformData(stack));
             }

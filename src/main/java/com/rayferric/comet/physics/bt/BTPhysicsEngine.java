@@ -86,7 +86,7 @@ public class BTPhysicsEngine extends PhysicsEngine {
                 if(btBody.getWorld() != btWorld) btBody.setWorld(btWorld);
 
                 // Update collider if needed:
-                if(body.colliderNeedsUpdate()) {
+                if(body.colliderNeedsUpdate() || btBody.isJustCreated()) {
                     CompoundShape compound = new CompoundShape();
                     boolean aborted = false;
                     for(Collider collider : body.snapColliders()) {
@@ -102,6 +102,7 @@ public class BTPhysicsEngine extends PhysicsEngine {
                     if(!aborted) {
                         btBody.setCollisionCompound(compound);
                         body.popColliderNeedsUpdate();
+                        btBody.popJustCreated();
                     }
                 }
 

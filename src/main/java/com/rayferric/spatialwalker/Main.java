@@ -17,16 +17,13 @@ import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.resource.audio.AudioStream;
 import com.rayferric.comet.scenegraph.resource.physics.shape.BoxCollisionShape;
-import com.rayferric.comet.scenegraph.resource.physics.shape.CapsuleCollisionShape;
-import com.rayferric.comet.scenegraph.resource.physics.shape.SphereCollisionShape;
-import com.rayferric.comet.scenegraph.resource.scene.GLTFScene;
-import com.rayferric.comet.scenegraph.resource.scene.Scene;
 import com.rayferric.comet.scenegraph.resource.video.geometry.BoxGeometry;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.util.texture.TextureFilter;
-import com.rayferric.spatialwalker.node.Rotor;
-import com.rayferric.spatialwalker.node.SpectatorCamera;
+import com.rayferric.spatialwalker.pack.Rotor;
+import com.rayferric.spatialwalker.pack.SpectatorCamera;
+import com.rayferric.spatialwalker.pack.player.PlayerPack;
 
 public class Main {
     public static void main(String[] args) {
@@ -54,12 +51,12 @@ public class Main {
 
             mainLayer.getPhysicsWorld().setGravity(Vector3f.DOWN.mul(9.81F));
 
-            {
+            /*{
                 Camera camera = new SpectatorCamera(0.1F, 1000, 80);
                 camera.getTransform().setTranslation(0, 0, 4);
                 mainLayer.getRoot().addChild(camera);
                 mainLayer.setCamera(camera);
-            }
+            }*/
             {
                 Camera camera = new OrthographicCamera(-1, 1, 2);
                 overlayLayer.setCamera(camera);
@@ -79,18 +76,6 @@ public class Main {
                 physicsBody.addChild(model);
                 physicsBody.getTransform().setTranslation(0, -0.5F, 0);
                 mainLayer.getRoot().addChild(physicsBody);
-            }
-            {
-                PhysicsBody physicsBody2 = new PhysicsBody();
-                physicsBody2.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
-                physicsBody2.getTransform().setTranslation(0, 4, 0);
-                physicsBody2.setMass(10F);
-                physicsBody2.setAngularFactor(new Vector3f(0, 0, 0));
-                physicsBody2.setLinearFactor(new Vector3f(0, 1, 0));
-                Model model = new Model();
-                model.addMesh(new Mesh(new BoxGeometry(new Vector3f(2), false), new GLTFMaterial()));
-                physicsBody2.addChild(model);
-                mainLayer.getRoot().addChild(physicsBody2);
             }
 
             {
@@ -120,6 +105,12 @@ public class Main {
                 audioPlayer.setAttenuationScale(1);
                 audioPlayer.setMinDistance(0);
                 mainLayer.getRoot().addChild(audioPlayer);
+            }
+
+            {
+                Node player = PlayerPack.getInstance().instantiate();
+                player.getTransform().setTranslation(0, 4, 0);
+                mainLayer.getRoot().addChild(player);
             }
 
             //Scene scene1 = new GLTFScene("data/local/VC/VC.gltf");

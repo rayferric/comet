@@ -26,7 +26,7 @@ public class GLUniformBuffer implements ServerResource {
         glBufferSubData(GL_UNIFORM_BUFFER, 0, data);
     }
 
-    public boolean isJustCreated() {
+    public boolean popJustCreated() {
         if(justCreated) {
             justCreated = false;
             return true;

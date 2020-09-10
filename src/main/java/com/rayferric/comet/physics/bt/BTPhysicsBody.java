@@ -232,6 +232,14 @@ public class BTPhysicsBody implements ServerResource {
         return btBody;
     }
 
+    public boolean isJustCreated() {
+        return justCreated;
+    }
+
+    public void popJustCreated() {
+        justCreated = false;
+    }
+
     private final RigidBody btBody;
     private CompoundShape collisionCompound = new CompoundShape();
     private short layer = 0b1, mask = 0b1;
@@ -239,6 +247,7 @@ public class BTPhysicsBody implements ServerResource {
     private boolean kinematic = false;
     private float mass = 1;
     private boolean propsChanged = true;
+    private boolean justCreated = true;
 
     private static javax.vecmath.Vector3f toBtVector(Vector3f v) {
         return new javax.vecmath.Vector3f(v.getX(), v.getY(), v.getZ());

@@ -1,4 +1,4 @@
-package com.rayferric.spatialwalker.node;
+package com.rayferric.spatialwalker.pack;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.input.*;

@@ -33,8 +33,8 @@ public class Material {
      *
      * @return true if modified
      */
-    public boolean needsUpdate() {
-        return modified.compareAndSet(true, false);
+    public boolean popNeedsUpdate() {
+        return needsUpdate.compareAndSet(true, false);
     }
 
     /**
@@ -171,7 +171,7 @@ public class Material {
             uniformData.position(address);
             uniformData.asIntBuffer().put(values);
         }
-        modified.set(true);
+        needsUpdate.set(true);
     }
 
     protected void writeUniformData(int address, float[] values) {
@@ -179,7 +179,7 @@ public class Material {
             uniformData.position(address);
             uniformData.asFloatBuffer().put(values);
         }
-        modified.set(true);
+        needsUpdate.set(true);
     }
 
     protected Texture getTexture(int binding) {
@@ -194,10 +194,10 @@ public class Material {
         }
     }
 
-    private AtomicReference<Shader> shader = new AtomicReference<>();
+    private final AtomicReference<Shader> shader = new AtomicReference<>();
     private final UniformBuffer uniformBuffer;
     private final ByteBuffer uniformData;
-    private final AtomicBoolean modified = new AtomicBoolean(true);
+    private final AtomicBoolean needsUpdate = new AtomicBoolean(true);
     private final HashMap<Integer, Texture> textures = new HashMap<>();
     private final AtomicBoolean culling = new AtomicBoolean(true);
     private final AtomicBoolean translucent = new AtomicBoolean(false);
