@@ -4,6 +4,7 @@ import com.bulletphysics.collision.shapes.CompoundShape;
 import com.bulletphysics.linearmath.Transform;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
+import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Matrix4f;
 import com.rayferric.comet.math.Quaternion;
 import com.rayferric.comet.physics.PhysicsEngine;
@@ -13,6 +14,7 @@ import com.rayferric.comet.physics.bt.shape.BTCollisionShape;
 import com.rayferric.comet.physics.bt.shape.BTSphereCollisionShape;
 import com.rayferric.comet.scenegraph.common.Collider;
 import com.rayferric.comet.scenegraph.node.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.RayCast;
 import com.rayferric.comet.scenegraph.resource.physics.PhysicsWorld;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.Timer;
@@ -22,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BTPhysicsEngine extends PhysicsEngine {
+    public static final javax.vecmath.Vector3f BT_VECTOR_ZERO = new javax.vecmath.Vector3f(0, 0, 0);
+
     @Override
     public ServerResource createPhysicsWorld() {
         return new BTPhysicsWorld();
@@ -43,8 +47,8 @@ public class BTPhysicsEngine extends PhysicsEngine {
     }
 
     @Override
-    public ServerResource createPhysicsBody() {
-        return new BTPhysicsBody();
+    public ServerResource createPhysicsBody(PhysicsBody owner) {
+        return new BTPhysicsBody(owner);
     }
 
     @Override
@@ -67,6 +71,8 @@ public class BTPhysicsEngine extends PhysicsEngine {
         deltaTimer.reset();
 
         for(Layer layer : Engine.getInstance().getLayerManager().getLayers()) {
+            LayerIndex layerIndex = layer.getIndex();
+
             PhysicsWorld world = layer.getPhysicsWorld();
             BTPhysicsWorld btWorld = (BTPhysicsWorld)getServerResourceOrNull(world);
             if(btWorld == null) continue;
@@ -75,7 +81,7 @@ public class BTPhysicsEngine extends PhysicsEngine {
                 if(!btWorld.getGravity().equals(gravity)) btWorld.setGravity(gravity);
             }
 
-            List<PhysicsBody> bodies = layer.getIndex().getPhysicsBodies();
+            List<PhysicsBody> bodies = layerIndex.getPhysicsBodies();
             transformCache.clear();
 
             for(PhysicsBody body : bodies) {
@@ -113,6 +119,8 @@ public class BTPhysicsEngine extends PhysicsEngine {
                 if(btBody.getMask() != colMask) btBody.setMask(colMask);
                 boolean kinematic = body.isKinematic();
                 if(btBody.isKinematic() != kinematic) btBody.setKinematic(kinematic);
+                boolean gravityDisabled = body.isGravityDisabled();
+                if(btBody.isGravityDisabled() != gravityDisabled) btBody.setGravityDisabled(gravityDisabled);
                 float mass = body.getMass();
                 if(btBody.getMass() != mass) btBody.setMass(mass);
                 float friction = body.getFriction();
@@ -145,6 +153,10 @@ public class BTPhysicsEngine extends PhysicsEngine {
 
             // Step The Simulation
             btWorld.step((float)deltaTime, 8);
+
+            // Test Ray Casts
+            for(RayCast rayCast : layerIndex.getRayCasts())
+                btWorld.processRayCast(rayCast);
 
             for(int i = 0; i < bodies.size(); i++) {
                 PhysicsBody body = bodies.get(i);
@@ -183,6 +195,14 @@ public class BTPhysicsEngine extends PhysicsEngine {
             e.printStackTrace();
             System.exit(1);
         }
+    }
+
+    public static javax.vecmath.Vector3f toBtVector(Vector3f v) {
+        return new javax.vecmath.Vector3f(v.getX(), v.getY(), v.getZ());
+    }
+
+    public static Vector3f fromBtVector(javax.vecmath.Vector3f v) {
+        return new Vector3f(v.x, v.y, v.z);
     }
 
     private Timer deltaTimer;

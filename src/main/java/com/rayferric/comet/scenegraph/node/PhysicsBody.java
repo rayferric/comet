@@ -169,6 +169,8 @@ public class PhysicsBody extends Node {
 
     // </editor-fold>
 
+    // <editor-fold desc="Layers and Masks">
+
     public short getLayer() {
         return (short)layer.get();
     }
@@ -201,12 +203,22 @@ public class PhysicsBody extends Node {
         mask.updateAndGet((mask) -> mask ^ (((state ? -1 : 0) ^ mask) & (1 << bit)));
     }
 
+    // </editor-fold>
+
     public boolean isKinematic() {
         return kinematic.get();
     }
 
     public void setKinematic(boolean kinematic) {
         this.kinematic.set(kinematic);
+    }
+
+    public boolean isGravityDisabled() {
+        return gravityDisabled.get();
+    }
+
+    public void setGravityDisabled(boolean disabled) {
+        this.gravityDisabled.set(disabled);
     }
 
     public float getMass() {
@@ -301,12 +313,13 @@ public class PhysicsBody extends Node {
         return resource;
     }
 
-    private final PhysicsBodyResource resource = new PhysicsBodyResource();
+    private final PhysicsBodyResource resource = new PhysicsBodyResource(this);
     private final List<Collider> colliders = new ArrayList<>();
     private final AtomicBoolean colliderNeedsUpdate = new AtomicBoolean(true);
     private final AtomicInteger layer = new AtomicInteger(0b1);
     private final AtomicInteger mask = new AtomicInteger(0b1);
     private final AtomicBoolean kinematic = new AtomicBoolean(false);
+    private final AtomicBoolean gravityDisabled = new AtomicBoolean(false);
     private final AtomicFloat mass = new AtomicFloat(1);
     private final AtomicFloat friction = new AtomicFloat(0.5F);
     private final AtomicFloat bounce = new AtomicFloat(0);

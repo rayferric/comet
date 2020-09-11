@@ -2,6 +2,7 @@ package com.rayferric.comet.engine;
 
 import com.rayferric.comet.scenegraph.node.AudioPlayer;
 import com.rayferric.comet.scenegraph.node.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.RayCast;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
@@ -45,12 +46,16 @@ public class LayerIndex {
         return spotLights;
     }
 
-    public List<AudioPlayer> getAudioSources() {
+    public List<AudioPlayer> getAudioPlayers() {
         return audioPlayers;
     }
 
     public List<PhysicsBody> getPhysicsBodies() {
         return physicsBodies;
+    }
+
+    public List<RayCast> getRayCasts() {
+        return rayCasts;
     }
 
     /**
@@ -137,6 +142,18 @@ public class LayerIndex {
         physicsBodies.add(body);
     }
 
+    /**
+     * Adds a {@link RayCast} to the index.<br>
+     * • Is implicitly called by the constructor when traversing the node tree.<br>
+     * • Must not be called by the user, this is an internal method.<br>
+     * • May be called from any thread.
+     *
+     * @param rayCast the {@link RayCast} to be indexed
+     */
+    public void add(RayCast rayCast) {
+        rayCasts.add(rayCast);
+    }
+
     private final List<Model> models = new ArrayList<>();
     private final List<Camera> cameras = new ArrayList<>();
     private final List<DirectionalLight> directionalLights = new ArrayList<>();
@@ -144,4 +161,5 @@ public class LayerIndex {
     private final List<SpotLight> spotLights = new ArrayList<>();
     private final List<AudioPlayer> audioPlayers = new ArrayList<>();
     private final List<PhysicsBody> physicsBodies = new ArrayList<>();
+    private final List<RayCast> rayCasts = new ArrayList<>();
 }

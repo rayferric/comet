@@ -18,8 +18,6 @@ import org.lwjgl.openal.AL;
 import org.lwjgl.openal.ALC;
 
 import static org.lwjgl.openal.ALC10.*;
-import static org.lwjgl.openal.AL10.*;
-import static org.lwjgl.openal.AL11.*;
 import static org.lwjgl.system.MemoryUtil.NULL;
 
 public class ALAudioEngine extends AudioEngine {
@@ -69,7 +67,7 @@ public class ALAudioEngine extends AudioEngine {
             if(camera == null) continue;
             Matrix4f viewMatrix = camera.getGlobalTransform().inverse();
 
-            for(AudioPlayer player : layer.getIndex().getAudioSources()) {
+            for(AudioPlayer player : layer.getIndex().getAudioPlayers()) {
                 ALAudioSource alSource = (ALAudioSource)getServerAudioSourceOrNull(player.getSource());
                 if(alSource == null) continue;
                 ALAudioStream alStream = (ALAudioStream)getServerAudioStreamOrNull(player.getStream());

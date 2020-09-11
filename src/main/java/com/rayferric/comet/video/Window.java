@@ -10,6 +10,7 @@ import com.rayferric.comet.math.Vector2i;
 import com.rayferric.comet.video.util.Monitor;
 import org.lwjgl.system.MemoryStack;
 
+import java.nio.DoubleBuffer;
 import java.nio.IntBuffer;
 import java.util.Map;
 
@@ -28,6 +29,20 @@ public abstract class Window {
                 glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN);
         } else if(cursorMode != GLFW_CURSOR_NORMAL)
             glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+
+        Vector2f newPos = getGlfwCursorPos();
+        Vector2f deltaPos = newPos.sub(lastCursorPos);
+        lastCursorPos = newPos;
+
+        InputManager inputManager = Engine.getInstance().getInputManager();
+        if(inputManager.isMouseCentered()) {
+            Vector2i size = getFramebufferSize();
+            lastCursorPos = new Vector2f(size.getX(), size.getY()).mul(0.5F);
+            glfwSetCursorPos(handle, lastCursorPos.getX(), lastCursorPos.getY() + 0.4F);
+        } else lastCursorPos = newPos;
+
+        inputManager.setAxisValue(InputAxis.MOUSE_X, deltaPos.getX());
+        inputManager.setAxisValue(InputAxis.MOUSE_Y, deltaPos.getY());
     }
 
     /**
@@ -210,7 +225,6 @@ public abstract class Window {
         glfwSetWindowIconifyCallback(handle, this::windowIconifyCallback);
         glfwSetWindowMaximizeCallback(handle, this::windowMaximizeCallback);
         glfwSetFramebufferSizeCallback(handle, this::framebufferSizeCallback);
-        glfwSetCursorPosCallback(handle, this::cursorPosCallback);
         glfwSetKeyCallback(handle, Window::keyCallback);
         glfwSetCharCallback(handle, Window::charCallback);
         glfwSetMouseButtonCallback(handle, Window::mouseButtonCallback);
@@ -491,21 +505,15 @@ public abstract class Window {
         }
     }
 
-    private void cursorPosCallback(long window, double posX, double posY) {
-        Vector2f newPos = new Vector2f(posX, posY);
-        Vector2f deltaPos = newPos.sub(lastCursorPos);
-        lastCursorPos = newPos;
+    private Vector2f getGlfwCursorPos() {
+        try(MemoryStack stack = MemoryStack.stackPush()) {
+            final DoubleBuffer posX = stack.mallocDouble(1);
+            final DoubleBuffer posY = stack.mallocDouble(1);
 
-        if(testAndResetWarpPos(new Vector2i((int)Math.round(posX), (int)Math.round(posY)))) return;
+            glfwGetCursorPos(handle, posX, posY);
 
-        InputManager inputManager = Engine.getInstance().getInputManager();
-        if(inputManager.isMouseCentered()) {
-            Vector2i size = getGlfwSize();
-            warpCursor(size.div(2));
+            return new Vector2f(posX.get(0), posY.get(0));
         }
-
-        inputManager.setAxisValue(InputAxis.MOUSE_X, deltaPos.getX());
-        inputManager.setAxisValue(InputAxis.MOUSE_Y, deltaPos.getY());
     }
 
     private Vector2i getGlfwPos() {

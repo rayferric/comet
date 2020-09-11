@@ -2,6 +2,7 @@ package com.rayferric.comet.physics;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.scenegraph.node.PhysicsBody;
 import com.rayferric.comet.scenegraph.resource.physics.PhysicsResource;
 import com.rayferric.comet.server.ServerResource;
 
@@ -24,7 +25,7 @@ public abstract class PhysicsEngine {
 
     public abstract ServerResource createCapsuleCollisionShape(float radius, float height);
 
-    public abstract ServerResource createPhysicsBody();
+    public abstract ServerResource createPhysicsBody(PhysicsBody owner);
 
     // </editor-fold>
 

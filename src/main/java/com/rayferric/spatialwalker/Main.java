@@ -66,15 +66,30 @@ public class Main {
             {
                 mainLayer.getRoot().addChild(rotor);
             }
-            PhysicsBody physicsBody = new PhysicsBody();
+
             {
+                PhysicsBody physicsBody = new PhysicsBody();
                 physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
-                physicsBody.setMass(0F);
-                // physicsBody.setKinematic(true);
+                physicsBody.setMass(0);
+                physicsBody.setFriction(0.75F);
+                //physicsBody.setKinematic(true);
                 Model model = new Model();
                 model.addMesh(new Mesh(new BoxGeometry(new Vector3f(8, 1, 8), false), new GLTFMaterial()));
                 physicsBody.addChild(model);
                 physicsBody.getTransform().setTranslation(0, -0.5F, 0);
+                mainLayer.getRoot().addChild(physicsBody);
+            }
+            {
+                PhysicsBody physicsBody = new PhysicsBody();
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
+                physicsBody.setMass(0);
+                physicsBody.setFriction(0.75F);
+                //physicsBody.setKinematic(true);
+                Model model = new Model();
+                model.addMesh(new Mesh(new BoxGeometry(new Vector3f(8, 1, 8), false), new GLTFMaterial()));
+                physicsBody.addChild(model);
+                physicsBody.getTransform().setTranslation(7, 0.35F, 0);
+                physicsBody.getTransform().setRotation(0, 0, 15);
                 mainLayer.getRoot().addChild(physicsBody);
             }
 

@@ -54,11 +54,11 @@ public class SpectatorCamera extends PerspectiveCamera {
         float inputMoveY = inputManager.getTrackValue("Move Y");
 
         if(smoothing) {
-            pitchMomentum = Mathf.lerp(pitchMomentum, 0, (float)delta * MOUSE_DECELERATION);
-            yawMomentum = Mathf.lerp(yawMomentum, 0, (float)delta * MOUSE_DECELERATION);
+            pitchMomentum = Mathf.lerp(pitchMomentum, 0, (float)delta * MOUSE_ACCELERATION);
+            yawMomentum = Mathf.lerp(yawMomentum, 0, (float)delta * MOUSE_ACCELERATION);
 
-            pitchMomentum += inputLookPitch * MOUSE_ACCELERATION;
-            yawMomentum += inputLookYaw * MOUSE_ACCELERATION;
+            pitchMomentum += inputLookPitch * SENSITIVITY * MOUSE_ACCELERATION;
+            yawMomentum += inputLookYaw * SENSITIVITY * MOUSE_ACCELERATION;
 
             Vector3f euler = t.getRotation().toEuler();
             float pitch = Mathf.clamp(euler.getX() + pitchMomentum * (float)delta, -89, 89);
@@ -80,8 +80,8 @@ public class SpectatorCamera extends PerspectiveCamera {
 
             t.translate(velocity.mul((float)delta));
         } else {
-            float pitchDelta = inputLookPitch * 0.075F;
-            float yawDelta = inputLookYaw * 0.075F;
+            float pitchDelta = inputLookPitch * SENSITIVITY;
+            float yawDelta = inputLookYaw * SENSITIVITY;
 
             Vector3f euler = t.getRotation().toEuler();
             float pitch = Mathf.clamp(euler.getX() + pitchDelta, -89, 89);
@@ -120,16 +120,13 @@ public class SpectatorCamera extends PerspectiveCamera {
         }
         if(keyEvent.getKey() == InputKey.KEYBOARD_C)
             smoothing = !smoothing;
-        if(keyEvent.getKey() == InputKey.KEYBOARD_F) {
-            Window wnd = Engine.getInstance().getVideoServer().getWindow();
-            wnd.setFullscreen(!wnd.isFullscreen());
-        }
     }
+
+    private static final float SENSITIVITY = 0.1F;
 
     private static final float MAX_SPEED = 4;
     private static final float ACCELERATION = 16;
-    private static final float MOUSE_ACCELERATION = 2;
-    private static final float MOUSE_DECELERATION = 16;
+    private static final float MOUSE_ACCELERATION = 16;
 
     private boolean focused = false;
     private Vector3f velocity = new Vector3f(0);

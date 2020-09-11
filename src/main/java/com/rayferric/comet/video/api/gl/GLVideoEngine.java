@@ -150,8 +150,8 @@ public class GLVideoEngine extends VideoEngine {
 
             Frustum frustum = new Frustum(projectionMatrix.mul(viewMatrix));
 
-            LayerIndex index = layer.getIndex();
-            List<Model> allModels = index.getModels();
+            LayerIndex layerIndex = layer.getIndex();
+            List<Model> allModels = layerIndex.getModels();
             opaqueModels.clear();
             translucentMeshes.clear();
 

@@ -11,7 +11,7 @@ import com.rayferric.comet.scenegraph.node.PhysicsBody;
 import com.rayferric.comet.server.ServerResource;
 
 public class BTPhysicsBody implements ServerResource {
-    public BTPhysicsBody() {
+    public BTPhysicsBody(PhysicsBody owner) {
         Transform bodyTransform = new Transform();
         bodyTransform.setIdentity();
         DefaultMotionState motionState = new DefaultMotionState(bodyTransform);
@@ -31,6 +31,7 @@ public class BTPhysicsBody implements ServerResource {
         );
         btBody = new RigidBody(info);
         btBody.setActivationState(CollisionObject.DISABLE_DEACTIVATION);
+        btBody.setUserPointer(owner);
 
         setKinematic(kinematic);
         btBody.setFriction(0.5F);
@@ -41,7 +42,7 @@ public class BTPhysicsBody implements ServerResource {
     @Override
     public void destroy() {
         // world.removeConstraint(...);
-        if(world != null) world.removeBody(this);
+        setWorld(null);
         btBody.destroy();
     }
 
@@ -110,6 +111,8 @@ public class BTPhysicsBody implements ServerResource {
         if(this.world != null) this.world.removeBody(this);
         if((this.world = world) != null)
             this.world.addBody(this, layer, mask);
+        if(gravityDisabled)
+            btBody.setGravity(BTPhysicsEngine.BT_VECTOR_ZERO);
     }
 
     public boolean isKinematic() {
@@ -123,6 +126,15 @@ public class BTPhysicsBody implements ServerResource {
         else
             flags &= ~CollisionFlags.KINEMATIC_OBJECT;
         btBody.setCollisionFlags(flags);
+        propsChanged = true;
+    }
+
+    public boolean isGravityDisabled() {
+        return gravityDisabled;
+    }
+
+    public void setGravityDisabled(boolean disabled) {
+        gravityDisabled = disabled;
         propsChanged = true;
     }
 
@@ -184,21 +196,21 @@ public class BTPhysicsBody implements ServerResource {
     public Vector3f getLinearVelocity() {
         javax.vecmath.Vector3f velocity = new javax.vecmath.Vector3f();
         btBody.getLinearVelocity(velocity);
-        return fromBtVector(velocity);
+        return BTPhysicsEngine.fromBtVector(velocity);
     }
 
     public void setLinearVelocity(Vector3f velocity) {
-        btBody.setLinearVelocity(toBtVector(velocity));
+        btBody.setLinearVelocity(BTPhysicsEngine.toBtVector(velocity));
     }
 
     public Vector3f getAngularVelocity() {
         javax.vecmath.Vector3f velocity = new javax.vecmath.Vector3f();
         btBody.getAngularVelocity(velocity);
-        return fromBtVector(velocity);
+        return BTPhysicsEngine.fromBtVector(velocity);
     }
 
     public void setAngularVelocity(Vector3f velocity) {
-        btBody.setAngularVelocity(toBtVector(velocity));
+        btBody.setAngularVelocity(BTPhysicsEngine.toBtVector(velocity));
     }
 
     public void applyForce(PhysicsBody.Force force) {
@@ -206,20 +218,20 @@ public class BTPhysicsBody implements ServerResource {
         Vector3f pos = force.getPos();
         switch(force.getType()) {
             case FORCE -> {
-                if(pos == null) btBody.applyCentralForce(toBtVector(value));
-                else btBody.applyForce(toBtVector(value), toBtVector(pos));
+                if(pos == null) btBody.applyCentralForce(BTPhysicsEngine.toBtVector(value));
+                else btBody.applyForce(BTPhysicsEngine.toBtVector(value), BTPhysicsEngine.toBtVector(pos));
             }
             case ACCELERATION -> {
-                if(pos == null) btBody.applyCentralForce(toBtVector(value.mul(mass)));
-                else btBody.applyForce(toBtVector(value.mul(mass)), toBtVector(pos));
+                if(pos == null) btBody.applyCentralForce(BTPhysicsEngine.toBtVector(value.mul(mass)));
+                else btBody.applyForce(BTPhysicsEngine.toBtVector(value.mul(mass)), BTPhysicsEngine.toBtVector(pos));
             }
             case FORCE_IMPULSE -> {
-                if(pos == null) btBody.applyCentralImpulse(toBtVector(value));
-                else btBody.applyImpulse(toBtVector(value), toBtVector(pos));
+                if(pos == null) btBody.applyCentralImpulse(BTPhysicsEngine.toBtVector(value));
+                else btBody.applyImpulse(BTPhysicsEngine.toBtVector(value), BTPhysicsEngine.toBtVector(pos));
             }
             case ACCELERATION_IMPULSE -> {
-                if(pos == null) btBody.applyCentralImpulse(toBtVector(value.mul(mass)));
-                else btBody.applyImpulse(toBtVector(value.mul(mass)), toBtVector(pos));
+                if(pos == null) btBody.applyCentralImpulse(BTPhysicsEngine.toBtVector(value.mul(mass)));
+                else btBody.applyImpulse(BTPhysicsEngine.toBtVector(value.mul(mass)), BTPhysicsEngine.toBtVector(pos));
             }
         }
     }
@@ -245,15 +257,8 @@ public class BTPhysicsBody implements ServerResource {
     private short layer = 0b1, mask = 0b1;
     private BTPhysicsWorld world = null;
     private boolean kinematic = false;
+    private boolean gravityDisabled = false;
     private float mass = 1;
     private boolean propsChanged = true;
     private boolean justCreated = true;
-
-    private static javax.vecmath.Vector3f toBtVector(Vector3f v) {
-        return new javax.vecmath.Vector3f(v.getX(), v.getY(), v.getZ());
-    }
-
-    private static Vector3f fromBtVector(javax.vecmath.Vector3f v) {
-        return new Vector3f(v.x, v.y, v.z);
-    }
 }
