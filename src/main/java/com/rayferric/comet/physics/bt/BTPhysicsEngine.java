@@ -6,15 +6,16 @@ import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
 import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Matrix4f;
-import com.rayferric.comet.math.Quaternion;
 import com.rayferric.comet.physics.PhysicsEngine;
-import com.rayferric.comet.physics.bt.shape.BTBoxCollisionShape;
-import com.rayferric.comet.physics.bt.shape.BTCapsuleCollisionShape;
-import com.rayferric.comet.physics.bt.shape.BTCollisionShape;
-import com.rayferric.comet.physics.bt.shape.BTSphereCollisionShape;
+import com.rayferric.comet.physics.bt.object.BTArea;
+import com.rayferric.comet.physics.bt.object.BTBody;
+import com.rayferric.comet.physics.bt.object.BTObject;
+import com.rayferric.comet.physics.bt.shape.*;
 import com.rayferric.comet.scenegraph.common.Collider;
-import com.rayferric.comet.scenegraph.node.PhysicsBody;
-import com.rayferric.comet.scenegraph.node.RayCast;
+import com.rayferric.comet.scenegraph.node.physics.Area;
+import com.rayferric.comet.scenegraph.node.physics.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.physics.PhysicsObject;
+import com.rayferric.comet.scenegraph.node.physics.RayCast;
 import com.rayferric.comet.scenegraph.resource.physics.PhysicsWorld;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.Timer;
@@ -28,7 +29,7 @@ public class BTPhysicsEngine extends PhysicsEngine {
 
     @Override
     public ServerResource createPhysicsWorld() {
-        return new BTPhysicsWorld();
+        return new BTWorld();
     }
 
     @Override
@@ -37,18 +38,28 @@ public class BTPhysicsEngine extends PhysicsEngine {
     }
 
     @Override
-    public ServerResource createSphereCollisionShape(float radius) {
-        return new BTSphereCollisionShape(radius);
-    }
-
-    @Override
     public ServerResource createCapsuleCollisionShape(float radius, float height) {
         return new BTCapsuleCollisionShape(radius, height);
     }
 
     @Override
+    public ServerResource createCylinderCollisionShape(float radius, float height) {
+        return new BTCylinderCollisionShape(radius, height);
+    }
+
+    @Override
+    public ServerResource createSphereCollisionShape(float radius) {
+        return new BTSphereCollisionShape(radius);
+    }
+
+    @Override
     public ServerResource createPhysicsBody(PhysicsBody owner) {
-        return new BTPhysicsBody(owner);
+        return new BTBody(owner);
+    }
+
+    @Override
+    public ServerResource createArea(Area owner) {
+        return new BTArea(owner);
     }
 
     @Override
@@ -74,28 +85,28 @@ public class BTPhysicsEngine extends PhysicsEngine {
             LayerIndex layerIndex = layer.getIndex();
 
             PhysicsWorld world = layer.getPhysicsWorld();
-            BTPhysicsWorld btWorld = (BTPhysicsWorld)getServerResourceOrNull(world);
+            BTWorld btWorld = (BTWorld)getServerResourceOrNull(world);
             if(btWorld == null) continue;
             {
                 Vector3f gravity = world.getGravity();
                 if(!btWorld.getGravity().equals(gravity)) btWorld.setGravity(gravity);
             }
 
-            List<PhysicsBody> bodies = layerIndex.getPhysicsBodies();
+            List<PhysicsObject> objects = layerIndex.getPhysicsObjects();
             transformCache.clear();
 
-            for(PhysicsBody body : bodies) {
-                BTPhysicsBody btBody = (BTPhysicsBody)getServerResourceOrNull(body.getResource());
-                if(btBody == null) continue;
+            for(PhysicsObject obj : objects) {
+                BTObject btObj = (BTObject)getServerResourceOrNull(obj.getResource());
+                if(btObj == null) continue;
 
                 // Ensure the right world:
-                if(btBody.getWorld() != btWorld) btBody.setWorld(btWorld);
+                if(btObj.getWorld() != btWorld) btObj.setWorld(btWorld);
 
                 // Update collider if needed:
-                if(body.colliderNeedsUpdate() || btBody.isJustCreated()) {
+                if(obj.internalColliderNeedsUpdate() || btObj.isJustCreated()) {
                     CompoundShape compound = new CompoundShape();
                     boolean aborted = false;
-                    for(Collider collider : body.snapColliders()) {
+                    for(Collider collider : obj.snapColliders()) {
                         BTCollisionShape btShape = (BTCollisionShape)getServerResourceOrNull(collider.getShape());
                         if(btShape == null) {
                             aborted = true;
@@ -106,86 +117,96 @@ public class BTPhysicsEngine extends PhysicsEngine {
                         compound.addChildShape(btTransform, btShape.getShape());
                     }
                     if(!aborted) {
-                        btBody.setCollisionCompound(compound);
-                        body.popColliderNeedsUpdate();
-                        btBody.popJustCreated();
+                        btObj.setCollisionCompound(compound);
+                        obj.internalPopColliderNeedsUpdate();
+                        btObj.popJustCreated();
                     }
                 }
 
                 // Update modified properties:
-                short colLayer = body.getLayer();
-                if(btBody.getLayer() != colLayer) btBody.setLayer(colLayer);
-                short colMask = body.getMask();
-                if(btBody.getMask() != colMask) btBody.setMask(colMask);
-                boolean kinematic = body.isKinematic();
-                if(btBody.isKinematic() != kinematic) btBody.setKinematic(kinematic);
-                boolean gravityDisabled = body.isGravityDisabled();
-                if(btBody.isGravityDisabled() != gravityDisabled) btBody.setGravityDisabled(gravityDisabled);
-                float mass = body.getMass();
-                if(btBody.getMass() != mass) btBody.setMass(mass);
-                float friction = body.getFriction();
-                if(btBody.getFriction() != friction) btBody.setFriction(friction);
-                float bounce = body.getBounce();
-                if(btBody.getBounce() != bounce) btBody.setBounce(bounce);
+                short colLayer = obj.getLayer();
+                if(btObj.getLayer() != colLayer) btObj.setLayer(colLayer);
+                short colMask = obj.getMask();
+                if(btObj.getMask() != colMask) btObj.setMask(colMask);
 
-                btBody.applyProps();
+                // BTBody Specific
+                if(obj instanceof PhysicsBody) {
+                    PhysicsBody body = (PhysicsBody)obj;
+                    BTBody btBody = (BTBody)btObj;
 
-                // Properties that do not require removing the body from the world:
-                float linearDrag = body.getLinearDrag();
-                if(btBody.getLinearDrag() != linearDrag) btBody.setLinearDrag(linearDrag);
-                float angularDrag = body.getAngularDrag();
-                if(btBody.getAngularDrag() != angularDrag) btBody.setAngularDrag(angularDrag);
+                    boolean kinematic = body.isKinematic();
+                    if(btBody.isKinematic() != kinematic) btBody.setKinematic(kinematic);
+                    float mass = body.getMass();
+                    if(btBody.getMass() != mass) btBody.setMass(mass);
+                    float friction = body.getFriction();
+                    if(btBody.getFriction() != friction) btBody.setFriction(friction);
+                    float bounce = body.getBounce();
+                    if(btBody.getBounce() != bounce) btBody.setBounce(bounce);
 
-                // Velocity and Forces
-                Vector3f nextLinearVelocity = body.popNextLinearVelocity();
-                if(nextLinearVelocity != null) btBody.setLinearVelocity(nextLinearVelocity);
-                Vector3f nextAngularVelocity = body.popNextAngularVelocity();
-                if(nextAngularVelocity != null) btBody.setAngularVelocity(nextAngularVelocity);
-                PhysicsBody.Force force;
-                while((force = body.popForce()) != null) btBody.applyForce(force);
-                if(body.popClearForces()) btBody.clearForces();
+                    // Properties that do not require removing the body from the world:
+                    float linearDrag = body.getLinearDrag();
+                    if(btBody.getLinearDrag() != linearDrag) btBody.setLinearDrag(linearDrag);
+                    float angularDrag = body.getAngularDrag();
+                    if(btBody.getAngularDrag() != angularDrag) btBody.setAngularDrag(angularDrag);
+                    float angularFactor = body.getAngularFactor();
+                    if(btBody.getAngularFactor() != angularFactor) btBody.setAngularFactor(angularFactor);
+
+                    // Velocity and Forces
+                    Vector3f nextLinearVelocity = body.internalPopNextLinearVelocity();
+                    if(nextLinearVelocity != null) btBody.setLinearVelocity(nextLinearVelocity);
+                    Vector3f nextAngularVelocity = body.internalPopNextAngularVelocity();
+                    if(nextAngularVelocity != null) btBody.setAngularVelocity(nextAngularVelocity);
+                    PhysicsBody.Force force;
+                    while((force = body.internalPopForce()) != null) btBody.applyForce(force);
+                    if(body.internalPopClearForces()) btBody.clearForces();
+                }
+
+                btObj.applyProps();
 
                 // Cache the transform and upload to simulation:
-                Matrix4f transform = body.getGlobalTransform();
+                Matrix4f transform = obj.getGlobalTransform();
                 transformCache.add(transform);
-                btBody.setTransform(transform);
+                btObj.setTransform(transform);
             }
 
             // Step The Simulation
-            btWorld.step((float)deltaTime, 8);
+            btWorld.step((float)deltaTime);
 
             // Test Ray Casts
             for(RayCast rayCast : layerIndex.getRayCasts())
                 btWorld.processRayCast(rayCast);
 
-            for(int i = 0; i < bodies.size(); i++) {
-                PhysicsBody body = bodies.get(i);
-                BTPhysicsBody btBody = (BTPhysicsBody)getServerResourceOrNull(body.getResource());
-                if(btBody == null) continue;
+            for(int i = 0; i < objects.size(); i++) {
+                PhysicsObject obj = objects.get(i);
+                BTObject btObj = (BTObject)getServerResourceOrNull(obj.getResource());
+                if(btObj == null) continue;
 
-                body.updateLinearVelocity(btBody.getLinearVelocity());
-                body.updateAngularVelocity(btBody.getAngularVelocity());
+                if(obj instanceof PhysicsBody) {
+                    // Compute delta transform and apply it:
+                    Matrix4f globalDelta = btObj.getTransform().mul(transformCache.get(i).inverse());
 
-                // Compute delta transform and apply it:
-                Matrix4f globalDelta = btBody.getTransform().mul(transformCache.get(i).inverse());
+                    Matrix4f local = obj.getTransform().getMatrix();
+                    Matrix4f global = obj.getGlobalTransform();
+                    Matrix4f parentTransform = local.inverse().mul(global);
 
-                // TODO Test if this quaternion-euler-quaternion routine doesn't introduce any bugs
-                globalDelta.setTranslation(globalDelta.getTranslation().mul(body.getLinearFactor()));
-                Vector3f eulerRotation = globalDelta.getRotation().toEuler();
-                eulerRotation = eulerRotation.mul(body.getAngularFactor());
-                globalDelta.setRotation(Quaternion.eulerAngle(eulerRotation));
+                    Matrix4f newGlobal = globalDelta.mul(global);
+                    Matrix4f newLocal = newGlobal.mul(parentTransform.inverse());
 
-                body.setAngularVelocity(body.getAngularVelocity().mul(body.getAngularFactor()));
+                    Matrix4f localDelta = newLocal.mul(local.inverse());
+                    obj.getTransform().applyMatrix(localDelta);
 
-                Matrix4f local = body.getTransform().getMatrix();
-                Matrix4f global = body.getGlobalTransform();
-                Matrix4f parentTransform = local.inverse().mul(global);
+                    PhysicsBody body = (PhysicsBody)obj;
+                    BTBody btBody = (BTBody)btObj;
 
-                Matrix4f newGlobal = globalDelta.mul(global);
-                Matrix4f newLocal = newGlobal.mul(parentTransform.inverse());
+                    body.internalUpdateLinearVelocity(btBody.getLinearVelocity());
+                    body.internalUpdateAngularVelocity(btBody.getAngularVelocity());
+                } else { // instanceof Area
+                    Area area = (Area)obj;
+                    BTArea btArea = (BTArea)btObj;
 
-                Matrix4f localDelta = newLocal.mul(local.inverse());
-                body.getTransform().applyMatrix(localDelta);
+                    area.internalSetBodies(btArea.getBodies());
+                    area.internalSetAreas(btArea.getAreas());
+                }
             }
         }
 

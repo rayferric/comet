@@ -1,7 +1,8 @@
-package com.rayferric.comet.scenegraph.node;
+package com.rayferric.comet.scenegraph.node.physics;
 
 import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Vector3f;
+import com.rayferric.comet.scenegraph.node.Node;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,12 +21,12 @@ public class RayCast extends Node {
 
     // <editor-fold desc="Internal API">
 
-    public void internalSetCollisionBody(PhysicsBody body) {
-        collisionBody.set(body);
+    public void internalSetBody(PhysicsBody body) {
+        this.body.set(body);
     }
 
-    public void internalSetCollisionNormal(Vector3f normal) {
-        collisionNormal.set(normal);
+    public void internalSetNormal(Vector3f normal) {
+        this.normal.set(normal);
     }
 
     // </editor-fold>
@@ -38,12 +39,12 @@ public class RayCast extends Node {
         this.vector.set(vector);
     }
 
-    public boolean isEnabled() {
-        return enabled.get();
+    public boolean isActive() {
+        return active.get();
     }
 
-    public void setEnabled(boolean enabled) {
-        this.enabled.set(enabled);
+    public void setActive(boolean active) {
+        this.active.set(active);
     }
 
     public boolean getIgnoreParent() {
@@ -90,19 +91,19 @@ public class RayCast extends Node {
 
     // </editor-fold>
 
-    public PhysicsBody getCollisionBody() {
-        return collisionBody.get();
+    public PhysicsBody getBody() {
+        return body.get();
     }
 
-    public Vector3f getCollisionNormal() {
-        return collisionNormal.get();
+    public Vector3f getNormal() {
+        return normal.get();
     }
 
     private final AtomicReference<Vector3f> vector = new AtomicReference<>(Vector3f.FORWARD);
-    private final AtomicBoolean enabled = new AtomicBoolean(false);
+    private final AtomicBoolean active = new AtomicBoolean(false);
     private final AtomicBoolean ignoreParent = new AtomicBoolean(true);
     private final AtomicInteger layer = new AtomicInteger(0b1);
     private final AtomicInteger mask = new AtomicInteger(0b1);
-    private final AtomicReference<PhysicsBody> collisionBody = new AtomicReference<>(null);
-    private final AtomicReference<Vector3f> collisionNormal = new AtomicReference<>(Vector3f.ZERO);
+    private final AtomicReference<PhysicsBody> body = new AtomicReference<>(null);
+    private final AtomicReference<Vector3f> normal = new AtomicReference<>(Vector3f.ZERO);
 }

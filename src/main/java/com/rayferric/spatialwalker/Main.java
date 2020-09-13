@@ -7,22 +7,23 @@ import com.rayferric.comet.input.InputKey;
 import com.rayferric.comet.math.*;
 import com.rayferric.comet.nodepack.profiler.ProfilerPack;
 import com.rayferric.comet.scenegraph.common.Collider;
-import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.common.material.GLTFMaterial;
 import com.rayferric.comet.scenegraph.node.*;
-import com.rayferric.comet.scenegraph.node.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.physics.Area;
+import com.rayferric.comet.scenegraph.node.physics.PhysicsBody;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
 import com.rayferric.comet.scenegraph.node.camera.OrthographicCamera;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.model.Sprite;
 import com.rayferric.comet.scenegraph.resource.audio.AudioStream;
 import com.rayferric.comet.scenegraph.resource.physics.shape.BoxCollisionShape;
-import com.rayferric.comet.scenegraph.resource.video.geometry.BoxGeometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.BoxMesh;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
 import com.rayferric.comet.scenegraph.resource.video.texture.ImageTexture;
 import com.rayferric.comet.video.api.VideoAPI;
 import com.rayferric.comet.video.util.texture.TextureFilter;
 import com.rayferric.spatialwalker.pack.Rotor;
-import com.rayferric.spatialwalker.pack.SpectatorCamera;
 import com.rayferric.spatialwalker.pack.player.PlayerPack;
 
 public class Main {
@@ -69,28 +70,59 @@ public class Main {
 
             {
                 PhysicsBody physicsBody = new PhysicsBody();
-                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 1, 32)), Matrix4f.IDENTITY));
                 physicsBody.setMass(0);
-                physicsBody.setFriction(0.75F);
-                //physicsBody.setKinematic(true);
                 Model model = new Model();
-                model.addMesh(new Mesh(new BoxGeometry(new Vector3f(8, 1, 8), false), new GLTFMaterial()));
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 1, 32), false), new GLTFMaterial()));
                 physicsBody.addChild(model);
                 physicsBody.getTransform().setTranslation(0, -0.5F, 0);
                 mainLayer.getRoot().addChild(physicsBody);
             }
             {
                 PhysicsBody physicsBody = new PhysicsBody();
-                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(8, 1, 8)), Matrix4f.IDENTITY));
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 1, 32)), Matrix4f.IDENTITY));
                 physicsBody.setMass(0);
-                physicsBody.setFriction(0.75F);
-                //physicsBody.setKinematic(true);
                 Model model = new Model();
-                model.addMesh(new Mesh(new BoxGeometry(new Vector3f(8, 1, 8), false), new GLTFMaterial()));
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 1, 32), false), new GLTFMaterial()));
                 physicsBody.addChild(model);
-                physicsBody.getTransform().setTranslation(7, 0.35F, 0);
+                physicsBody.getTransform().setTranslation(30, 3, 0);
                 physicsBody.getTransform().setRotation(0, 0, 15);
                 mainLayer.getRoot().addChild(physicsBody);
+            }
+            {
+                PhysicsBody physicsBody = new PhysicsBody();
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 2, 32)), Matrix4f.IDENTITY));
+                physicsBody.setMass(0);
+                Model model = new Model();
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 2, 32), false), new GLTFMaterial()));
+                physicsBody.addChild(model);
+                physicsBody.getTransform().setTranslation(0, 14, -12);
+                physicsBody.getTransform().setRotation(-90, 0, 0);
+                mainLayer.getRoot().addChild(physicsBody);
+            }
+            {
+                Collider collider = new Collider(new BoxCollisionShape(new Vector3f(1)), Matrix4f.IDENTITY);
+                Mesh mesh = new BoxMesh(new Vector3f(1), false);
+                GLTFMaterial mat = new GLTFMaterial();
+                mat.setColorMap(new ImageTexture(false, "data/textures/crate.jpg", true));
+
+                int numX = 4, numY = 2, numZ = 4;
+
+                for(int i = -numX; i <= numX; i++) {
+                    for(int j = -numX; j <= numZ; j++) {
+                        for(int k = 0; k < numY; k++) {
+                            PhysicsBody physicsBody = new PhysicsBody();
+                            physicsBody.addCollider(collider);
+                            physicsBody.setMass(50);
+                            physicsBody.setLinearDrag(0.5F);
+                            Model model = new Model();
+                            model.addSurface(new Surface(mesh, mat));
+                            physicsBody.addChild(model);
+                            physicsBody.getTransform().setTranslation(i * 1.05F, 0.5F + k * 1.05F, j * 1.05F);
+                            mainLayer.getRoot().addChild(physicsBody);
+                        }
+                    }
+                }
             }
 
             {
@@ -124,7 +156,7 @@ public class Main {
 
             {
                 Node player = PlayerPack.getInstance().instantiate();
-                player.getTransform().setTranslation(0, 4, 0);
+                player.getTransform().setTranslation(14, 0, 14);
                 mainLayer.getRoot().addChild(player);
             }
 
@@ -133,7 +165,7 @@ public class Main {
 
             var ref = new Object() {
                 public boolean scene1Instantiated = false;
-                public boolean scene2Instantiated = false;
+                public boolean scene2Instantgiated = false;
                 public float timeCounter = 0;
             };
 
@@ -145,7 +177,7 @@ public class Main {
 //                    ref.scene1Instantiated = true;
 //                    Node modelRoot = scene1.instantiate();
 //                    if(modelRoot instanceof Model)
-//                        ((Model)modelRoot).getMesh(0).getMaterial().setCulling(false);
+//                        ((Model)modelRoot).getSurface(0).getMaterial().setCulling(false);
 //                    mainLayer.getRoot().addChild(modelRoot);
 //                    scene1.unload();
 //                }
@@ -159,8 +191,10 @@ public class Main {
                     audioPlayer.setLooping(!audioPlayer.isLooping());
                 }
                 if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_P)) {
-                    if(!audioPlayer.isPlaying())audioPlayer.play();
-                    else audioPlayer.reset();
+                    audioPlayer.setPlaying(!audioPlayer.isPlaying());
+                }
+                if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_Y)) {
+                    System.out.println(((Area)mainLayer.getRoot().getChild("Area")).getAreas());
                 }
 
 //                if(scene2.isLoaded() && !ref.scene2Instantiated) {

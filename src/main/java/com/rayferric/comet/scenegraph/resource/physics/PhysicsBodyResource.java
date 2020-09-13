@@ -2,7 +2,7 @@ package com.rayferric.comet.scenegraph.resource.physics;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.physics.recipe.PhysicsBodyRecipe;
-import com.rayferric.comet.scenegraph.node.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.physics.PhysicsBody;
 
 public class PhysicsBodyResource extends PhysicsResource {
     public PhysicsBodyResource(PhysicsBody owner) {
@@ -20,5 +20,5 @@ public class PhysicsBodyResource extends PhysicsResource {
         return true;
     }
 
-    private PhysicsBody owner;
+    private final PhysicsBody owner;
 }

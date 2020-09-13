@@ -1,12 +1,12 @@
-package com.rayferric.comet.geometry;
+package com.rayferric.comet.mesh;
 
 import com.rayferric.comet.math.AABB;
 import com.rayferric.comet.math.Vector3f;
 
 import java.util.Arrays;
 
-public class GeometryData {
-    public GeometryData(float[] vertices, int[] indices) {
+public class MeshData {
+    public MeshData(float[] vertices, int[] indices) {
         this.vertices = vertices;
         this.indices = indices;
         this.aabb = computeAabb();
@@ -14,7 +14,7 @@ public class GeometryData {
 
     @Override
     public String toString() {
-        return String.format("GeometryData{vertices=%s, indices=%s}", Arrays.toString(vertices),
+        return String.format("MeshData{vertices=%s, indices=%s}", Arrays.toString(vertices),
                 Arrays.toString(indices));
     }
 

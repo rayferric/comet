@@ -1,13 +1,13 @@
-package com.rayferric.comet.scenegraph.resource.video.geometry;
+package com.rayferric.comet.scenegraph.resource.video.mesh;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
-import com.rayferric.comet.geometry.GeometryGenerator;
+import com.rayferric.comet.mesh.MeshData;
+import com.rayferric.comet.mesh.MeshGenerator;
 import com.rayferric.comet.math.Vector3f;
-import com.rayferric.comet.video.recipe.geometry.GeometryRecipe;
+import com.rayferric.comet.video.recipe.mesh.MeshRecipe;
 
-public class BoxGeometry extends Geometry {
-    public BoxGeometry(Vector3f size, boolean shadeSmooth) {
+public class BoxMesh extends Mesh {
+    public BoxMesh(Vector3f size, boolean shadeSmooth) {
         this.size = size;
         this.shadeSmooth = shadeSmooth;
 
@@ -19,9 +19,9 @@ public class BoxGeometry extends Geometry {
         if(!super.load()) return false;
 
         Engine.getInstance().getLoaderPool().execute(() -> {
-            GeometryData data = GeometryGenerator.genBox(size, shadeSmooth);
+            MeshData data = MeshGenerator.genBox(size, shadeSmooth);
 
-            GeometryRecipe recipe = new GeometryRecipe(null, data);
+            MeshRecipe recipe = new MeshRecipe(null, data);
             serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
 
             finishLoading();

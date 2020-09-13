@@ -1,10 +1,11 @@
 package com.rayferric.comet.video;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.mesh.MeshData;
 import com.rayferric.comet.math.Vector2i;
+import com.rayferric.comet.scenegraph.resource.video.VideoResource;
 import com.rayferric.comet.scenegraph.resource.video.buffer.UniformBuffer;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
 import com.rayferric.comet.scenegraph.resource.video.shader.Shader;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 import com.rayferric.comet.server.ServerResource;
@@ -50,7 +51,7 @@ public abstract class VideoEngine {
 
     public abstract ServerResource createBinaryShader(ByteBuffer vertBin, ByteBuffer fragBin);
 
-    public abstract ServerResource createGeometry(GeometryData data);
+    public abstract ServerResource createMesh(MeshData data);
 
     public abstract ServerResource createSourceShader(String vertSrc, String fragSrc);
 
@@ -95,9 +96,9 @@ public abstract class VideoEngine {
 
     protected abstract ServerResource createDefaultTexture2D();
 
-    protected ServerResource getServerGeometryOrNull(Geometry geometry) {
-        if(geometry == null || !geometry.isLoaded()) return null;
-        long handle = geometry.getServerHandle();
+    protected ServerResource getServerResourceOrNull(VideoResource resource) {
+        if(resource == null || !resource.isLoaded()) return null;
+        long handle = resource.getServerHandle();
         return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 
@@ -107,18 +108,6 @@ public abstract class VideoEngine {
         ServerResource resource = Engine.getInstance().getVideoServer().getServerResource(handle);
         if(resource == null) return defaultTexture2D;
         return resource;
-    }
-
-    protected ServerResource getServerShaderOrNull(Shader shader) {
-        if(shader == null || !shader.isLoaded()) return null;
-        long handle = shader.getServerHandle();
-        return Engine.getInstance().getVideoServer().getServerResource(handle);
-    }
-
-    protected ServerResource getServerUniformBufferOrNull(UniformBuffer uniformBuffer) {
-        if(uniformBuffer == null || !uniformBuffer.isLoaded()) return null;
-        long handle = uniformBuffer.getServerHandle();
-        return Engine.getInstance().getVideoServer().getServerResource(handle);
     }
 
     // </editor-fold>

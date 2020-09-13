@@ -120,6 +120,10 @@ public class Vector3f {
         return length == 0 ? new Vector3f(0) : this.div(length);
     }
 
+    public Vector3f reverse() {
+        return new Vector3f(-x, -y, -z);
+    }
+
     public float getX() {
         return x;
     }

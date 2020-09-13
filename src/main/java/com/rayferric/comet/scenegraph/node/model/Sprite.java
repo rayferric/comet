@@ -2,27 +2,27 @@ package com.rayferric.comet.scenegraph.node.model;
 
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector2i;
-import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.common.material.SpriteMaterial;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
-import com.rayferric.comet.scenegraph.resource.video.geometry.PlaneGeometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
+import com.rayferric.comet.scenegraph.resource.video.mesh.PlaneMesh;
 import com.rayferric.comet.scenegraph.resource.video.texture.Texture;
 
 public class Sprite extends Model {
     public Sprite() {
         setName("Sprite");
 
-        synchronized(PLANE_GEOMETRY_LOCK) {
-            if(planeGeometry == null)
-                planeGeometry = new PlaneGeometry(new Vector2f(1));
+        synchronized(PLANE_MESH_LOCK) {
+            if(planeMesh == null)
+                planeMesh = new PlaneMesh(new Vector2f(1));
         }
-        planeGeometry.load();
+        planeMesh.load();
 
-        addMesh(new Mesh(planeGeometry, new SpriteMaterial()));
+        addSurface(new Surface(planeMesh, new SpriteMaterial()));
     }
 
     public SpriteMaterial getMaterial() {
-        return (SpriteMaterial)getMesh(0).getMaterial();
+        return (SpriteMaterial)getSurface(0).getMaterial();
     }
 
     public Texture getTexture() {
@@ -57,6 +57,6 @@ public class Sprite extends Model {
         getMaterial().setFrame(frame);
     }
 
-    private static final Object PLANE_GEOMETRY_LOCK = new Object();
-    private static Geometry planeGeometry = null;
+    private static final Object PLANE_MESH_LOCK = new Object();
+    private static Mesh planeMesh = null;
 }

@@ -68,7 +68,7 @@ public class ALAudioEngine extends AudioEngine {
             Matrix4f viewMatrix = camera.getGlobalTransform().inverse();
 
             for(AudioPlayer player : layer.getIndex().getAudioPlayers()) {
-                ALAudioSource alSource = (ALAudioSource)getServerAudioSourceOrNull(player.getSource());
+                ALAudioSource alSource = (ALAudioSource)getServerAudioSourceOrNull(player.internalGetSource());
                 if(alSource == null) continue;
                 ALAudioStream alStream = (ALAudioStream)getServerAudioStreamOrNull(player.getStream());
                 if(alStream == null) continue;
@@ -82,13 +82,14 @@ public class ALAudioEngine extends AudioEngine {
 
                 // Playback Control
 
-                if(!alSource.isPlaying() && player.popPlayCounter()) alSource.play();
-
-                if(player.popShouldReset() && alSource.isPlaying()) alSource.stop();
-
                 if(player.isPaused()) {
                     if(!alSource.isPaused()) alSource.pause();
-                } else if(alSource.isPaused()) alSource.play();
+                } else {
+                    if(player.isPlaying()) {
+                        if(!alSource.isPlaying()) alSource.play();
+                    } else alSource.stop();
+                }
+                player.setPlaying(alSource.isPlaying());
 
                 // Set Properties
 
@@ -97,10 +98,6 @@ public class ALAudioEngine extends AudioEngine {
                 alSource.setPitch(player.getPitch());
                 alSource.setAttenuationScale(player.getAttenuationScale());
                 alSource.setMinDistance(player.getMinDistance());
-
-                // Update Player State
-
-                player.setPlaying(alSource.isPlaying());
             }
         }
 

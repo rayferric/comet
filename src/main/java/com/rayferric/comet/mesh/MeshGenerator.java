@@ -1,4 +1,4 @@
-package com.rayferric.comet.geometry;
+package com.rayferric.comet.mesh;
 
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector3f;
@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class GeometryGenerator {
-    public static GeometryData genGraph(float[] values) {
+public class MeshGenerator {
+    public static MeshData genGraph(float[] values) {
         Face[] faces = new Face[Math.max(values.length - 1, 0)];
 
         for(int i = 0; i < values.length - 1; i++) {
@@ -34,9 +34,9 @@ public class GeometryGenerator {
         return index(triangulate(faces), true);
     }
 
-    public static GeometryData genText(String text, FontMetadata meta, HorizontalAlignment hAlign,
-                                       VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
-                                       float lineSpacing) {
+    public static MeshData genText(String text, FontMetadata meta, HorizontalAlignment hAlign,
+                                   VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
+                                   float lineSpacing) {
         String[] words;
         // Auto wrap doesn't support space series:
         if(autoWrap) words = text.split("\\s+");
@@ -120,7 +120,7 @@ public class GeometryGenerator {
         return index(triangulate(faces.toArray(new Face[0])), true);
     }
 
-    public static GeometryData genBox(Vector3f size, boolean shadeSmooth) {
+    public static MeshData genBox(Vector3f size, boolean shadeSmooth) {
         Vector3f s = size.mul(0.5F);
 
         Face[] faces = new Face[] {
@@ -166,7 +166,7 @@ public class GeometryGenerator {
         return index(triangulate(faces), shadeSmooth);
     }
 
-    public static GeometryData genPlane(Vector2f size) {
+    public static MeshData genPlane(Vector2f size) {
         Face face = buildRect(size.mul(-0.5F), size.mul(0.5F), new Vector2f(0), new Vector2f(1));
         return index(triangulate(new Face[] { face }), true);
     }
@@ -196,7 +196,7 @@ public class GeometryGenerator {
         return triangles.toArray(new Triangle[0]);
     }
 
-    private static GeometryData index(Triangle[] triangles, boolean shadeSmooth) {
+    private static MeshData index(Triangle[] triangles, boolean shadeSmooth) {
         // Create unpacked data by simply concatenating triangles' vertices:
 
         Vertex[] unpackedVertices = new Vertex[triangles.length * 3];
@@ -271,6 +271,6 @@ public class GeometryGenerator {
             System.arraycopy(tangent.toArray(), 0, vertices, i * vertexFloats + 8, 3);
         }
 
-        return new GeometryData(vertices, indices);
+        return new MeshData(vertices, indices);
     }
 }

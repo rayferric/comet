@@ -1,20 +1,17 @@
-package com.rayferric.comet.scenegraph.resource.video.geometry;
+package com.rayferric.comet.scenegraph.resource.video.mesh;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
-import com.rayferric.comet.geometry.GeometryGenerator;
-import com.rayferric.comet.math.Vector2f;
+import com.rayferric.comet.mesh.MeshData;
+import com.rayferric.comet.mesh.MeshGenerator;
 import com.rayferric.comet.text.FontMetadata;
 import com.rayferric.comet.text.HorizontalAlignment;
 import com.rayferric.comet.text.VerticalAlignment;
-import com.rayferric.comet.video.recipe.geometry.GeometryRecipe;
+import com.rayferric.comet.video.recipe.mesh.MeshRecipe;
 
-import java.util.concurrent.RejectedExecutionException;
-
-public class TextGeometry extends Geometry {
-    public TextGeometry(String text, FontMetadata meta, HorizontalAlignment hAlign,
-                        VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
-                        float lineSpacing) {
+public class TextMesh extends Mesh {
+    public TextMesh(String text, FontMetadata meta, HorizontalAlignment hAlign,
+                    VerticalAlignment vAlign, boolean autoWrap, float wrapSize, float charSpacing,
+                    float lineSpacing) {
         properties = new Properties();
         properties.text = text;
         properties.meta = meta;
@@ -34,12 +31,12 @@ public class TextGeometry extends Geometry {
 
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
-                GeometryData data = GeometryGenerator
+                MeshData data = MeshGenerator
                         .genText(properties.text, properties.meta, properties.hAlign, properties.vAlign,
                                 properties.autoWrap, properties.wrapSize, properties.charSpacing,
                                 properties.lineSpacing);
 
-                GeometryRecipe recipe = new GeometryRecipe(null, data);
+                MeshRecipe recipe = new MeshRecipe(null, data);
                 serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
 
                 finishLoading();

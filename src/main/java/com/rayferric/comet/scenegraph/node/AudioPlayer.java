@@ -27,35 +27,8 @@ public class AudioPlayer extends Node {
      *
      * @return the audio source of this player
      */
-    public AudioSource getSource() {
+    public AudioSource internalGetSource() {
         return source;
-    }
-
-    /**
-     * Internal method used by the audio engine.
-     *
-     * @return whether the player was to play a sound
-     */
-    public boolean popPlayCounter() {
-        return playCount.getAndUpdate(x -> x > 0 ? x - 1 : x) > 0;
-    }
-
-    /**
-     * Internal method used by the audio engine.
-     *
-     * @return whether the playback must be stopped
-     */
-    public boolean popShouldReset() {
-        return shouldReset.compareAndSet(true, false);
-    }
-
-    /**
-     * Internal method used by the audio engine.
-     *
-     * @param playing whether the player is currently playing
-     */
-    public void setPlaying(boolean playing) {
-        this.playing.set(playing);
     }
 
     // </editor-fold>
@@ -70,17 +43,12 @@ public class AudioPlayer extends Node {
 
     // <editor-fold desc="Playback Control">
 
-    public void play() {
-        playCount.getAndIncrement();
-    }
-
-    public void reset() {
-        playCount.set(0);
-        shouldReset.set(true);
-    }
-
     public boolean isPlaying() {
         return playing.get();
+    }
+
+    public void setPlaying(boolean playing) {
+        this.playing.set(playing);
     }
 
     public boolean isPaused() {
@@ -135,8 +103,6 @@ public class AudioPlayer extends Node {
 
     private final AudioSource source = new AudioSource();
     private final AtomicReference<AudioStream> stream = new AtomicReference<>(null);
-    private final AtomicInteger playCount = new AtomicInteger(0);
-    private final AtomicBoolean shouldReset = new AtomicBoolean(false);
     private final AtomicBoolean playing = new AtomicBoolean(false);
     private final AtomicBoolean paused = new AtomicBoolean(false);
     private final AtomicBoolean looping = new AtomicBoolean(false);

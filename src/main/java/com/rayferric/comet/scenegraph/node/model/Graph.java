@@ -1,10 +1,10 @@
 package com.rayferric.comet.scenegraph.node.model;
 
-import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.common.material.GraphMaterial;
 import com.rayferric.comet.scenegraph.common.material.Material;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
-import com.rayferric.comet.scenegraph.resource.video.geometry.GraphGeometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
+import com.rayferric.comet.scenegraph.resource.video.mesh.GraphMesh;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -13,15 +13,15 @@ public class Graph extends Model {
         setName("Graph");
         enableUpdate();
 
-        addMesh(new Mesh(null, new GraphMaterial()));
+        addSurface(new Surface(null, new GraphMaterial()));
     }
 
     public Material getMaterial() {
-        return getMesh(0).getMaterial();
+        return getSurface(0).getMaterial();
     }
 
     public void setMaterial(Material material) {
-       getMesh(0).setMaterial(material);
+       getSurface(0).setMaterial(material);
     }
 
     public float[] getValues() {
@@ -37,26 +37,26 @@ public class Graph extends Model {
     protected synchronized void update(double delta) {
         super.update(delta);
 
-        if(nextGeometry != null) {
-            if(!nextGeometry.isLoaded() || !nextGeometry.isServerResourceReady()) return;
+        if(nextMesh != null) {
+            if(!nextMesh.isLoaded() || !nextMesh.isServerResourceReady()) return;
 
-            Mesh mesh = getMesh(0);
-            Geometry oldGeometry = mesh.getGeometry();
-            mesh.setGeometry(nextGeometry);
-            nextGeometry = null;
-            if(oldGeometry != null) oldGeometry.unload();
+            Surface surface = getSurface(0);
+            Mesh oldMesh = surface.getMesh();
+            surface.setMesh(nextMesh);
+            nextMesh = null;
+            if(oldMesh != null) oldMesh.unload();
         }
 
         if(!needsUpdate) return;
 
-        nextGeometry = new GraphGeometry(getValues());
+        nextMesh = new GraphMesh(getValues());
 
         needsUpdate = false;
     }
 
     private final AtomicReference<float[]> values = new AtomicReference<>();
     private boolean needsUpdate = false;
-    private Geometry nextGeometry = null;
+    private Mesh nextMesh = null;
 
     private synchronized void requireUpdate() {
         needsUpdate = true;

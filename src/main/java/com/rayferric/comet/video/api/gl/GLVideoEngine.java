@@ -3,12 +3,12 @@ package com.rayferric.comet.video.api.gl;
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.engine.Layer;
 import com.rayferric.comet.engine.LayerIndex;
-import com.rayferric.comet.geometry.GeometryData;
-import com.rayferric.comet.geometry.GeometryGenerator;
+import com.rayferric.comet.mesh.MeshData;
+import com.rayferric.comet.mesh.MeshGenerator;
 import com.rayferric.comet.math.*;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.common.material.Material;
 import com.rayferric.comet.scenegraph.node.camera.Camera;
-import com.rayferric.comet.scenegraph.common.Mesh;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.server.ServerResource;
 import com.rayferric.comet.util.ResourceLoader;
@@ -17,7 +17,7 @@ import com.rayferric.comet.video.api.gl.buffer.GLUniformBuffer;
 import com.rayferric.comet.video.api.gl.query.GLTimerQuery;
 import com.rayferric.comet.video.util.VideoInfo;
 import com.rayferric.comet.video.util.texture.TextureFormat;
-import com.rayferric.comet.video.api.gl.geometry.GLGeometry;
+import com.rayferric.comet.video.api.gl.mesh.GLMesh;
 import com.rayferric.comet.video.api.gl.shader.GLBinaryShader;
 import com.rayferric.comet.video.api.gl.shader.GLShader;
 import com.rayferric.comet.video.api.gl.shader.GLSourceShader;
@@ -54,8 +54,8 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     @Override
-    public ServerResource createGeometry(GeometryData data) {
-        return new GLGeometry(data);
+    public ServerResource createMesh(MeshData data) {
+        return new GLMesh(data);
     }
 
     @Override
@@ -103,7 +103,7 @@ public class GLVideoEngine extends VideoEngine {
         gpuTimer = new GLTimerQuery();
         frameUBO = new GLUniformBuffer(FRAME_UBO_BYTES);
         modelUBO = new GLUniformBuffer(MODEL_UBO_BYTES);
-        drawQuad = new GLGeometry(GeometryGenerator.genPlane(new Vector2f(2)));
+        drawQuad = new GLMesh(MeshGenerator.genPlane(new Vector2f(2)));
         ByteBuffer depthShaderBinary = ResourceLoader.readBinaryFileToNativeBuffer(true, "shaders/depth.vert.spv");
         depthShader = new GLBinaryShader(depthShaderBinary, null);
         MemoryUtil.memFree(depthShaderBinary);
@@ -153,7 +153,7 @@ public class GLVideoEngine extends VideoEngine {
             LayerIndex layerIndex = layer.getIndex();
             List<Model> allModels = layerIndex.getModels();
             opaqueModels.clear();
-            translucentMeshes.clear();
+            translucentSurfaces.clear();
 
             // <editor-fold desc="Early Z-Pass + Translucency Sorting + Vertex Counting">
 
@@ -170,15 +170,15 @@ public class GLVideoEngine extends VideoEngine {
 
                 OpaqueModel opaqueModel = null;
 
-                List<Mesh> meshes = model.snapMeshes();
-                for(Mesh mesh : meshes) {
-                    Material material = mesh.getMaterial();
+                List<Surface> surfaces = model.snapSurfaces();
+                for(Surface surface : surfaces) {
+                    Material material = surface.getMaterial();
                     if(material == null) continue;
 
-                    GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
-                    if(glGeometry == null) continue;
+                    GLMesh glMesh = (GLMesh)getServerResourceOrNull(surface.getMesh());
+                    if(glMesh == null) continue;
 
-                    AABB aabb = glGeometry.getAabb().transform(modelMatrix);
+                    AABB aabb = glMesh.getAabb().transform(modelMatrix);
                     Vector3f meshOriginWorldSpace = aabb.getOrigin();
 
                     // World Space Frustum Culling
@@ -188,18 +188,18 @@ public class GLVideoEngine extends VideoEngine {
                     // We only want opaque geometry in the depth buffer.
                     // We also want to calculate distance to the camera to sort the translucency list later on.
                     if(material.isTranslucent()) {
-                        TranslucentMesh translucentMesh = new TranslucentMesh();
-                        translucentMesh.mesh = mesh;
-                        translucentMesh.modelMatrix = modelMatrix;
-                        translucentMesh.cameraDistance = viewMatrix.mul(meshOriginWorldSpace, 1).length();
-                        translucentMeshes.add(translucentMesh);
+                        TranslucentSurface translucentSurface = new TranslucentSurface();
+                        translucentSurface.surface = surface;
+                        translucentSurface.modelMatrix = modelMatrix;
+                        translucentSurface.cameraDistance = viewMatrix.mul(meshOriginWorldSpace, 1).length();
+                        translucentSurfaces.add(translucentSurface);
                         continue;
                     }
 
-                    // Identify opaque geometry just like we did with translucent meshes.
+                    // Identify opaque geometry just like we did with translucent surfaces.
                     if(opaqueModel == null)
-                        opaqueModels.add(opaqueModel = new OpaqueModel(meshes.size(), modelMatrix));
-                    opaqueModel.meshes.add(mesh);
+                        opaqueModels.add(opaqueModel = new OpaqueModel(surfaces.size(), modelMatrix));
+                    opaqueModel.surfaces.add(surface);
 
                     if(material.hasCulling())
                         glEnable(GL_CULL_FACE);
@@ -208,13 +208,13 @@ public class GLVideoEngine extends VideoEngine {
 
                     depthShader.bind();
 
-                    glGeometry.bind();
-                    glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
+                    glMesh.bind();
+                    glDrawElements(GL_TRIANGLES, glMesh.getIndexCount(), GL_UNSIGNED_INT, 0);
                 }
             }
 
             // Translucency must be drawn back-to-front.
-            translucentMeshes.sort(Collections.reverseOrder());
+            translucentSurfaces.sort(Collections.reverseOrder());
 
             // </editor-fold>
 
@@ -226,44 +226,44 @@ public class GLVideoEngine extends VideoEngine {
 
             for(OpaqueModel opaqueModel : opaqueModels) {
                 updateModelUBO(opaqueModel.modelMatrix);
-                for(Mesh mesh : opaqueModel.meshes) {
-                    Material material = mesh.getMaterial();
+                for(Surface surface : opaqueModel.surfaces) {
+                    Material material = surface.getMaterial();
                     if(material == null) continue; // The material could've been changed on another thread.
 
-                    // We already have the translucentMeshes list that holds all the translucent
-                    // meshes in the right order, therefore we can simply skip processing them here.
+                    // We already have the translucentSurfaces list that holds all the translucent
+                    // surfaces in the right order, therefore we can simply skip processing them here.
                     if(material.isTranslucent()) continue;
 
-                    GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(mesh.getGeometry());
-                    if(glGeometry == null) continue; // The geometry could've been changed on another thread too.
+                    GLMesh glMesh = (GLMesh)getServerResourceOrNull(surface.getMesh());
+                    if(glMesh == null) continue; // The mesh could've been changed on another thread too.
 
-                    // Here, the geometry could be frustum tested, but hiding individual
-                    // meshes of a mostly visible model is a waste of CPU time.
+                    // Here, the mesh could be frustum tested, but hiding individual
+                    // surfaces of a mostly visible model is a waste of CPU time.
 
                     if(!useMaterial(material)) continue;
 
-                    glGeometry.bind();
-                    totalVerticesDrawn += glGeometry.getVertexCount();
-                    totalIndicesDrawn += glGeometry.getIndexCount();
+                    glMesh.bind();
+                    totalVerticesDrawn += glMesh.getVertexCount();
+                    totalIndicesDrawn += glMesh.getIndexCount();
 
-                    glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
+                    glDrawElements(GL_TRIANGLES, glMesh.getIndexCount(), GL_UNSIGNED_INT, 0);
                 }
             }
 
-            for(TranslucentMesh translucentMesh : translucentMeshes) {
-                updateModelUBO(translucentMesh.modelMatrix);
+            for(TranslucentSurface translucentSurface : translucentSurfaces) {
+                updateModelUBO(translucentSurface.modelMatrix);
 
-                Material material = translucentMesh.mesh.getMaterial();
+                Material material = translucentSurface.surface.getMaterial();
                 if(material == null) continue;
                 if(!useMaterial(material)) continue;
 
-                GLGeometry glGeometry = (GLGeometry)getServerGeometryOrNull(translucentMesh.mesh.getGeometry());
-                if(glGeometry == null) continue;
-                glGeometry.bind();
-                totalVerticesDrawn += glGeometry.getVertexCount();
-                totalIndicesDrawn += glGeometry.getIndexCount();
+                GLMesh glMesh = (GLMesh)getServerResourceOrNull(translucentSurface.surface.getMesh());
+                if(glMesh == null) continue;
+                glMesh.bind();
+                totalVerticesDrawn += glMesh.getVertexCount();
+                totalIndicesDrawn += glMesh.getIndexCount();
 
-                glDrawElements(GL_TRIANGLES, glGeometry.getIndexCount(), GL_UNSIGNED_INT, 0);
+                glDrawElements(GL_TRIANGLES, glMesh.getIndexCount(), GL_UNSIGNED_INT, 0);
             }
 
             // </editor-fold>
@@ -315,22 +315,22 @@ public class GLVideoEngine extends VideoEngine {
     }
 
     private static class OpaqueModel {
-        public OpaqueModel(int numMeshes, Matrix4f modelMatrix) {
-            meshes = new ArrayList<>(numMeshes);
+        public OpaqueModel(int numSurfaces, Matrix4f modelMatrix) {
+            surfaces = new ArrayList<>(numSurfaces);
             this.modelMatrix = modelMatrix;
         }
 
-        public List<Mesh> meshes;
+        public List<Surface> surfaces;
         public Matrix4f modelMatrix;
     }
 
-    private static class TranslucentMesh implements Comparable<TranslucentMesh> {
-        public Mesh mesh;
+    private static class TranslucentSurface implements Comparable<TranslucentSurface> {
+        public Surface surface;
         public Matrix4f modelMatrix;
         public float cameraDistance;
 
         @Override
-        public int compareTo(TranslucentMesh other) {
+        public int compareTo(TranslucentSurface other) {
             return cameraDistance > other.cameraDistance ? 1 : -1;
         }
     }
@@ -341,10 +341,10 @@ public class GLVideoEngine extends VideoEngine {
     private GLTimerQuery gpuTimer;
     private GLUniformBuffer frameUBO;
     private GLUniformBuffer modelUBO;
-    private GLGeometry drawQuad;
+    private GLMesh drawQuad;
     private GLShader depthShader;
     List<OpaqueModel> opaqueModels = new ArrayList<>();
-    List<TranslucentMesh> translucentMeshes = new ArrayList<>();
+    List<TranslucentSurface> translucentSurfaces = new ArrayList<>();
 
     private void updateFrameUBO(Matrix4f projectionMatrix, Matrix4f viewMatrix) {
         try(MemoryStack stack = MemoryStack.stackPush()) {
@@ -370,12 +370,12 @@ public class GLVideoEngine extends VideoEngine {
         else
             glDisable(GL_CULL_FACE);
 
-        GLShader glShader = (GLShader)getServerShaderOrNull(material.getShader());
+        GLShader glShader = (GLShader)getServerResourceOrNull(material.getShader());
         if(glShader == null) return false;
         glShader.bind();
 
         GLUniformBuffer glUniformBuffer =
-                (GLUniformBuffer)getServerUniformBufferOrNull(material.getUniformBuffer());
+                (GLUniformBuffer)getServerResourceOrNull(material.getUniformBuffer());
         if(glUniformBuffer == null) return false;
         if(material.popNeedsUpdate() || glUniformBuffer.popJustCreated()) {
             try(MemoryStack stack = MemoryStack.stackPush()) {

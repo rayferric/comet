@@ -1,11 +1,11 @@
-package com.rayferric.comet.scenegraph.resource.video.geometry;
+package com.rayferric.comet.scenegraph.resource.video.mesh;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
-import com.rayferric.comet.video.recipe.geometry.GeometryRecipe;
+import com.rayferric.comet.mesh.MeshData;
+import com.rayferric.comet.video.recipe.mesh.MeshRecipe;
 
-public class ArrayGeometry extends Geometry {
-    public ArrayGeometry(GeometryData data) {
+public class ArrayMesh extends Mesh {
+    public ArrayMesh(MeshData data) {
         properties = new Properties();
         properties.data = data;
 
@@ -16,7 +16,7 @@ public class ArrayGeometry extends Geometry {
     public boolean load() {
         if(!super.load()) return false;
 
-        GeometryRecipe recipe = new GeometryRecipe(null, properties.data);
+        MeshRecipe recipe = new MeshRecipe(null, properties.data);
         serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
         finishLoading();
 
@@ -24,7 +24,7 @@ public class ArrayGeometry extends Geometry {
     }
 
     private static class Properties {
-        public GeometryData data;
+        public MeshData data;
     }
 
     private final Properties properties;

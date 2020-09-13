@@ -1,4 +1,4 @@
-package com.rayferric.comet.scenegraph.node;
+package com.rayferric.comet.scenegraph.node.physics;
 
 import com.rayferric.comet.engine.LayerIndex;
 import com.rayferric.comet.math.Vector3f;
@@ -11,10 +11,9 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PhysicsBody extends Node {
+public class PhysicsBody extends PhysicsObject {
     /**
      * Describes the method of applying the force.
      * • FORCE - continuous force, must be cleared using #clearForces()
@@ -61,146 +60,33 @@ public class PhysicsBody extends Node {
 
     public PhysicsBody() {
         setName("Physics Body");
-    }
-
-    @Override
-    public void indexAll(LayerIndex index) {
-        index.add(this);
-        super.indexAll(index);
+        resource = new PhysicsBodyResource(this);
     }
 
     // <editor-fold desc="Internal API">
 
-    /**
-     * Internal method used by the physics engine.
-     *
-     * @return whether the collider list was altered
-     */
-    public boolean colliderNeedsUpdate() {
-        return colliderNeedsUpdate.get();
-    }
-
-    /**
-     * Internal method used by the physics engine.
-     */
-    public void popColliderNeedsUpdate() {
-        colliderNeedsUpdate.set(false);
-    }
-
-    /**
-     * Internal method used by the physics engine.
-     */
-    public void updateLinearVelocity(Vector3f velocity) {
+    public void internalUpdateLinearVelocity(Vector3f velocity) {
         currentLinearVelocity.set(velocity);
     }
 
-    /**
-     * Internal method used by the physics engine.
-     *
-     * @return linear velocity to update to
-     */
-    public Vector3f popNextLinearVelocity() {
+    public Vector3f internalPopNextLinearVelocity() {
         return nextLinearVelocity.getAndSet(null);
     }
 
-    /**
-     * Internal method used by the physics engine.
-     */
-    public void updateAngularVelocity(Vector3f velocity) {
+    public void internalUpdateAngularVelocity(Vector3f velocity) {
         currentAngularVelocity.set(velocity);
     }
 
-    /**
-     * Internal method used by the physics engine.
-     *
-     * @return angular velocity to update to
-     */
-    public Vector3f popNextAngularVelocity() {
+    public Vector3f internalPopNextAngularVelocity() {
         return nextAngularVelocity.getAndSet(null);
     }
 
-    /**
-     * Internal method used by the physics engine.
-     *
-     * @return force to be applied or null
-     */
-    public Force popForce() {
+    public Force internalPopForce() {
         return forces.poll();
     }
 
-    /**
-     * Internal method used by the physics engine.
-     *
-     * @return whether the forces shall be cleared
-     */
-    public boolean popClearForces() {
+    public boolean internalPopClearForces() {
         return resetForces.getAndSet(false);
-    }
-
-    // </editor-fold>
-
-    // <editor-fold desc="Colliders">
-
-    public List<Collider> snapColliders() {
-        synchronized(colliders) {
-            return new ArrayList<>(colliders);
-        }
-    }
-
-    public Collider getCollider(int index) {
-        synchronized(colliders) {
-            return colliders.get(index);
-        }
-    }
-
-    public void addCollider(Collider collider) {
-        synchronized(colliders) {
-            colliders.add(collider);
-        }
-        colliderNeedsUpdate.set(true);
-    }
-
-    public void removeCollider(int index) {
-        synchronized(colliders) {
-            colliders.remove(index);
-        }
-        colliderNeedsUpdate.set(true);
-    }
-
-    // </editor-fold>
-
-    // <editor-fold desc="Layers and Masks">
-
-    public short getLayer() {
-        return (short)layer.get();
-    }
-
-    public boolean getLayerBit(int bit) {
-        return (layer.get() >> bit) > 0;
-    }
-
-    public void setLayer(short layer) {
-        this.layer.set(layer);
-    }
-
-    public void setLayerBit(int bit, boolean state) {
-        layer.updateAndGet((layer) -> layer ^ (((state ? -1 : 0) ^ layer) & (1 << bit)));
-    }
-
-    public short getMask() {
-        return (short)mask.get();
-    }
-
-    public boolean getMaskBit(int bit) {
-        return (mask.get() >> bit) > 0;
-    }
-
-    public void setMask(short mask) {
-        this.mask.set(mask);
-    }
-
-    public void setMaskBit(int bit, boolean state) {
-        mask.updateAndGet((mask) -> mask ^ (((state ? -1 : 0) ^ mask) & (1 << bit)));
     }
 
     // </editor-fold>
@@ -211,14 +97,6 @@ public class PhysicsBody extends Node {
 
     public void setKinematic(boolean kinematic) {
         this.kinematic.set(kinematic);
-    }
-
-    public boolean isGravityDisabled() {
-        return gravityDisabled.get();
-    }
-
-    public void setGravityDisabled(boolean disabled) {
-        this.gravityDisabled.set(disabled);
     }
 
     public float getMass() {
@@ -261,19 +139,11 @@ public class PhysicsBody extends Node {
         angularDrag.set(drag);
     }
 
-    public Vector3f getLinearFactor() {
-        return linearFac.get();
-    }
-
-    public void setLinearFactor(Vector3f factor) {
-        linearFac.set(factor);
-    }
-
-    public Vector3f getAngularFactor() {
+    public float getAngularFactor() {
         return angularFac.get();
     }
 
-    public void setAngularFactor(Vector3f factor) {
+    public void setAngularFactor(float factor) {
         angularFac.set(factor);
     }
 
@@ -309,24 +179,13 @@ public class PhysicsBody extends Node {
 
     // </editor-fold>
 
-    public PhysicsBodyResource getResource() {
-        return resource;
-    }
-
-    private final PhysicsBodyResource resource = new PhysicsBodyResource(this);
-    private final List<Collider> colliders = new ArrayList<>();
-    private final AtomicBoolean colliderNeedsUpdate = new AtomicBoolean(true);
-    private final AtomicInteger layer = new AtomicInteger(0b1);
-    private final AtomicInteger mask = new AtomicInteger(0b1);
     private final AtomicBoolean kinematic = new AtomicBoolean(false);
-    private final AtomicBoolean gravityDisabled = new AtomicBoolean(false);
     private final AtomicFloat mass = new AtomicFloat(1);
     private final AtomicFloat friction = new AtomicFloat(0.5F);
     private final AtomicFloat bounce = new AtomicFloat(0);
     private final AtomicFloat linearDrag = new AtomicFloat(0);
     private final AtomicFloat angularDrag = new AtomicFloat(0);
-    private final AtomicReference<Vector3f> linearFac = new AtomicReference<>(Vector3f.ONE);
-    private final AtomicReference<Vector3f> angularFac = new AtomicReference<>(Vector3f.ONE);
+    private final AtomicFloat angularFac = new AtomicFloat(1);
 
     private final AtomicReference<Vector3f> nextLinearVelocity = new AtomicReference<>(null);
     private final AtomicReference<Vector3f> currentLinearVelocity = new AtomicReference<>(Vector3f.ZERO);

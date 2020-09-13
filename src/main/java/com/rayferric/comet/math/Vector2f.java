@@ -99,6 +99,10 @@ public class Vector2f {
         return length == 0 ? new Vector2f(0) : this.div(length);
     }
 
+    public Vector2f reverse() {
+        return new Vector2f(-x, -y);
+    }
+
     public float getX() {
         return x;
     }

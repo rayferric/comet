@@ -1,4 +1,4 @@
-package com.rayferric.comet.geometry;
+package com.rayferric.comet.mesh;
 
 import java.util.Arrays;
 

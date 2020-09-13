@@ -1,9 +1,8 @@
-package com.rayferric.comet.video.api.gl.geometry;
+package com.rayferric.comet.video.api.gl.mesh;
 
-import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.mesh.MeshData;
 import com.rayferric.comet.math.AABB;
 import com.rayferric.comet.server.ServerResource;
-import org.lwjgl.system.MemoryStack;
 import org.lwjgl.system.MemoryUtil;
 
 import java.nio.FloatBuffer;
@@ -11,8 +10,8 @@ import java.nio.IntBuffer;
 
 import static org.lwjgl.opengl.GL45.*;
 
-public class GLGeometry implements ServerResource {
-    public GLGeometry(GeometryData data) {
+public class GLMesh implements ServerResource {
+    public GLMesh(MeshData data) {
         float[] vertices = data.getVertices();
         int[] indices = data.getIndices();
 

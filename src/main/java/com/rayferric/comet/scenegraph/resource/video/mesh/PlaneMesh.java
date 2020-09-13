@@ -1,17 +1,13 @@
-package com.rayferric.comet.scenegraph.resource.video.geometry;
+package com.rayferric.comet.scenegraph.resource.video.mesh;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
-import com.rayferric.comet.geometry.GeometryGenerator;
+import com.rayferric.comet.mesh.MeshData;
+import com.rayferric.comet.mesh.MeshGenerator;
 import com.rayferric.comet.math.Vector2f;
-import com.rayferric.comet.video.recipe.geometry.GeometryRecipe;
-import org.lwjgl.system.MemoryUtil;
+import com.rayferric.comet.video.recipe.mesh.MeshRecipe;
 
-import java.nio.FloatBuffer;
-import java.nio.IntBuffer;
-
-public class PlaneGeometry extends Geometry {
-    public PlaneGeometry(Vector2f size) {
+public class PlaneMesh extends Mesh {
+    public PlaneMesh(Vector2f size) {
         properties = new Properties();
         properties.size = size;
 
@@ -23,9 +19,9 @@ public class PlaneGeometry extends Geometry {
         if(!super.load()) return false;
 
         Engine.getInstance().getLoaderPool().execute(() -> {
-            GeometryData data = GeometryGenerator.genPlane(properties.size);
+            MeshData data = MeshGenerator.genPlane(properties.size);
 
-            GeometryRecipe recipe = new GeometryRecipe(null, data);
+            MeshRecipe recipe = new MeshRecipe(null, data);
             serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
 
             finishLoading();

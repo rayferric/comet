@@ -1,14 +1,14 @@
 package com.rayferric.comet.scenegraph.resource.scene;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
+import com.rayferric.comet.mesh.MeshData;
 import com.rayferric.comet.math.Matrix4f;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.common.material.Material;
-import com.rayferric.comet.scenegraph.common.Mesh;
 import com.rayferric.comet.scenegraph.node.model.Model;
 import com.rayferric.comet.scenegraph.node.Node;
-import com.rayferric.comet.scenegraph.resource.video.geometry.ArrayGeometry;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.ArrayMesh;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
 import org.lwjgl.PointerBuffer;
 import org.lwjgl.assimp.*;
 
@@ -36,9 +36,9 @@ public abstract class AssimpScene extends Scene {
 
                 PointerBuffer aiMeshes = aiScene.mMeshes();
                 if(aiMeshes == null)
-                    throw new RuntimeException("Failed to read scene geometry.\n" + properties.path);
+                    throw new RuntimeException("Failed to read scene meshes.\n" + properties.path);
 
-                geometries = new Geometry[numMeshes];
+                geometries = new Mesh[numMeshes];
                 for(int i = 0; i < numMeshes; i++) {
                     AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
                     geometries[i] = processAiMeshGeometry(aiMesh);
@@ -78,23 +78,23 @@ public abstract class AssimpScene extends Scene {
 
         PointerBuffer aiMeshes = aiScene.mMeshes();
         if(aiMeshes == null)
-            throw new RuntimeException("Failed to read scene meshes.\n" + properties.path);
+            throw new RuntimeException("Failed to read scene surfaces.\n" + properties.path);
 
-        Mesh[] meshes = new Mesh[numMeshes];
+        Surface[] surfaces = new Surface[numMeshes];
         for(int i = 0; i < numMeshes; i++) {
-            Geometry geometry = geometries[i];
+            Mesh mesh = geometries[i];
 
             AIMesh aiMesh = AIMesh.create(aiMeshes.get(i));
             Material material = materials[aiMesh.mMaterialIndex()];
 
-            meshes[i] = new Mesh(geometry, material);
+            surfaces[i] = new Surface(mesh, material);
         }
 
         AINode aiRoot = aiScene.mRootNode();
         if(aiRoot == null)
             throw new RuntimeException("Failed to fetch root node of the scene.\n" + properties.path);
 
-        Node root = processAiNode(aiRoot, meshes);
+        Node root = processAiNode(aiRoot, surfaces);
         root.initAll();
         return root;
     }
@@ -104,9 +104,9 @@ public abstract class AssimpScene extends Scene {
     protected abstract Material processAiMaterial(AIMaterial aiMaterial);
 
     private int numMaterials, numMeshes;
-    private Geometry[] geometries;
+    private Mesh[] geometries;
 
-    private Node processAiNode(AINode aiNode, Mesh[] meshes) {
+    private Node processAiNode(AINode aiNode, Surface[] surfaces) {
         Node node;
 
         IntBuffer aiMeshes = aiNode.mMeshes();
@@ -115,7 +115,7 @@ public abstract class AssimpScene extends Scene {
 
             int numMeshes = aiNode.mNumMeshes();
             for(int i = 0; i < numMeshes; i++)
-                model.addMesh(meshes[aiMeshes.get(i)]);
+                model.addSurface(surfaces[aiMeshes.get(i)]);
 
             node = model;
         } else
@@ -126,7 +126,7 @@ public abstract class AssimpScene extends Scene {
             int numChildren = aiNode.mNumChildren();
             for(int i = 0; i < numChildren; i++) {
                 AINode aiChild = AINode.create(aiChildren.get(i));
-                node.addChild(processAiNode(aiChild, meshes));
+                node.addChild(processAiNode(aiChild, surfaces));
             }
         }
 
@@ -143,7 +143,7 @@ public abstract class AssimpScene extends Scene {
         return node;
     }
 
-    private Geometry processAiMeshGeometry(AIMesh aiMesh) {
+    private Mesh processAiMeshGeometry(AIMesh aiMesh) {
         // Read vertices:
         AIVector3D.Buffer aiPositions = aiMesh.mVertices();
         AIVector3D.Buffer aiTexCoords = aiMesh.mTextureCoords(0);
@@ -195,6 +195,6 @@ public abstract class AssimpScene extends Scene {
         }
 
         // Create the mesh:
-        return new ArrayGeometry(new GeometryData(vertices, indices));
+        return new ArrayMesh(new MeshData(vertices, indices));
     }
 }

@@ -2,7 +2,8 @@ package com.rayferric.comet.physics;
 
 import com.rayferric.comet.engine.Engine;
 import com.rayferric.comet.math.Vector3f;
-import com.rayferric.comet.scenegraph.node.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.physics.Area;
+import com.rayferric.comet.scenegraph.node.physics.PhysicsBody;
 import com.rayferric.comet.scenegraph.resource.physics.PhysicsResource;
 import com.rayferric.comet.server.ServerResource;
 
@@ -21,11 +22,15 @@ public abstract class PhysicsEngine {
 
     public abstract ServerResource createBoxCollisionShape(Vector3f size);
 
-    public abstract ServerResource createSphereCollisionShape(float radius);
-
     public abstract ServerResource createCapsuleCollisionShape(float radius, float height);
 
+    public abstract ServerResource createCylinderCollisionShape(float radius, float height);
+
+    public abstract ServerResource createSphereCollisionShape(float radius);
+
     public abstract ServerResource createPhysicsBody(PhysicsBody owner);
+
+    public abstract ServerResource createArea(Area owner);
 
     // </editor-fold>
 

@@ -1,22 +1,22 @@
 package com.rayferric.comet.scenegraph.common;
 
 import com.rayferric.comet.scenegraph.common.material.Material;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-public class Mesh {
-    public Mesh(Geometry geometry, Material material) {
-        this.geometry.set(geometry);
+public class Surface {
+    public Surface(Mesh mesh, Material material) {
+        this.mesh.set(mesh);
         this.material.set(material);
     }
 
-    public Geometry getGeometry() {
-        return geometry.get();
+    public Mesh getMesh() {
+        return mesh.get();
     }
 
-    public void setGeometry(Geometry geometry) {
-        this.geometry.set(geometry);
+    public void setMesh(Mesh mesh) {
+        this.mesh.set(mesh);
     }
 
     public Material getMaterial() {
@@ -27,6 +27,6 @@ public class Mesh {
         this.material.set(material);
     }
 
-    private final AtomicReference<Geometry> geometry = new AtomicReference<>();
+    private final AtomicReference<Mesh> mesh = new AtomicReference<>();
     private final AtomicReference<Material> material = new AtomicReference<>();
 }

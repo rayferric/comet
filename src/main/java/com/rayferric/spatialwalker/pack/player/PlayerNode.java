@@ -7,11 +7,11 @@ import com.rayferric.comet.input.InputManager;
 import com.rayferric.comet.input.event.InputEvent;
 import com.rayferric.comet.input.event.KeyInputEvent;
 import com.rayferric.comet.math.*;
-import com.rayferric.comet.scenegraph.common.Collider;
+import com.rayferric.comet.scenegraph.node.AudioPlayer;
 import com.rayferric.comet.scenegraph.node.Node;
-import com.rayferric.comet.scenegraph.node.PhysicsBody;
-import com.rayferric.comet.scenegraph.node.RayCast;
-import com.rayferric.comet.scenegraph.resource.physics.shape.CapsuleCollisionShape;
+import com.rayferric.comet.scenegraph.node.physics.Area;
+import com.rayferric.comet.scenegraph.node.physics.PhysicsBody;
+import com.rayferric.comet.scenegraph.node.physics.RayCast;
 
 public class PlayerNode extends PhysicsBody {
     public PlayerNode() {
@@ -42,8 +42,10 @@ public class PlayerNode extends PhysicsBody {
     protected void init() {
         super.init();
 
-        cameraNode = getChild("Camera");
-        feetRay = (RayCast)getChild("Feet Ray");
+        cameraPitch = getChild("Camera Pitch");
+        cameraNode = cameraPitch.getChild("Camera");
+        feetArea = (Area)getChild("Feet Area");
+        footstepsAudioPlayer = (AudioPlayer)getChild("Footsteps Audio Player");
     }
 
     @Override
@@ -57,28 +59,47 @@ public class PlayerNode extends PhysicsBody {
         float inputLookPitch = inputManager.getTrackValue("Look Pitch");
         float inputMoveZ = inputManager.getTrackValue("Move Z");
         float inputMoveX = inputManager.getTrackValue("Move X");
+        boolean sprinting = inputManager.getActionState("Sprint");
 
         float pitchDelta = inputLookPitch * 0.1F;
         float yawDelta = inputLookYaw * 0.1F;
 
-        float pitch = cameraNode.getTransform().getRotation().toEuler().getX();
+        float pitch = cameraPitch.getTransform().getRotation().toEuler().getX();
         float yaw = getTransform().getRotation().toEuler().getY();
 
         pitch = Mathf.clamp(pitch + pitchDelta, -89, 89);
         yaw += yawDelta;
 
-        cameraNode.getTransform().setRotation(pitch, 0, 0);
+        cameraPitch.getTransform().setRotation(pitch, 0, 0);
         getTransform().setRotation(0, yaw, 0);
 
         Vector3f moveDir = new Vector3f(inputMoveX, 0, inputMoveZ).normalize();
         moveDir = Quaternion.axisAngle(Vector3f.UP, yaw).mul(moveDir);
 
-        applyForce(ForceType.ACCELERATION_IMPULSE, moveDir.mul((float)delta * 10));
+        Vector3f currentVelocity = getLinearVelocity().mul(new Vector3f(1, 0, 1));
+        Vector3f targetVelocity = moveDir.mul(sprinting ? MAX_SPEED * SPRINT_FACTOR : MAX_SPEED);
+        Vector3f deltaVelocity = targetVelocity.sub(currentVelocity);
+        Vector3f moveForce = deltaVelocity.mul((float)delta * ACCELERATION);
 
-        setGravityDisabled(feetRay.getCollisionBody() != null);
+        boolean onFloor = feetArea.getBodies().size() > 1;
 
-        if(inputManager.getActionJustPressed("Jump"))
-            applyForce(ForceType.ACCELERATION_IMPULSE, Vector3f.UP.mul(6F));
+        if(onFloor) {
+            applyForce(ForceType.ACCELERATION_IMPULSE, moveForce);
+
+
+            float shakeStrength = this.shakeStrength = Mathf.lerp(this.shakeStrength, targetVelocity.length() > 0.1F ? (sprinting ? SPRINT_FACTOR : 1) : 0, (float)delta * SHAKE_ATTENUATION);
+
+            shakeTime += (float)delta * shakeStrength;
+            float shakeX = Mathf.sin(shakeTime * 360 * SHAKE_SPEED) * SHAKE_WIDTH * shakeStrength;
+            float shakeY = Mathf.sin(shakeTime * 360 * (SHAKE_SPEED + 1)) * SHAKE_WIDTH * shakeStrength;
+            cameraNode.getTransform().setTranslation(shakeX, shakeY, 0);
+
+            if(inputManager.getActionJustPressed("Jump"))
+                applyForce(ForceType.ACCELERATION_IMPULSE, Vector3f.UP.mul(6F));
+        } else
+            applyForce(ForceType.ACCELERATION_IMPULSE, moveForce.mul(AIR_CONTROL));
+
+        footstepsAudioPlayer.setPlaying(onFloor && (inputMoveX != 0 || inputMoveZ != 0));
     }
 
     @Override
@@ -104,8 +125,20 @@ public class PlayerNode extends PhysicsBody {
         }
     }
 
+    private static final float MAX_SPEED = 4;
+    private static final float SPRINT_FACTOR = 1.5F;
+    private static final float ACCELERATION = 4;
+    private static final float SHAKE_ATTENUATION = 10;
+    private static final float AIR_CONTROL = 0.0625F;
+    private static final float SHAKE_SPEED = 1;
+    private static final float SHAKE_WIDTH = 0.025F;
+
+    private Node cameraPitch;
     private Node cameraNode;
-    private RayCast feetRay;
+    private Area feetArea;
+    private AudioPlayer footstepsAudioPlayer;
 
     private boolean focused = false;
+    private float shakeTime = 0;
+    private float shakeStrength = 0;
 }

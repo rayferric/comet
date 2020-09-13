@@ -1,11 +1,11 @@
 package com.rayferric.comet.scenegraph.node.model;
 
 import com.rayferric.comet.math.Vector4f;
-import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.common.material.FontMaterial;
 import com.rayferric.comet.scenegraph.resource.font.Font;
-import com.rayferric.comet.scenegraph.resource.video.geometry.Geometry;
-import com.rayferric.comet.scenegraph.resource.video.geometry.TextGeometry;
+import com.rayferric.comet.scenegraph.resource.video.mesh.Mesh;
+import com.rayferric.comet.scenegraph.resource.video.mesh.TextMesh;
 import com.rayferric.comet.text.HorizontalAlignment;
 import com.rayferric.comet.text.VerticalAlignment;
 import com.rayferric.comet.util.AtomicFloat;
@@ -18,11 +18,11 @@ public class Label extends Model {
         setName("Label");
         enableUpdate();
 
-        addMesh(new Mesh(null, new FontMaterial()));
+        addSurface(new Surface(null, new FontMaterial()));
     }
 
     public FontMaterial getMaterial() {
-        return (FontMaterial)getMesh(0).getMaterial();
+        return (FontMaterial)getSurface(0).getMaterial();
     }
 
     public String getText() {
@@ -133,14 +133,14 @@ public class Label extends Model {
     protected synchronized void update(double delta) {
         super.update(delta);
 
-        if(nextGeometry != null) {
-            if(!nextGeometry.isLoaded() || !nextGeometry.isServerResourceReady()) return;
+        if(nextMesh != null) {
+            if(!nextMesh.isLoaded() || !nextMesh.isServerResourceReady()) return;
 
-            Mesh mesh = getMesh(0);
-            Geometry oldGeometry = mesh.getGeometry();
-            mesh.setGeometry(nextGeometry);
-            nextGeometry = null;
-            if(oldGeometry != null) oldGeometry.unload();
+            Surface surface = getSurface(0);
+            Mesh oldMesh = surface.getMesh();
+            surface.setMesh(nextMesh);
+            nextMesh = null;
+            if(oldMesh != null) oldMesh.unload();
         }
 
         if(!needsUpdate) return;
@@ -149,14 +149,14 @@ public class Label extends Model {
         if(font == null || !font.isLoaded()) return;
 
         getMaterial().setAtlas(font.getAtlas());
-        nextGeometry = new TextGeometry(getText(), font.getMetadata(), getHAlign(), getVAlign(), getAutoWrap(), getWrapSize(),
+        nextMesh = new TextMesh(getText(), font.getMetadata(), getHAlign(), getVAlign(), getAutoWrap(), getWrapSize(),
                 getCharSpacing(), getLineSpacing());
 
         needsUpdate = false;
     }
 
     private boolean needsUpdate = true;
-    private Geometry nextGeometry = null;
+    private Mesh nextMesh = null;
     private final AtomicReference<String> text = new AtomicReference<>("");
     private final AtomicReference<Font> font = new AtomicReference<>(null);
     private final AtomicReference<HorizontalAlignment> hAlign = new AtomicReference<>(HorizontalAlignment.LEFT);

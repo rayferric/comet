@@ -1,4 +1,4 @@
-package com.rayferric.comet.geometry;
+package com.rayferric.comet.mesh;
 
 import com.rayferric.comet.math.Vector2f;
 import com.rayferric.comet.math.Vector3f;

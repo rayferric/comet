@@ -109,6 +109,10 @@ public class Vector4f {
         return length == 0 ? new Vector4f(0) : this.div(length);
     }
 
+    public Vector4f reverse() {
+        return new Vector4f(-x, -y, -z, -w);
+    }
+
     public float getX() {
         return x;
     }

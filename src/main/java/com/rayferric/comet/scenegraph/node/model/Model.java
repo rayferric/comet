@@ -1,7 +1,7 @@
 package com.rayferric.comet.scenegraph.node.model;
 
 import com.rayferric.comet.engine.LayerIndex;
-import com.rayferric.comet.scenegraph.common.Mesh;
+import com.rayferric.comet.scenegraph.common.Surface;
 import com.rayferric.comet.scenegraph.node.Node;
 
 import java.util.ArrayList;
@@ -18,21 +18,21 @@ public class Model extends Node {
         super.indexAll(index);
     }
 
-    public synchronized List<Mesh> snapMeshes() {
-        return new ArrayList<>(meshes);
+    public synchronized List<Surface> snapSurfaces() {
+        return new ArrayList<>(surfaces);
     }
 
-    public synchronized Mesh getMesh(int index) {
-        return meshes.get(index);
+    public synchronized Surface getSurface(int index) {
+        return surfaces.get(index);
     }
 
-    public synchronized void addMesh(Mesh mesh) {
-        meshes.add(mesh);
+    public synchronized void addSurface(Surface surface) {
+        surfaces.add(surface);
     }
 
-    public synchronized void removeMesh(int index) {
-        meshes.remove(index);
+    public synchronized void removeSurface(int index) {
+        surfaces.remove(index);
     }
 
-    private final List<Mesh> meshes = new ArrayList<>();
+    private final List<Surface> surfaces = new ArrayList<>();
 }

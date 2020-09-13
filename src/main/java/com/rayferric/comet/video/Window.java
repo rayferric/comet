@@ -30,15 +30,14 @@ public abstract class Window {
         } else if(cursorMode != GLFW_CURSOR_NORMAL)
             glfwSetInputMode(handle, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 
-        Vector2f newPos = getGlfwCursorPos();
-        Vector2f deltaPos = newPos.sub(lastCursorPos);
+        Vector2i newPos = getGlfwCursorPos();
+        Vector2i deltaPos = newPos.sub(lastCursorPos);
         lastCursorPos = newPos;
 
         InputManager inputManager = Engine.getInstance().getInputManager();
         if(inputManager.isMouseCentered()) {
-            Vector2i size = getFramebufferSize();
-            lastCursorPos = new Vector2f(size.getX(), size.getY()).mul(0.5F);
-            glfwSetCursorPos(handle, lastCursorPos.getX(), lastCursorPos.getY() + 0.4F);
+            lastCursorPos = getGlfwSize().div(2);
+            glfwSetCursorPos(handle, lastCursorPos.getX(), lastCursorPos.getY());
         } else lastCursorPos = newPos;
 
         inputManager.setAxisValue(InputAxis.MOUSE_X, deltaPos.getX());
@@ -409,7 +408,7 @@ public abstract class Window {
     private boolean fullscreen = false;
     private Monitor monitor = Monitor.getPrimary();
     private final Vector2i framebufferSizeCache = new Vector2i();
-    private Vector2f lastCursorPos = new Vector2f(0);
+    private Vector2i lastCursorPos = new Vector2i(0);
     private Vector2i nextWarpPos = null;
 
 
@@ -505,14 +504,14 @@ public abstract class Window {
         }
     }
 
-    private Vector2f getGlfwCursorPos() {
+    private Vector2i getGlfwCursorPos() {
         try(MemoryStack stack = MemoryStack.stackPush()) {
             final DoubleBuffer posX = stack.mallocDouble(1);
             final DoubleBuffer posY = stack.mallocDouble(1);
 
             glfwGetCursorPos(handle, posX, posY);
 
-            return new Vector2f(posX.get(0), posY.get(0));
+            return new Vector2i((int)posX.get(0), (int)posY.get(0));
         }
     }
 

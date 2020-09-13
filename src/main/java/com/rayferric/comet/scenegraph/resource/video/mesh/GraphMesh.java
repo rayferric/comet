@@ -1,12 +1,12 @@
-package com.rayferric.comet.scenegraph.resource.video.geometry;
+package com.rayferric.comet.scenegraph.resource.video.mesh;
 
 import com.rayferric.comet.engine.Engine;
-import com.rayferric.comet.geometry.GeometryData;
-import com.rayferric.comet.geometry.GeometryGenerator;
-import com.rayferric.comet.video.recipe.geometry.GeometryRecipe;
+import com.rayferric.comet.mesh.MeshData;
+import com.rayferric.comet.mesh.MeshGenerator;
+import com.rayferric.comet.video.recipe.mesh.MeshRecipe;
 
-public class GraphGeometry extends Geometry {
-    public GraphGeometry(float[] values) {
+public class GraphMesh extends Mesh {
+    public GraphMesh(float[] values) {
         properties = new Properties();
         properties.values = values;
 
@@ -19,8 +19,8 @@ public class GraphGeometry extends Geometry {
 
         Engine.getInstance().getLoaderPool().execute(() -> {
             try {
-                GeometryData data = GeometryGenerator.genGraph(properties.values);
-                GeometryRecipe recipe = new GeometryRecipe(null, data);
+                MeshData data = MeshGenerator.genGraph(properties.values);
+                MeshRecipe recipe = new MeshRecipe(null, data);
                 serverHandle.set(Engine.getInstance().getVideoServer().scheduleResourceCreation(recipe));
 
                 finishLoading();

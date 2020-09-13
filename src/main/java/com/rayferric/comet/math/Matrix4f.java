@@ -45,10 +45,10 @@ public class Matrix4f {
     }
 
     public Matrix4f(Matrix4f other) {
-        x = other.x;
-        y = other.y;
-        z = other.z;
-        w = other.w;
+        x = new Vector4f(other.x);
+        y = new Vector4f(other.y);
+        z = new Vector4f(other.z);
+        w = new Vector4f(other.w);
     }
 
     @Override
