@@ -3,8 +3,8 @@
 
 # Gradle
 /.gradle/
-/build/
-/lib/
+build/
+lib/
 
 # Large Assets
 /data/local/
