@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '6.0.0'
+}
+
+// Project Configuration
+
+group 'com.rayferric'
+version '1.0.0'
+
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'com.rayferric.comet.shapeconverter.Main'
+    }
+}
+
+compileJava.sourceCompatibility = JavaVersion.VERSION_14
+
+// Dependencies
+
+dependencies {
+    implementation platform("org.lwjgl:lwjgl-bom:3.2.3")
+
+    implementation 'org.lwjgl:lwjgl'
+    implementation 'org.lwjgl:lwjgl-assimp'
+
+    runtimeOnly 'org.lwjgl:lwjgl::natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-assimp::natives-windows'
+}
+
+// Tasks
+
+task copyDependencies(type: Copy) {
+    from configurations.runtimeClasspath
+    into 'lib'
+}
+
+task cleanDependencies(type: Delete) {
+    delete 'lib'
+}
+
+clean {
+    finalizedBy 'cleanDependencies'
+}

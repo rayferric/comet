@@ -1,0 +1,32 @@
+plugins {
+    id 'java'
+}
+
+// Project Configuration
+
+group 'com.rayferric'
+version '1.0.0'
+
+compileJava.sourceCompatibility = JavaVersion.VERSION_14
+
+// Dependencies
+
+dependencies {
+    implementation platform("org.lwjgl:lwjgl-bom:3.2.3")
+
+    implementation 'org.lwjgl:lwjgl'
+    implementation 'org.lwjgl:lwjgl-assimp'
+    implementation 'org.lwjgl:lwjgl-glfw'
+    implementation 'org.lwjgl:lwjgl-openal'
+    implementation 'org.lwjgl:lwjgl-opengl'
+    implementation 'org.lwjgl:lwjgl-stb'
+
+    runtimeOnly 'org.lwjgl:lwjgl::natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-assimp::natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-glfw::natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-openal::natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-opengl::natives-windows'
+    runtimeOnly 'org.lwjgl:lwjgl-stb::natives-windows'
+
+    implementation group: 'cz.advel.jbullet', name: 'jbullet', version: '20101010-1'
+}

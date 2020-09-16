@@ -1,2 +1,5 @@
 rootProject.name = 'comet'
 
+include 'comet-core'
+include 'comet-shape-converter'
+include 'spatial-walker'
