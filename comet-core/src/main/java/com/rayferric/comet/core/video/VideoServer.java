@@ -132,18 +132,13 @@ public class VideoServer extends Server {
     protected void onLoop() {
         videoEngine.update(getWindow().getFramebufferSize(), vSync.get());
 
-        Profiler profiler = Engine.getInstance().getProfiler();
-
-        double frameDelta = frameTimer.getElapsed();
-        frameTimer.reset();
-        profiler.getFrameAccumulator().accumulate(frameDelta);
-
-        double cpuDelta = cpuTimer.getElapsed();
         getWindow().swapBuffers();
-        cpuTimer.reset();
-        profiler.getCpuAccumulator().accumulate(cpuDelta);
 
         videoEngine.draw();
+
+        double cpuDelta = cpuTimer.getElapsed();
+        cpuTimer.reset();
+        Engine.getInstance().getProfiler().getCpuAccumulator().accumulate(cpuDelta);
     }
 
     @Override

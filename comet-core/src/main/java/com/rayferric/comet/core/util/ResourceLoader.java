@@ -24,6 +24,24 @@ public class ResourceLoader {
     }
 
     /**
+     * Reads binary data from resource to a byte buffer.<br>
+     *
+     * @param fromJar whether to search in a JAR file
+     * @param path    path to resource
+     *
+     * @return binary data
+     */
+    public static ByteBuffer readBinaryFile(boolean fromJar, String path) {
+        byte[] bytes = readFile(fromJar, path);
+
+        ByteBuffer buffer = ByteBuffer.allocate(bytes.length);
+        buffer.put(bytes);
+        buffer.flip();
+
+        return buffer;
+    }
+
+    /**
      * Reads binary data from resource to native buffer.<br>
      * • Native buffer must be manually freed using {@link MemoryUtil#memFree(Buffer)}.
      *
