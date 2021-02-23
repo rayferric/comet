@@ -75,45 +75,45 @@ public class Main {
                 physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(1000, 1, 1000)), Matrix4f.IDENTITY));
                 physicsBody.setMass(1000);
                 physicsBody.setKinematic(true);
-//                Model model = new Model();
-//                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 1, 32), false), new GLTFMaterial()));
-//                physicsBody.addChild(model);
+                Model model = new Model();
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 1, 32), false), new GLTFMaterial()));
+                physicsBody.addChild(model);
                 physicsBody.getTransform().setTranslation(0, -0.5F, 0);
                 mainLayer.getRoot().addChild(physicsBody);
             }
-//            {
-//                PhysicsBody physicsBody = new PhysicsBody();
-//                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 1, 32)), Matrix4f.IDENTITY));
-//                physicsBody.setMass(0);
-//                Model model = new Model();
-//                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 1, 32), false), new GLTFMaterial()));
-//                physicsBody.addChild(model);
-//                physicsBody.getTransform().setTranslation(30, 3, 0);
-//                physicsBody.getTransform().setRotation(0, 0, 15);
-//                mainLayer.getRoot().addChild(physicsBody);
-//            }
-//            {
-//                PhysicsBody physicsBody = new PhysicsBody();
-//                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(4, 1, 2)), Matrix4f.IDENTITY));
-//                physicsBody.setMass(0);
-//                Model model = new Model();
-//                model.addSurface(new Surface(new BoxMesh(new Vector3f(4, 1, 2), false), new GLTFMaterial()));
-//                physicsBody.addChild(model);
-//                physicsBody.getTransform().setTranslation(0, 0, 14);
-//                physicsBody.getTransform().setRotation(0, 0, -30);
-//                mainLayer.getRoot().addChild(physicsBody);
-//            }
-//            {
-//                PhysicsBody physicsBody = new PhysicsBody();
-//                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 2, 32)), Matrix4f.IDENTITY));
-//                physicsBody.setMass(0);
-//                Model model = new Model();
-//                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 2, 32), false), new GLTFMaterial()));
-//                physicsBody.addChild(model);
-//                physicsBody.getTransform().setTranslation(0, 14, -12);
-//                physicsBody.getTransform().setRotation(-90, 0, 0);
-//                mainLayer.getRoot().addChild(physicsBody);
-//            }
+            {
+                PhysicsBody physicsBody = new PhysicsBody();
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 1, 32)), Matrix4f.IDENTITY));
+                physicsBody.setMass(0);
+                Model model = new Model();
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 1, 32), false), new GLTFMaterial()));
+                physicsBody.addChild(model);
+                physicsBody.getTransform().setTranslation(30, 3, 0);
+                physicsBody.getTransform().setRotation(0, 0, 15);
+                mainLayer.getRoot().addChild(physicsBody);
+            }
+            {
+                PhysicsBody physicsBody = new PhysicsBody();
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(4, 1, 2)), Matrix4f.IDENTITY));
+                physicsBody.setMass(0);
+                Model model = new Model();
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(4, 1, 2), false), new GLTFMaterial()));
+                physicsBody.addChild(model);
+                physicsBody.getTransform().setTranslation(0, 0, 14);
+                physicsBody.getTransform().setRotation(0, 0, -30);
+                mainLayer.getRoot().addChild(physicsBody);
+            }
+            {
+                PhysicsBody physicsBody = new PhysicsBody();
+                physicsBody.addCollider(new Collider(new BoxCollisionShape(new Vector3f(32, 2, 32)), Matrix4f.IDENTITY));
+                physicsBody.setMass(0);
+                Model model = new Model();
+                model.addSurface(new Surface(new BoxMesh(new Vector3f(32, 2, 32), false), new GLTFMaterial()));
+                physicsBody.addChild(model);
+                physicsBody.getTransform().setTranslation(0, 14, -12);
+                physicsBody.getTransform().setRotation(-90, 0, 0);
+                mainLayer.getRoot().addChild(physicsBody);
+            }
             {
                 Collider collider = new Collider(new BoxCollisionShape(new Vector3f(1)), Matrix4f.IDENTITY);
                 Mesh mesh = new BoxMesh(new Vector3f(1), false);
@@ -174,29 +174,29 @@ public class Main {
                 mainLayer.getRoot().addChild(player);
             }
 
-            Scene scene1 = new GLTFScene("data/local/goldmine.glb");
+//            Scene scene1 = new GLTFScene("data/local/goldmine.glb");
 //            Scene scene2 = new GLTFScene("data/local/flight-helmet/FlightHelmet.gltf");
 
-            var ref = new Object() {
-                public boolean scene1Instantiated = false;
-//                public boolean scene2Instantiated = false;
-//                public float timeCounter = 0;
-            };
+//            var ref = new Object() {
+//                public boolean scene1Instantiated = false;
+////                public boolean scene2Instantiated = false;
+////                public float timeCounter = 0;
+//            };
 
-            ShapeLoader.load(false, "data/local/goldmine.col");
+            // ShapeLoader.load(false, "data/local/goldmine.col");
 
             engine.run((delta) -> {
                 if(engine.getVideoServer().getWindow().shouldClose())
                     engine.exit();
 
-                if(scene1.isLoaded() && !ref.scene1Instantiated) {
-                    ref.scene1Instantiated = true;
-                    Node modelRoot = scene1.instantiate();
-                    if(modelRoot instanceof Model)
-                        ((Model)modelRoot).getSurface(0).getMaterial().setCulling(false);
-                    mainLayer.getRoot().addChild(modelRoot);
-                    scene1.unload();
-                }
+//                if(scene1.isLoaded() && !ref.scene1Instantiated) {
+//                    ref.scene1Instantiated = true;
+//                    Node modelRoot = scene1.instantiate();
+//                    if(modelRoot instanceof Model)
+//                        ((Model)modelRoot).getSurface(0).getMaterial().setCulling(false);
+//                    mainLayer.getRoot().addChild(modelRoot);
+//                    scene1.unload();
+//                }
                 if(Engine.getInstance().getInputManager().getKeyJustReleased(InputKey.KEYBOARD_L)) {
                     if(audioPlayer.getStream() == audioStream)
                         audioPlayer.setStream(audioStream2);
