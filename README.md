@@ -1,6 +1,6 @@
 # Comet
 
-🌠 Young attempt of a 16 y/o at writing a general purpose game engine using LWJGL.
+🌠 Silly attempt of a 16 y/o at writing a general purpose game engine using LWJGL.
 The project will not likely build, and even if it manages to, most of the assets are missing.
 Everything is sunk down in synchronization hell and ugly thread-server infrastructure, and yet somehow, it magically works without dead-locks due to hectoliters of tears and sweat.
 I **DO NOT** advise anyone to build a game engine in this way, y'all should be better off using ECS with parallel execution of independent systems/jobs.
