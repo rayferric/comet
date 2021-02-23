@@ -13,11 +13,11 @@ And also, I simply want to archive something that I spent really quite a lot of 
 ## Stuff That Works
 
 - Hot-Swapping Graphics APIs is (in Theory) Possible Using This Quirky Design
-- Runtime-Reloading Resources
+- Runtime Resource Reload
 - Vector Math Library and Basic Matrix Decomposition + Frustum Culling
 - JBullet Physics Engine (If You Skip The Previously Mentioned Server Related Mess)
 - Naive OpenAL Audio Engine (Also a Server...)
-- Simple OpenGL 4.5 Renderer With Support for Layers, Graphs, Distance Field Fonts, GLTF Imports.
+- Simple OpenGL 4.5 Renderer With Support for Layers, Graphs, Distance Field Fonts, GLTF Imports
 - A Nice and Working Load Profiler Similar to The One Present in id Tech 6
 
 ## Screenshots
@@ -29,4 +29,4 @@ And also, I simply want to archive something that I spent really quite a lot of 
 ![](docs/screenshot_3.png)
 
 ## License
-You are free to do basically anything you want with this code. See the **[LICENSE](LICENSE)** file for details.
+You are free to do anything you want with this MIT-licensed abomination. See the **[LICENSE](LICENSE)** file for details.
